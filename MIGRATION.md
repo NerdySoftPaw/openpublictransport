@@ -1,9 +1,9 @@
 # Migration Guide
 
-## Migration: `vrr` to `openpublictransport` (Latest)
+## Migration: `vrr` → `openpublictransport` (v2026.04.08)
 
-> **Note:** This section applies when upgrading from versions that used the `vrr` domain to the new `openpublictransport` domain.
-> If you're installing fresh, you can skip this guide entirely.
+> **⚠️ BREAKING CHANGE** — Version `2026.04.08` renames the integration from `vrr` to `openpublictransport`.
+> All entity IDs, services, and the component folder change. Existing users must re-configure.
 
 ### What Changed
 
@@ -12,34 +12,41 @@
 | **Repository** | `NerdySoftPaw/hacs-publictransport` | `NerdySoftPaw/openpublictransport` |
 | **Domain** | `vrr` | `openpublictransport` |
 | **Entity IDs** | `sensor.vrr_*` | `sensor.openpublictransport_*` |
+| **Binary Sensors** | `binary_sensor.vrr_*` | `binary_sensor.openpublictransport_*` |
 | **Services** | `vrr.refresh_departures` | `openpublictransport.refresh_departures` |
 | **Component folder** | `custom_components/vrr/` | `custom_components/openpublictransport/` |
 
 ### Migration Steps
 
-#### Step 1: Update HACS Repository
+#### Step 1: Remove the Old Integration
+
+1. Go to **Settings** > **Devices & Services**
+2. Find the old **VRR** / **Public Transport Departures** integration
+3. Delete all config entries
+4. If installed via HACS: remove the old repository from HACS
+
+#### Step 2: Remove Old Files
+
+Delete the old component folder: `custom_components/vrr/`
+
+#### Step 3: Install the New Version
 
 1. Open **HACS** > **Integrations**
-2. Remove the old `hacs-publictransport` custom repository
-3. Add the new repository URL:
-   ```
-   https://github.com/NerdySoftPaw/openpublictransport
-   ```
-4. Select type: **Integration**
-5. Click **ADD** and download the integration
+2. Search for **Public Transport Departures**
+3. Install the `openpublictransport` integration
+4. Restart Home Assistant
 
-#### Step 2: Update the Component Folder
+#### Step 4: Re-configure Your Stops
 
-1. Remove the old folder: `custom_components/vrr/`
-2. The new integration will be installed to: `custom_components/openpublictransport/`
+1. Go to **Settings** > **Devices & Services**
+2. Click **+ Add Integration**
+3. Search for **Public Transport Departures**
+4. Follow the setup wizard to add your stops again
 
-#### Step 3: Update Dashboards
+#### Step 5: Update Dashboards
 
 Update all entity references in your Lovelace dashboards:
 
-- `sensor.vrr_*` becomes `sensor.openpublictransport_*`
-
-For example:
 ```yaml
 # Old
 entity: sensor.vrr_dusseldorf_hauptbahnhof
@@ -48,9 +55,15 @@ entity: sensor.vrr_dusseldorf_hauptbahnhof
 entity: sensor.openpublictransport_dusseldorf_hauptbahnhof
 ```
 
-#### Step 4: Update Automations
+```yaml
+# Old
+entity: binary_sensor.vrr_dusseldorf_hauptbahnhof_delays
 
-Update all automations that reference old entity IDs or services:
+# New
+entity: binary_sensor.openpublictransport_dusseldorf_hauptbahnhof_delays
+```
+
+#### Step 6: Update Automations
 
 ```yaml
 # Old
@@ -64,7 +77,7 @@ data:
   entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
 ```
 
-#### Step 5: Update Debug Logging (if configured)
+#### Step 7: Update Debug Logging (if configured)
 
 ```yaml
 # Old
@@ -78,22 +91,18 @@ logger:
     custom_components.openpublictransport: debug
 ```
 
-#### Step 6: Restart Home Assistant
+#### Step 8: Restart Home Assistant
 
 1. Go to **Settings** > **System** > **Restart**
-2. Wait for Home Assistant to restart
-3. Verify your sensors are working under the new entity IDs
+2. Verify your sensors are working under the new entity IDs
+
+> **Note:** Entity history from the old `sensor.vrr_*` entities will not carry over. This is a limitation of Home Assistant when entity IDs change.
 
 ---
 
-## Migration: `VRRAPI-HACS` to `hacs-publictransport` (Legacy)
+## Migration: `VRRAPI-HACS` → `openpublictransport` (Legacy)
 
-> **Note:** This section is only relevant when upgrading from version `2026.01.22` or earlier to version `2026.01.23` and higher.
-> If you migrated previously, you can skip this section.
-
-### Repository Change
-
-The integration moved from the original repository:
+> **Note:** This section is only relevant if upgrading from the original `VRRAPI-HACS` repository (version `2026.01.22` or earlier).
 
 | | Old | New |
 |--|-----|-----|
@@ -101,84 +110,17 @@ The integration moved from the original repository:
 | **Providers** | VRR only | VRR, KVV, HVV, Trafiklab, NTA |
 | **Status** | ⚠️ Deprecated | ✅ Active Development |
 
----
+### Steps
 
-## Migration Steps
-
-Your existing configuration will be **automatically migrated**. Just follow these simple steps:
-
-### Step 1: Add the New Repository
-
-1. Open **HACS** → **Integrations**
-2. Click the three dots (⋮) in the top right corner
-3. Select **Custom repositories**
-4. Add the URL:
-   ```
-   https://github.com/NerdySoftPaw/openpublictransport
-   ```
-5. Select type: **Integration**
-6. Click **ADD**
-
-### Step 2: Download the New Version
-
-1. Search for "Public Transport" in HACS
-2. Click on **Public Transport Departures**
-3. Click **Download**
-
-### Step 3: Remove the Old Repository (Optional)
-
-1. In HACS, find the old "VRR" entry from VRRAPI-HACS
-2. Click the three dots (⋮) > **Remove**
-
-### Step 4: Restart Home Assistant
-
-1. Go to **Settings** → **System** → **Restart**
-2. Wait for Home Assistant to restart
-
-### Step 5: Done! ✅
-
-Your existing sensors, configuration, and historical data are automatically preserved.
+1. Remove the old VRRAPI-HACS entry from HACS
+2. Add the new repository: `https://github.com/NerdySoftPaw/openpublictransport`
+3. Download the integration
+4. Restart Home Assistant
+5. Then follow the **vrr → openpublictransport** migration above
 
 ---
 
-## What Gets Migrated
-
-| Item | Status |
-|------|--------|
-| Sensor configuration | ✅ Preserved |
-| Entity IDs | ✅ Unchanged |
-| Historical data | ✅ Preserved |
-| Automations using VRR entities | ✅ Continue working |
-| Dashboard cards | ✅ Continue working |
-
----
-
-## New Features After Migration
-
-After migrating to version `2026.01.23` or higher, you'll have access to:
-
-- 🇮🇪 **NTA Ireland** - New provider for Irish public transport
-- 🧠 **Fuzzy Search** - Find stops even with typos
-- ⚡ **Better Performance** - 20-30% faster updates
-- 📦 **API Caching** - Reduced API calls
-
----
-
-## Troubleshooting
-
-### Integration not showing after restart?
-
-1. Check if the custom component folder exists: `/config/custom_components/openpublictransport/`
-2. Check Home Assistant logs for errors
-3. Try clearing browser cache and refreshing
-
-### HACS shows old version?
-
-1. Make sure you added the new repository URL
-2. Remove the old VRRAPI-HACS entry from HACS
-3. Download from the new openpublictransport repository
-
-### Need Help?
+## Need Help?
 
 - 📖 [Documentation](https://docs.openpublictransport.net/)
 - 🐛 [Report an Issue](https://github.com/NerdySoftPaw/openpublictransport/issues)

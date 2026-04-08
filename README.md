@@ -585,7 +585,7 @@ NTA (National Transport Authority, Ireland) is now supported!
 
 ## Changelog
 
-### Version 5.0.0 - Rebranding & HACS Default Store
+### Version 2026.04.08 - Rebranding & HACS Default Store
 
 > **⚠️ BREAKING CHANGE** — This release renames the integration from `vrr` to `openpublictransport`. Existing users must re-install and re-configure.
 

@@ -1,4 +1,4 @@
-"""Tests for VRR sensor platform."""
+"""Tests for OpenPublicTransport sensor platform."""
 
 from unittest.mock import MagicMock, patch
 
@@ -7,13 +7,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util import dt as dt_util
 
-from custom_components.vrr.const import API_RATE_LIMIT_PER_DAY, DOMAIN, PROVIDER_VRR
-from custom_components.vrr.sensor import MultiProviderSensor, VRRDataUpdateCoordinator, async_setup_entry
+from custom_components.openpublictransport.const import API_RATE_LIMIT_PER_DAY, DOMAIN, PROVIDER_VRR
+from custom_components.openpublictransport.sensor import MultiProviderSensor, PublicTransportDataUpdateCoordinator, async_setup_entry
 
 
 async def test_coordinator_update(hass: HomeAssistant, mock_api_response):
     """Test coordinator data update."""
-    coordinator = VRRDataUpdateCoordinator(
+    coordinator = PublicTransportDataUpdateCoordinator(
         hass,
         provider=PROVIDER_VRR,
         place_dm="Düsseldorf",
@@ -32,7 +32,7 @@ async def test_coordinator_update(hass: HomeAssistant, mock_api_response):
 
 async def test_coordinator_rate_limit(hass: HomeAssistant):
     """Test rate limiting in coordinator."""
-    coordinator = VRRDataUpdateCoordinator(
+    coordinator = PublicTransportDataUpdateCoordinator(
         hass,
         provider=PROVIDER_VRR,
         place_dm="Düsseldorf",
@@ -58,7 +58,7 @@ async def test_coordinator_rate_limit(hass: HomeAssistant):
 
 async def test_coordinator_api_error(hass: HomeAssistant):
     """Test coordinator handling API errors."""
-    coordinator = VRRDataUpdateCoordinator(
+    coordinator = PublicTransportDataUpdateCoordinator(
         hass,
         provider=PROVIDER_VRR,
         place_dm="Düsseldorf",
@@ -76,7 +76,7 @@ async def test_coordinator_api_error(hass: HomeAssistant):
 async def test_sensor_state(hass: HomeAssistant, mock_coordinator, mock_config_entry):
     """Test sensor state updates."""
     # Test with provider instance
-    from custom_components.vrr.providers import get_provider
+    from custom_components.openpublictransport.providers import get_provider
 
     mock_coordinator.provider_instance = get_provider(PROVIDER_VRR, hass)
     sensor = MultiProviderSensor(
@@ -86,7 +86,7 @@ async def test_sensor_state(hass: HomeAssistant, mock_coordinator, mock_config_e
     )
 
     # Mock datetime to have consistent time
-    with patch("custom_components.vrr.sensor.dt_util.now") as mock_now:
+    with patch("custom_components.openpublictransport.sensor.dt_util.now") as mock_now:
         mock_now.return_value = dt_util.parse_datetime("2025-01-15T09:55:00Z")
 
         # Call _process_departure_data directly instead of _handle_coordinator_update
@@ -138,7 +138,7 @@ async def test_sensor_no_departures(hass: HomeAssistant, mock_config_entry):
     coordinator.departures_limit = 10
 
     # Test with provider instance
-    from custom_components.vrr.providers import get_provider
+    from custom_components.openpublictransport.providers import get_provider
 
     coordinator.provider_instance = get_provider(PROVIDER_VRR, hass)
 
@@ -165,11 +165,11 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry, mock_ap
 
     with (
         patch(
-            "custom_components.vrr.sensor.VRRDataUpdateCoordinator._fetch_departures",
+            "custom_components.openpublictransport.sensor.PublicTransportDataUpdateCoordinator._fetch_departures",
             return_value=mock_api_response,
         ),
         patch(
-            "custom_components.vrr.sensor.VRRDataUpdateCoordinator.async_config_entry_first_refresh",
+            "custom_components.openpublictransport.sensor.PublicTransportDataUpdateCoordinator.async_config_entry_first_refresh",
         ),
     ):
         entities = []
@@ -223,14 +223,14 @@ async def test_sensor_transportation_type_filtering(hass: HomeAssistant, mock_co
     coordinator.departures_limit = 10
 
     # Test with provider instance
-    from custom_components.vrr.providers import get_provider
+    from custom_components.openpublictransport.providers import get_provider
 
     coordinator.provider_instance = get_provider(PROVIDER_VRR, hass)
 
     # Only allow trams
     sensor = MultiProviderSensor(coordinator, mock_config_entry, ["tram"])
 
-    with patch("custom_components.vrr.sensor.dt_util.now") as mock_now:
+    with patch("custom_components.openpublictransport.sensor.dt_util.now") as mock_now:
         mock_now.return_value = dt_util.parse_datetime("2025-01-15T09:55:00Z")
         # Call _process_departure_data directly to avoid needing hass
         sensor._process_departure_data(coordinator.data)

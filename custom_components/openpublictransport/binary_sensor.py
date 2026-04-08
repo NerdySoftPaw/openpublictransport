@@ -1,4 +1,4 @@
-"""Binary sensor platform for VRR integration."""
+"""Binary sensor platform for Open Public Transport integration."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ from .const import (
     TRANSPORTATION_TYPES,
 )
 from .data_models import UnifiedDeparture
-from .sensor import VRRDataUpdateCoordinator
+from .sensor import PublicTransportDataUpdateCoordinator
 
 
 async def async_setup_entry(
@@ -31,7 +31,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up VRR binary sensor from a config entry."""
+    """Set up binary sensor from a config entry."""
     # Get coordinator from sensor setup
     # We need to get it from hass.data
     coordinator_key = f"{config_entry.entry_id}_coordinator"
@@ -44,17 +44,17 @@ async def async_setup_entry(
         CONF_TRANSPORTATION_TYPES, config_entry.data.get(CONF_TRANSPORTATION_TYPES, list(TRANSPORTATION_TYPES.keys()))
     )
 
-    async_add_entities([VRRDelayBinarySensor(coordinator, config_entry, transportation_types)])
+    async_add_entities([PublicTransportDelayBinarySensor(coordinator, config_entry, transportation_types)])
 
 
-class VRRDelayBinarySensor(CoordinatorEntity, BinarySensorEntity):
-    """Binary sensor for VRR delays."""
+class PublicTransportDelayBinarySensor(CoordinatorEntity, BinarySensorEntity):
+    """Binary sensor for public transport delays."""
 
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
 
     def __init__(
         self,
-        coordinator: VRRDataUpdateCoordinator,
+        coordinator: PublicTransportDataUpdateCoordinator,
         config_entry: ConfigEntry,
         transportation_types: list[str],
     ):

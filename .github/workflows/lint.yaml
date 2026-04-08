@@ -29,19 +29,19 @@ jobs:
 
       - name: Run Black (Code Formatting Check)
         run: |
-          black --check custom_components/vrr/
+          black --check custom_components/openpublictransport/
 
       - name: Run isort (Import Sorting Check)
         run: |
-          isort --check-only custom_components/vrr/
+          isort --check-only custom_components/openpublictransport/
 
       - name: Run Flake8 (Linting)
         run: |
-          flake8 custom_components/vrr/ --max-line-length=120 --ignore=E501,W503,E203
+          flake8 custom_components/openpublictransport/ --max-line-length=120 --ignore=E501,W503,E203
 
       - name: Run mypy (Type Checking)
         run: |
-          mypy custom_components/vrr/ --ignore-missing-imports
+          mypy custom_components/openpublictransport/ --ignore-missing-imports
         continue-on-error: true
 
   hassfest:

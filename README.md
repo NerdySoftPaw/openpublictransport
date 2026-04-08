@@ -4,19 +4,19 @@
 [![GitHub Activity][commits-shield]][commits]
 [![License][license-shield]](LICENSE)
 [![HACS][hacsbadge]][hacs]
-[![Documentation](https://img.shields.io/badge/docs-readthedocs-blue.svg?style=for-the-badge)](https://hacs-publictransport.readthedocs.io/)
+[![Documentation](https://img.shields.io/badge/docs-openpublictransport.net-blue.svg?style=for-the-badge)](https://docs.openpublictransport.net/)
 
 ![Project Maintenance][maintenance-shield]
-[![HACS Validation](https://github.com/NerdySoftPaw/hacs-publictransport/actions/workflows/hacs.yaml/badge.svg)](https://github.com/NerdySoftPaw/hacs-publictransport/actions/workflows/hacs.yaml)
-[![Code Quality](https://github.com/NerdySoftPaw/hacs-publictransport/actions/workflows/lint.yaml/badge.svg)](https://github.com/NerdySoftPaw/hacs-publictransport/actions/workflows/lint.yaml)
-[![Tests](https://github.com/NerdySoftPaw/hacs-publictransport/actions/workflows/tests.yaml/badge.svg)](https://github.com/NerdySoftPaw/hacs-publictransport/actions/workflows/tests.yaml)
+[![HACS Validation](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/hacs.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/hacs.yaml)
+[![Code Quality](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml)
+[![Tests](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml)
 
 > **📢 This is the official active repository!**
 > 
-> This repository (`hacs-publictransport`) is the successor to `VRRAPI-HACS` and is under active development.
+> This repository (`openpublictransport`) is the successor to `VRRAPI-HACS` and is under active development.
 > For migration instructions, see [MIGRATION.md](MIGRATION.md).
 > 
-> 📖 **Full Documentation**: [hacs-publictransport.readthedocs.io](https://hacs-publictransport.readthedocs.io/)
+> 📖 **Full Documentation**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
 A Home Assistant integration for the public transport networks VRR (Verkehrsverbund Rhein-Ruhr), KVV (Karlsruher Verkehrsverbund), HVV (Hochbahn), Trafiklab (Sweden) and NTA (National Transport Authority, Ireland). This integration provides real-time departure information for public transport in NRW, Karlsruhe, Hamburg, Sweden and Ireland.
 
@@ -57,7 +57,7 @@ A Home Assistant integration for the public transport networks VRR (Verkehrsverb
 1. Open HACS in Home Assistant
 2. Go to "Integrations"
 3. Click the three dots in the top right and select "Custom repositories"
-4. Add this repository URL: `https://github.com/nerdysoftpaw/hacs-publictransport`
+4. Add this repository URL: `https://github.com/NerdySoftPaw/openpublictransport`
 5. Select "Integration" as category
 6. Click "Add"
 7. Search for "Public" and install the integration
@@ -65,7 +65,7 @@ A Home Assistant integration for the public transport networks VRR (Verkehrsverb
 
 ### Manual Installation
 
-1. Copy the `custom_components/public_transport_de` folder to your `custom_components` directory
+1. Copy the `custom_components/openpublictransport` folder to your `custom_components` directory
 2. Restart Home Assistant
 
 ## Configuration
@@ -96,7 +96,7 @@ The integration uses an **intuitive multi-step setup wizard** with autocomplete 
 
 1. Go to **Settings** > **Devices & Services**
 2. Click **+ Add Integration**
-3. Search for "VRR" or "Public Transport Departures"
+3. Search for "Public Transport Departures"
 4. Follow the setup wizard
 
 ### Trafiklab API Key
@@ -143,7 +143,7 @@ For the NTA provider (Ireland), you need a free API key:
 After installation, add the integration via UI:
 1. Go to Settings > Devices & Services
 2. Click "+ Add Integration"
-3. Search for "VRR" or "Public Transport Departures"
+3. Search for "Public Transport Departures"
 4. Follow the setup wizard
 
 ## Lovelace Dashboard Examples
@@ -154,15 +154,15 @@ After installation, add the integration via UI:
 type: entities
 title: Düsseldorf Hauptbahnhof
 entities:
-  - entity: sensor.vrr_dusseldorf_hauptbahnhof
+  - entity: sensor.openpublictransport_dusseldorf_hauptbahnhof
     name: Nächste Abfahrt
   - type: attribute
-    entity: sensor.vrr_dusseldorf_hauptbahnhof
+    entity: sensor.openpublictransport_dusseldorf_hauptbahnhof
     attribute: next_departure_minutes
     name: In Minuten
     suffix: min
   - type: attribute
-    entity: sensor.vrr_dusseldorf_hauptbahnhof
+    entity: sensor.openpublictransport_dusseldorf_hauptbahnhof
     attribute: total_departures
     name: Verfügbare Verbindungen
 ```
@@ -173,7 +173,7 @@ entities:
 type: markdown
 title: Abfahrten - Hauptbahnhof
 content: >
-  {% set departures = state_attr('sensor.vrr_dusseldorf_hauptbahnhof',
+  {% set departures = state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof',
   'departures') %}
 
   {% if departures %}
@@ -196,9 +196,9 @@ name: Abfahrten aktualisieren
 icon: mdi:refresh
 tap_action:
   action: call-service
-  service: vrr.refresh_departures
+  service: openpublictransport.refresh_departures
   service_data:
-    entity_id: sensor.vrr_dusseldorf_hauptbahnhof
+    entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
 ```
 
 ### 4. Multiple Departures with Auto-Entities (requires custom:auto-entities)
@@ -210,7 +210,7 @@ card:
   title: Alle Abfahrten
 filter:
   template: >
-    {% set departures = state_attr('sensor.vrr_dusseldorf_hauptbahnhof',
+    {% set departures = state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof',
     'departures') %}
 
     {% for departure in departures %}
@@ -235,13 +235,13 @@ template:
   - sensor:
       - name: "Next Train Minutes"
         state: >
-          {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'next_departure_minutes') }}
+          {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'next_departure_minutes') }}
         unit_of_measurement: "min"
         icon: mdi:clock-outline
 
       - name: "Next Train Line"
         state: >
-          {% set departures = state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'departures') %}
+          {% set departures = state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'departures') %}
           {% if departures and departures|length > 0 %}
             {{ departures[0].line }}
           {% else %}
@@ -274,29 +274,29 @@ cards:
   - type: markdown
     title: 🚉 Düsseldorf Hauptbahnhof
     content: >
-      Nächste Abfahrt: **{{ states('sensor.vrr_dusseldorf_hauptbahnhof') }}**
+      Nächste Abfahrt: **{{ states('sensor.openpublictransport_dusseldorf_hauptbahnhof') }}**
 
-      In {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'next_departure_minutes') }} Minuten
+      In {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'next_departure_minutes') }} Minuten
 
   - type: custom:mushroom-chips-card
     chips:
       - type: entity
-        entity: sensor.vrr_dusseldorf_hauptbahnhof
+        entity: sensor.openpublictransport_dusseldorf_hauptbahnhof
         icon: mdi:train
         content_info: state
       - type: template
         icon: mdi:clock-outline
         content: >
-          {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'next_departure_minutes') }} min
+          {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'next_departure_minutes') }} min
       - type: template
         icon: mdi:refresh
         tap_action:
           action: call-service
-          service: vrr.refresh_departures
+          service: openpublictransport.refresh_departures
 
   - type: markdown
     content: >
-      {% set departures = state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'departures') %}
+      {% set departures = state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'departures') %}
 
       {% if departures %}
         | Linie | Ziel | Abfahrt | Gleis |
@@ -314,23 +314,23 @@ cards:
 Manually refresh departure data from the API.
 
 ```yaml
-service: vrr.refresh_departures
+service: openpublictransport.refresh_departures
 data:
-  entity_id: sensor.vrr_dusseldorf_hauptbahnhof  # Optional
+  entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof  # Optional
 ```
 
 **Examples:**
 
-Refresh all VRR sensors:
+Refresh all sensors:
 ```yaml
-service: vrr.refresh_departures
+service: openpublictransport.refresh_departures
 ```
 
 Refresh specific sensor:
 ```yaml
-service: vrr.refresh_departures
+service: openpublictransport.refresh_departures
 data:
-  entity_id: sensor.vrr_dusseldorf_hauptbahnhof
+  entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
 ```
 
 Use in automation:
@@ -342,9 +342,9 @@ automation:
         entity_id: person.john
         to: home
     action:
-      - service: vrr.refresh_departures
+      - service: openpublictransport.refresh_departures
         data:
-          entity_id: sensor.vrr_dusseldorf_hauptbahnhof
+          entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
 ```
 
 ## API Limits and Rate Limiting
@@ -363,7 +363,7 @@ The integration supports Home Assistant's diagnostics feature for easier trouble
 ### How to Download Diagnostics:
 
 1. Go to **Settings** > **Devices & Services**
-2. Find your VRR integration
+2. Find your Public Transport Departures integration
 3. Click on the integration
 4. Click the **3 dots** menu
 5. Select **Download Diagnostics**
@@ -392,7 +392,7 @@ https://openservice-test.vrr.de/static03/XML_STOPFINDER_REQUEST?outputFormat=Rap
 logger:
   default: warning
   logs:
-    custom_components.vrr: debug
+    custom_components.openpublictransport: debug
 ```
 
 ### Common Issues
@@ -443,7 +443,7 @@ This integration includes a comprehensive test suite to ensure quality and relia
 
 3. Run tests with coverage report:
    ```bash
-   pytest --cov=custom_components/vrr --cov-report=html
+   pytest --cov=custom_components/openpublictransport --cov-report=html
    ```
 
 4. Run specific test files:
@@ -472,10 +472,10 @@ The project uses automated code quality tools:
 
 Run code quality checks:
 ```bash
-black custom_components/vrr/
-isort custom_components/vrr/
-flake8 custom_components/vrr/
-mypy custom_components/vrr/
+black custom_components/openpublictransport/
+isort custom_components/openpublictransport/
+flake8 custom_components/openpublictransport/
+mypy custom_components/openpublictransport/
 ```
 
 ## Contributing
@@ -584,6 +584,32 @@ NTA (National Transport Authority, Ireland) is now supported!
 ```
 
 ## Changelog
+
+### Version 5.0.0 - Rebranding & HACS Default Store
+
+> **⚠️ BREAKING CHANGE** — This release renames the integration from `vrr` to `openpublictransport`. Existing users must re-install and re-configure.
+
+#### Breaking Changes
+- **Domain renamed**: `vrr` → `openpublictransport`
+- **Entity IDs changed**: `sensor.vrr_*` → `sensor.openpublictransport_*`, `binary_sensor.vrr_*` → `binary_sensor.openpublictransport_*`
+- **Service renamed**: `vrr.refresh_departures` → `openpublictransport.refresh_departures`
+- **Repository renamed**: `hacs-publictransport` → `openpublictransport`
+
+#### What you need to do
+1. Remove the old `vrr` integration from Home Assistant
+2. Remove the old custom repository from HACS
+3. Install `openpublictransport` from the HACS Default Store
+4. Re-configure your stops
+5. Update all automations and dashboards (see [MIGRATION.md](MIGRATION.md) for details)
+
+#### Why?
+The integration started as a VRR-only tool but now supports 5 providers (VRR, KVV, HVV, Trafiklab, NTA). The old name `vrr` no longer reflected the scope. The rename also enables listing in the official HACS Default Store.
+
+#### New
+- **HACS Default Store**: The integration is now available in the official HACS store
+- **Documentation**: New docs site at [docs.openpublictransport.net](https://docs.openpublictransport.net/)
+
+---
 
 ### Version 4.3.0 - NTA Ireland Support
 #### New Features
@@ -721,7 +747,7 @@ for dep in departures:
 - **Device Support**: Entities grouped together with suggested areas
 - **Repair Issues Integration**: Notifications for API errors or rate limits
 - **Diagnostics Support**: Download diagnostics for easier troubleshooting
-- **Manual Refresh Service**: `vrr.refresh_departures` service for manual updates
+- **Manual Refresh Service**: `openpublictransport.refresh_departures` service for manual updates
 - **Dynamic Icons**: Icon changes based on next departure type (bus, train, tram, etc.)
 - **Transportation Type Filtering**: Now actually works! Filter departures by type
 - **Options Flow Support**: Change settings without removing/re-adding integration
@@ -757,12 +783,12 @@ for dep in departures:
 
 **Made with ❤️ for the Home Assistant community**
 <!-- Links -->
-[releases-shield]: https://img.shields.io/github/release/NerdySoftPaw/hacs-publictransport.svg?style=for-the-badge
-[releases]: https://github.com/NerdySoftPaw/hacs-publictransport/releases
-[commits-shield]: https://img.shields.io/github/commit-activity/y/NerdySoftPaw/hacs-publictransport.svg?style=for-the-badge
-[commits]: https://github.com/NerdySoftPaw/hacs-publictransport/commits/main
-[license-shield]: https://img.shields.io/github/license/NerdySoftPaw/hacs-publictransport.svg?style=for-the-badge
+[releases-shield]: https://img.shields.io/github/release/NerdySoftPaw/openpublictransport.svg?style=for-the-badge
+[releases]: https://github.com/NerdySoftPaw/openpublictransport/releases
+[commits-shield]: https://img.shields.io/github/commit-activity/y/NerdySoftPaw/openpublictransport.svg?style=for-the-badge
+[commits]: https://github.com/NerdySoftPaw/openpublictransport/commits/main
+[license-shield]: https://img.shields.io/github/license/NerdySoftPaw/openpublictransport.svg?style=for-the-badge
 [maintenance-shield]: https://img.shields.io/badge/maintainer-NerdySoftPaw-blue.svg?style=for-the-badge
-[hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
+[hacsbadge]: https://img.shields.io/badge/HACS-Default-blue.svg?style=for-the-badge
 [hacs]: https://github.com/hacs/integration
-[logo]: https://brands.home-assistant.io/vrr/icon.png
+[logo]: https://brands.home-assistant.io/openpublictransport/icon.png

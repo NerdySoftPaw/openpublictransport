@@ -1,4 +1,4 @@
-"""Diagnostics support for VRR integration."""
+"""Diagnostics support for Open Public Transport integration."""
 
 from __future__ import annotations
 

@@ -169,7 +169,7 @@ template:
   - sensor:
       - name: "Next Train Minutes"
         state: >
-          {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'next_departure_minutes') }}
+          {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'next_departure_minutes') }}
         unit_of_measurement: "min"
         icon: mdi:clock-outline
 ```
@@ -181,7 +181,7 @@ template:
   - sensor:
       - name: "Next Train Line"
         state: >
-          {% set departures = state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'departures') %}
+          {% set departures = state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'departures') %}
           {% if departures and departures|length > 0 %}
             {{ departures[0].line }}
           {% else %}
@@ -197,7 +197,7 @@ template:
   - sensor:
       - name: "Delayed Departures"
         state: >
-          {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'delayed_count') }}
+          {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'delayed_count') }}
         unit_of_measurement: "departures"
         icon: mdi:clock-alert
 ```

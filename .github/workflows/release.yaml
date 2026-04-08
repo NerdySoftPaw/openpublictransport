@@ -18,7 +18,7 @@ jobs:
       - name: Get version from manifest
         id: version
         run: |
-          VERSION=$(cat custom_components/vrr/manifest.json | jq -r '.version')
+          VERSION=$(cat custom_components/openpublictransport/manifest.json | jq -r '.version')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Validate version matches tag
@@ -33,7 +33,7 @@ jobs:
       - name: Create zip file
         run: |
           cd custom_components
-          zip -r ../vrr.zip vrr/
+          zip -r ../openpublictransport.zip openpublictransport/
 
       - name: Upload release asset
         uses: actions/upload-release-asset@v1
@@ -41,6 +41,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./vrr.zip
-          asset_name: vrr.zip
+          asset_path: ./openpublictransport.zip
+          asset_name: openpublictransport.zip
           asset_content_type: application/zip

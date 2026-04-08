@@ -1,4 +1,4 @@
-"""Fixtures for VRR integration tests."""
+"""Fixtures for OpenPublicTransport integration tests."""
 
 from unittest.mock import MagicMock
 
@@ -8,8 +8,8 @@ from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 # Import config_flow to ensure handlers are registered
-import custom_components.vrr.config_flow  # noqa: F401
-from custom_components.vrr.const import (
+import custom_components.openpublictransport.config_flow  # noqa: F401
+from custom_components.openpublictransport.const import (
     CONF_DEPARTURES,
     CONF_PROVIDER,
     CONF_SCAN_INTERVAL,

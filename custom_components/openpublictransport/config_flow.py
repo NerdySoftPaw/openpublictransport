@@ -1,4 +1,4 @@
-"""Config flow for VRR integration with autocomplete support."""
+"""Config flow for Open Public Transport integration with autocomplete support."""
 
 import asyncio
 import logging
@@ -42,8 +42,8 @@ from .providers import get_provider
 _LOGGER = logging.getLogger(__name__)
 
 
-class VRRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
-    """Handle a config flow for VRR integration with autocomplete."""
+class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
+    """Handle a config flow for Open Public Transport integration with autocomplete."""
 
     VERSION = 1
 

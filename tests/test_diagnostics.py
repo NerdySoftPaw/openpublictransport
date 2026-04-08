@@ -1,9 +1,9 @@
-"""Tests for VRR diagnostics."""
+"""Tests for OpenPublicTransport diagnostics."""
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.vrr.const import DOMAIN
-from custom_components.vrr.diagnostics import async_get_config_entry_diagnostics
+from custom_components.openpublictransport.const import DOMAIN
+from custom_components.openpublictransport.diagnostics import async_get_config_entry_diagnostics
 
 
 async def test_diagnostics(hass: HomeAssistant, mock_config_entry, mock_coordinator):

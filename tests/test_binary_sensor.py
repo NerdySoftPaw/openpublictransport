@@ -1,11 +1,11 @@
-"""Tests for VRR binary sensor platform."""
+"""Tests for OpenPublicTransport binary sensor platform."""
 
 from unittest.mock import MagicMock
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.vrr.binary_sensor import VRRDelayBinarySensor, async_setup_entry
-from custom_components.vrr.const import DOMAIN, PROVIDER_VRR
+from custom_components.openpublictransport.binary_sensor import PublicTransportDelayBinarySensor, async_setup_entry
+from custom_components.openpublictransport.const import DOMAIN, PROVIDER_VRR
 
 
 async def test_binary_sensor_no_delays(hass: HomeAssistant, mock_coordinator, mock_config_entry):
@@ -27,11 +27,11 @@ async def test_binary_sensor_no_delays(hass: HomeAssistant, mock_coordinator, mo
     coordinator.station_id = None
 
     # Test with provider instance
-    from custom_components.vrr.providers import get_provider
+    from custom_components.openpublictransport.providers import get_provider
 
     coordinator.provider_instance = get_provider(PROVIDER_VRR, hass)
 
-    binary_sensor = VRRDelayBinarySensor(
+    binary_sensor = PublicTransportDelayBinarySensor(
         coordinator,
         mock_config_entry,
         ["bus", "train", "tram"],
@@ -68,11 +68,11 @@ async def test_binary_sensor_with_delays(hass: HomeAssistant, mock_config_entry)
     coordinator.station_id = None
 
     # Test with provider instance
-    from custom_components.vrr.providers import get_provider
+    from custom_components.openpublictransport.providers import get_provider
 
     coordinator.provider_instance = get_provider(PROVIDER_VRR, hass)
 
-    binary_sensor = VRRDelayBinarySensor(
+    binary_sensor = PublicTransportDelayBinarySensor(
         coordinator,
         mock_config_entry,
         ["bus", "train", "tram"],
@@ -106,11 +106,11 @@ async def test_binary_sensor_delay_threshold(hass: HomeAssistant, mock_config_en
     coordinator.station_id = None
 
     # Test with provider instance
-    from custom_components.vrr.providers import get_provider
+    from custom_components.openpublictransport.providers import get_provider
 
     coordinator.provider_instance = get_provider(PROVIDER_VRR, hass)
 
-    binary_sensor = VRRDelayBinarySensor(
+    binary_sensor = PublicTransportDelayBinarySensor(
         coordinator,
         mock_config_entry,
         ["bus", "train", "tram"],
@@ -126,7 +126,7 @@ async def test_binary_sensor_delay_threshold(hass: HomeAssistant, mock_config_en
 
 async def test_binary_sensor_icon(hass: HomeAssistant, mock_coordinator, mock_config_entry):
     """Test binary sensor icon changes based on state."""
-    binary_sensor = VRRDelayBinarySensor(
+    binary_sensor = PublicTransportDelayBinarySensor(
         mock_coordinator,
         mock_config_entry,
         ["bus", "train", "tram"],
@@ -152,11 +152,11 @@ async def test_binary_sensor_no_departures(hass: HomeAssistant, mock_config_entr
     coordinator.station_id = None
 
     # Test with provider instance
-    from custom_components.vrr.providers import get_provider
+    from custom_components.openpublictransport.providers import get_provider
 
     coordinator.provider_instance = get_provider(PROVIDER_VRR, hass)
 
-    binary_sensor = VRRDelayBinarySensor(
+    binary_sensor = PublicTransportDelayBinarySensor(
         coordinator,
         mock_config_entry,
         ["bus", "train", "tram"],
@@ -185,4 +185,4 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry, mock_co
     await async_setup_entry(hass, mock_config_entry, mock_add_entities)
 
     assert len(entities) == 1
-    assert isinstance(entities[0], VRRDelayBinarySensor)
+    assert isinstance(entities[0], PublicTransportDelayBinarySensor)

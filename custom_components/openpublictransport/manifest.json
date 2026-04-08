@@ -1,12 +1,12 @@
 {
-    "domain": "vrr",
+    "domain": "openpublictransport",
     "name": "Public Transport Departures",
     "codeowners": ["@NerdySoftPaw"],
     "config_flow": true,
     "dependencies": [],
-    "documentation": "https://hacs-publictransport.readthedocs.io/",
+    "documentation": "https://docs.openpublictransport.net/",
     "iot_class": "cloud_polling",
-    "issue_tracker": "https://github.com/NerdySoftPaw/hacs-publictransport/issues",
+    "issue_tracker": "https://github.com/NerdySoftPaw/openpublictransport/issues",
     "requirements": ["pytz", "aiofiles", "gtfs-realtime-bindings>=1.0.0"],
-    "version": "2026.01.24"
+    "version": "2026.04.08"
 }

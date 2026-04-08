@@ -1,4 +1,4 @@
-"""Tests for VRR config flow with simplified 2-step flow."""
+"""Tests for OpenPublicTransport config flow with simplified 2-step flow."""
 
 from unittest.mock import patch
 
@@ -7,7 +7,7 @@ from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
-from custom_components.vrr.const import (
+from custom_components.openpublictransport.const import (
     CONF_DEPARTURES,
     CONF_PROVIDER,
     CONF_SCAN_INTERVAL,
@@ -70,7 +70,7 @@ async def test_full_flow_simplified(hass: HomeAssistant):
         # Step 3: Search for stop - return single result to go directly to settings
         with (
             patch(
-                "custom_components.vrr.config_flow.VRRConfigFlow._search_stops",
+                "custom_components.openpublictransport.config_flow.OpenPublicTransportConfigFlow._search_stops",
                 return_value=[
                     {
                         "id": "de:05111:5650",
@@ -81,7 +81,7 @@ async def test_full_flow_simplified(hass: HomeAssistant):
                 ],
             ),
             patch(
-                "custom_components.vrr.VRRDataUpdateCoordinator.async_config_entry_first_refresh",
+                "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_config_entry_first_refresh",
             ),
         ):
             result = await hass.config_entries.flow.async_configure(
@@ -124,7 +124,7 @@ async def test_stop_select_with_multiple_results(hass: HomeAssistant, mock_stopf
 
     # Search with multiple results
     with patch(
-        "custom_components.vrr.config_flow.VRRConfigFlow._search_stops",
+        "custom_components.openpublictransport.config_flow.OpenPublicTransportConfigFlow._search_stops",
         return_value=mock_stopfinder_stops,
     ):
         result = await hass.config_entries.flow.async_configure(
@@ -149,7 +149,7 @@ async def test_stop_search_no_results(hass: HomeAssistant):
 
     # Search with no results
     with patch(
-        "custom_components.vrr.config_flow.VRRConfigFlow._search_stops",
+        "custom_components.openpublictransport.config_flow.OpenPublicTransportConfigFlow._search_stops",
         return_value=[],
     ):
         result = await hass.config_entries.flow.async_configure(
@@ -212,9 +212,9 @@ async def test_options_flow(hass: HomeAssistant, mock_config_entry):
 
 def test_parse_stopfinder_response():
     """Test parsing stopfinder API response."""
-    from custom_components.vrr.config_flow import VRRConfigFlow
+    from custom_components.openpublictransport.config_flow import OpenPublicTransportConfigFlow
 
-    flow = VRRConfigFlow()
+    flow = OpenPublicTransportConfigFlow()
     flow._provider = PROVIDER_VRR
 
     # Test with valid data

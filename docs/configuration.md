@@ -57,7 +57,7 @@ If multiple stops match your search, you'll be presented with a list to choose f
 To monitor multiple stops:
 
 1. Go to **Settings** > **Devices & Services**
-2. Find the "VRR" integration
+2. Find the "Public Transport Departures" integration
 3. Click **Add Entry**
 4. Follow the setup wizard again
 

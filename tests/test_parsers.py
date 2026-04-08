@@ -2,7 +2,7 @@
 
 from homeassistant.util import dt as dt_util
 
-from custom_components.vrr.parsers import parse_departure_generic
+from custom_components.openpublictransport.parsers import parse_departure_generic
 
 
 def test_parse_departure_generic_success():

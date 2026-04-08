@@ -41,7 +41,7 @@ The API key is only required for Trafiklab and NTA sensors. No API key is requir
 ### KVV (Karlsruhe)
 ```
 sensor:
-  - platform: public_transport_de
+  - platform: openpublictransport
     provider: kvv
     place_dm: Karlsruhe
     name_dm: Essenweinstraße
@@ -54,7 +54,7 @@ sensor:
 ### HVV (Hamburg)
 ```
 sensor:
-  - platform: public_transport_de
+  - platform: openpublictransport
     provider: hvv
     place_dm: Hamburg
     name_dm: Hauptbahnhof
@@ -67,7 +67,7 @@ sensor:
 ### Trafiklab (Sweden)
 ```
 sensor:
-  - platform: public_transport_de
+  - platform: openpublictransport
     provider: trafiklab_se
     station_id: "740000001"  # Stop ID from Trafiklab
     departures: 10

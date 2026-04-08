@@ -1,4 +1,4 @@
-DOMAIN = "vrr"
+DOMAIN = "openpublictransport"
 DEFAULT_PLACE = "Düsseldorf"
 DEFAULT_NAME = "Elbruchstrasse"
 DEFAULT_DEPARTURES = 10

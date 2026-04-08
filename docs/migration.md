@@ -11,7 +11,7 @@ The integration has moved to a new repository with expanded multi-provider suppo
 
 | | Old | New |
 |--|-----|-----|
-| **Repository** | `NerdySoftPaw/VRRAPI-HACS` | `NerdySoftPaw/hacs-publictransport` |
+| **Repository** | `NerdySoftPaw/VRRAPI-HACS` | `NerdySoftPaw/openpublictransport` |
 | **Providers** | VRR only | VRR, KVV, HVV, Trafiklab, NTA |
 | **Status** | :material-alert: Deprecated | :material-check-circle: Active Development |
 
@@ -28,7 +28,7 @@ Your existing configuration will be **automatically migrated**. Just follow thes
 3. Select **Custom repositories**
 4. Add the URL:
    ```
-   https://github.com/NerdySoftPaw/hacs-publictransport
+   https://github.com/NerdySoftPaw/openpublictransport
    ```
 5. Select type: **Integration**
 6. Click **ADD**
@@ -76,7 +76,7 @@ After migrating to version `2026.01.23` or higher, you'll have access to:
 - :zap: **Better Performance** - 20-30% faster updates
 - :package: **API Caching** - Reduced API calls
 
-See the full [Release Notes](https://github.com/NerdySoftPaw/hacs-publictransport/blob/main/RELEASE_NOTES.md) for details.
+See the full [Release Notes](https://github.com/NerdySoftPaw/openpublictransport/blob/main/RELEASE_NOTES.md) for details.
 
 ---
 
@@ -84,7 +84,7 @@ See the full [Release Notes](https://github.com/NerdySoftPaw/hacs-publictranspor
 
 ### Integration not showing after restart?
 
-1. Check if the custom component folder exists: `/config/custom_components/vrr/`
+1. Check if the custom component folder exists: `/config/custom_components/openpublictransport/`
 2. Check Home Assistant logs for errors
 3. Try clearing browser cache and refreshing
 
@@ -92,9 +92,9 @@ See the full [Release Notes](https://github.com/NerdySoftPaw/hacs-publictranspor
 
 1. Make sure you added the new repository URL
 2. Remove the old VRRAPI-HACS entry from HACS
-3. Download from the new hacs-publictransport repository
+3. Download from the new openpublictransport repository
 
 ### Need Help?
 
-- :material-bug: [Report an Issue](https://github.com/NerdySoftPaw/hacs-publictransport/issues)
-- :material-forum: [GitHub Discussions](https://github.com/NerdySoftPaw/hacs-publictransport/discussions)
+- :material-bug: [Report an Issue](https://github.com/NerdySoftPaw/openpublictransport/issues)
+- :material-forum: [GitHub Discussions](https://github.com/NerdySoftPaw/openpublictransport/discussions)

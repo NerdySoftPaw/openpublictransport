@@ -43,7 +43,7 @@ A Home Assistant integration for real-time public transport departure informatio
 
 1. Install via HACS (recommended) or manually
 2. Add the integration via **Settings** > **Devices & Services** > **Add Integration**
-3. Search for "VRR" or "Public Transport Departures"
+3. Search for "Public Transport Departures"
 4. Follow the setup wizard to configure your stops
 
 ## Transportation Types
@@ -68,5 +68,5 @@ This project is licensed under the MIT License.
 For issues or questions:
 
 1. Check the [Troubleshooting](troubleshooting.md) guide
-2. Search existing [GitHub Issues](https://github.com/NerdySoftPaw/hacs-publictransport/issues)
+2. Search existing [GitHub Issues](https://github.com/NerdySoftPaw/openpublictransport/issues)
 3. Create a new issue with debug information

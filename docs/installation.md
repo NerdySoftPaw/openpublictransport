@@ -14,7 +14,7 @@
 1. Open HACS in Home Assistant
 2. Go to **Integrations**
 3. Click the three dots in the top right and select **Custom repositories**
-4. Add this repository URL: `https://github.com/NerdySoftPaw/hacs-publictransport`
+4. Add this repository URL: `https://github.com/NerdySoftPaw/openpublictransport`
 5. Select **Integration** as category
 6. Click **Add**
 7. Search for "Public" and install the integration
@@ -29,11 +29,11 @@ If you prefer not to use HACS, you can install the integration manually.
 
 ### Steps
 
-1. Download the latest release from [GitHub Releases](https://github.com/NerdySoftPaw/hacs-publictransport/releases)
-2. Extract the `custom_components/vrr` folder
+1. Download the latest release from [GitHub Releases](https://github.com/NerdySoftPaw/openpublictransport/releases)
+2. Extract the `custom_components/openpublictransport` folder
 3. Copy the folder to your Home Assistant `custom_components` directory:
    ```
-   <config>/custom_components/vrr/
+   <config>/custom_components/openpublictransport/
    ```
 4. Restart Home Assistant
 
@@ -43,7 +43,7 @@ After installation, your directory should look like this:
 
 ```
 custom_components/
-└── vrr/
+└── openpublictransport/
     ├── __init__.py
     ├── binary_sensor.py
     ├── config_flow.py
@@ -68,7 +68,7 @@ After restarting Home Assistant:
 
 1. Go to **Settings** > **Devices & Services**
 2. Click **+ Add Integration**
-3. Search for "VRR" or "Public Transport Departures"
+3. Search for "Public Transport Departures"
 
 If the integration appears in the list, installation was successful.
 
@@ -81,7 +81,7 @@ HACS will notify you when updates are available. Simply click **Update** and res
 ### Manual Updates
 
 1. Download the latest release
-2. Replace all files in `custom_components/vrr/`
+2. Replace all files in `custom_components/openpublictransport/`
 3. Restart Home Assistant
 
 !!! warning

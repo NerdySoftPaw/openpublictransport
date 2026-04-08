@@ -2,13 +2,13 @@
 
 import pytest
 
-from custom_components.vrr.config_flow import VRRConfigFlow
+from custom_components.openpublictransport.config_flow import OpenPublicTransportConfigFlow
 
 
 @pytest.fixture
 def config_flow():
     """Create a config flow instance for testing."""
-    return VRRConfigFlow()
+    return OpenPublicTransportConfigFlow()
 
 
 def test_fuzzy_match_ratio_exact(config_flow):

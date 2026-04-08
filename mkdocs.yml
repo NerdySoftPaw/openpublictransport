@@ -1,7 +1,7 @@
 site_name: Public Transport Integration
 site_description: Multi-Provider Public Transport Home Assistant Integration for VRR, KVV, HVV, Trafiklab, and NTA
-repo_url: https://github.com/NerdySoftPaw/hacs-publictransport
-repo_name: NerdySoftPaw/hacs-publictransport
+repo_url: https://github.com/NerdySoftPaw/openpublictransport
+repo_name: NerdySoftPaw/openpublictransport
 
 theme:
   name: material
@@ -68,4 +68,4 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/NerdySoftPaw/hacs-publictransport
+      link: https://github.com/NerdySoftPaw/openpublictransport

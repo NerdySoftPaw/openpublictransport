@@ -5,14 +5,14 @@ from unittest.mock import patch
 
 import pytest
 
-from custom_components.vrr.config_flow import VRRConfigFlow
-from custom_components.vrr.const import PROVIDER_VRR
+from custom_components.openpublictransport.config_flow import OpenPublicTransportConfigFlow
+from custom_components.openpublictransport.const import PROVIDER_VRR
 
 
 @pytest.fixture
 def config_flow():
     """Create a config flow instance for testing."""
-    flow = VRRConfigFlow()
+    flow = OpenPublicTransportConfigFlow()
     flow._provider = PROVIDER_VRR
     return flow
 

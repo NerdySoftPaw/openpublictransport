@@ -76,7 +76,7 @@ Add to your `configuration.yaml`:
 logger:
   default: warning
   logs:
-    custom_components.vrr: debug
+    custom_components.openpublictransport: debug
 ```
 
 After restarting Home Assistant, check the logs for detailed information.
@@ -95,7 +95,7 @@ The integration supports Home Assistant's diagnostics feature for easier trouble
 ### How to Download Diagnostics
 
 1. Go to **Settings** > **Devices & Services**
-2. Find your VRR integration
+2. Find your Public Transport Departures integration
 3. Click on the integration
 4. Click the **3 dots** menu
 5. Select **Download Diagnostics**
@@ -216,5 +216,5 @@ Before sharing logs or diagnostics:
 ## Getting Help
 
 1. Check this troubleshooting guide first
-2. Search existing [GitHub Issues](https://github.com/NerdySoftPaw/hacs-publictransport/issues)
+2. Search existing [GitHub Issues](https://github.com/NerdySoftPaw/openpublictransport/issues)
 3. Create a new issue with detailed information

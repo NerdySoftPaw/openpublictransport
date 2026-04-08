@@ -16,9 +16,9 @@ automation:
         entity_id: person.john
         to: home
     action:
-      - service: vrr.refresh_departures
+      - service: openpublictransport.refresh_departures
         data:
-          entity_id: sensor.vrr_dusseldorf_hauptbahnhof
+          entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
 ```
 
 ### Refresh Before Morning Commute
@@ -40,9 +40,9 @@ automation:
           - thu
           - fri
     action:
-      - service: vrr.refresh_departures
+      - service: openpublictransport.refresh_departures
         data:
-          entity_id: sensor.vrr_dusseldorf_hauptbahnhof
+          entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
 ```
 
 ## Delay Notifications
@@ -56,15 +56,15 @@ automation:
   - alias: "Notify on train delays"
     trigger:
       - platform: state
-        entity_id: binary_sensor.vrr_dusseldorf_hauptbahnhof_delays
+        entity_id: binary_sensor.openpublictransport_dusseldorf_hauptbahnhof_delays
         to: "on"
     action:
       - service: notify.mobile_app
         data:
           title: "Train Delays"
           message: >
-            Delays detected at {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'station_name') }}.
-            Maximum delay: {{ state_attr('binary_sensor.vrr_dusseldorf_hauptbahnhof_delays', 'max_delay') }} minutes.
+            Delays detected at {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'station_name') }}.
+            Maximum delay: {{ state_attr('binary_sensor.openpublictransport_dusseldorf_hauptbahnhof_delays', 'max_delay') }} minutes.
 ```
 
 ### Morning Delay Alert
@@ -76,7 +76,7 @@ automation:
   - alias: "Morning commute delay alert"
     trigger:
       - platform: state
-        entity_id: binary_sensor.vrr_dusseldorf_hauptbahnhof_delays
+        entity_id: binary_sensor.openpublictransport_dusseldorf_hauptbahnhof_delays
         to: "on"
     condition:
       - condition: time
@@ -109,7 +109,7 @@ automation:
     trigger:
       - platform: template
         value_template: >
-          {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'next_departure_minutes') | int <= 15 }}
+          {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'next_departure_minutes') | int <= 15 }}
     condition:
       - condition: state
         entity_id: person.john
@@ -119,8 +119,8 @@ automation:
         data:
           title: "Time to Leave!"
           message: >
-            Your train leaves in {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'next_departure_minutes') }} minutes.
-            Line: {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'departures')[0].line }}
+            Your train leaves in {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'next_departure_minutes') }} minutes.
+            Line: {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'departures')[0].line }}
 ```
 
 ### Smart Departure Alert
@@ -135,7 +135,7 @@ automation:
         value_template: >
           {% set walk_time = 10 %}
           {% set buffer = 5 %}
-          {% set mins = state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'next_departure_minutes') | int %}
+          {% set mins = state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'next_departure_minutes') | int %}
           {{ mins <= (walk_time + buffer) and mins > 0 }}
     condition:
       - condition: state
@@ -153,9 +153,9 @@ automation:
         data:
           title: "🚉 Leave Now!"
           message: >
-            Train departs in {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'next_departure_minutes') }} min.
-            {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'departures')[0].line }} →
-            {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'departures')[0].destination }}
+            Train departs in {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'next_departure_minutes') }} min.
+            {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'departures')[0].line }} →
+            {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'departures')[0].destination }}
 ```
 
 ## Display Automations
@@ -169,15 +169,15 @@ automation:
   - alias: "Update departure display"
     trigger:
       - platform: state
-        entity_id: sensor.vrr_dusseldorf_hauptbahnhof
+        entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
     action:
       - service: input_text.set_value
         target:
           entity_id: input_text.next_departure
         data:
           value: >
-            {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'departures')[0].line }} at
-            {{ states('sensor.vrr_dusseldorf_hauptbahnhof') }}
+            {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'departures')[0].line }} at
+            {{ states('sensor.openpublictransport_dusseldorf_hauptbahnhof') }}
 ```
 
 ### TTS Announcement
@@ -204,7 +204,7 @@ automation:
           entity_id: tts.google_translate
         data:
           message: >
-            {% set dep = state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'departures')[0] %}
+            {% set dep = state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'departures')[0] %}
             Your next train is line {{ dep.line }} to {{ dep.destination }}
             departing at {{ dep.departure_time }}{% if dep.delay > 0 %}, delayed by {{ dep.delay }} minutes{% endif %}.
 ```
@@ -218,13 +218,13 @@ template:
   - sensor:
       - name: "Next Train Minutes"
         state: >
-          {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'next_departure_minutes') }}
+          {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'next_departure_minutes') }}
         unit_of_measurement: "min"
         icon: mdi:clock-outline
 
       - name: "Next Train Line"
         state: >
-          {% set departures = state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'departures') %}
+          {% set departures = state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'departures') %}
           {% if departures and departures|length > 0 %}
             {{ departures[0].line }}
           {% else %}
@@ -234,7 +234,7 @@ template:
 
       - name: "Next Train Destination"
         state: >
-          {% set departures = state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'departures') %}
+          {% set departures = state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'departures') %}
           {% if departures and departures|length > 0 %}
             {{ departures[0].destination }}
           {% else %}
@@ -244,13 +244,13 @@ template:
 
       - name: "Train Status"
         state: >
-          {% if is_state('binary_sensor.vrr_dusseldorf_hauptbahnhof_delays', 'on') %}
+          {% if is_state('binary_sensor.openpublictransport_dusseldorf_hauptbahnhof_delays', 'on') %}
             Delayed
           {% else %}
             On Time
           {% endif %}
         icon: >
-          {% if is_state('binary_sensor.vrr_dusseldorf_hauptbahnhof_delays', 'on') %}
+          {% if is_state('binary_sensor.openpublictransport_dusseldorf_hauptbahnhof_delays', 'on') %}
             mdi:alert-circle
           {% else %}
             mdi:check-circle
@@ -268,17 +268,17 @@ script:
   get_next_departure:
     alias: "Get Next Departure"
     sequence:
-      - service: vrr.refresh_departures
+      - service: openpublictransport.refresh_departures
         data:
-          entity_id: sensor.vrr_dusseldorf_hauptbahnhof
+          entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
       - delay:
           seconds: 2
       - service: notify.mobile_app
         data:
           title: "Next Departure"
           message: >
-            {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'departures')[0].line }} →
-            {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'departures')[0].destination }}
-            at {{ states('sensor.vrr_dusseldorf_hauptbahnhof') }}
-            (in {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'next_departure_minutes') }} min)
+            {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'departures')[0].line }} →
+            {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'departures')[0].destination }}
+            at {{ states('sensor.openpublictransport_dusseldorf_hauptbahnhof') }}
+            (in {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'next_departure_minutes') }} min)
 ```

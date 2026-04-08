@@ -4,10 +4,10 @@ refresh_departures:
   fields:
     entity_id:
       name: Entity
-      description: The VRR entity to refresh (optional - if not provided, all entities will be refreshed)
+      description: The entity to refresh (optional - if not provided, all entities will be refreshed)
       required: false
-      example: "sensor.vrr_dusseldorf_hauptbahnhof"
+      example: "sensor.openpublictransport_dusseldorf_hauptbahnhof"
       selector:
         entity:
-          integration: vrr
+          integration: openpublictransport
           domain: sensor

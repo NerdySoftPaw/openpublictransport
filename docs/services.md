@@ -2,7 +2,7 @@
 
 The integration provides a service to manually refresh departure data.
 
-## vrr.refresh_departures
+## openpublictransport.refresh_departures
 
 Manually refresh departure data from the API outside of the normal update interval.
 
@@ -14,32 +14,32 @@ This service triggers an immediate API call to fetch the latest departure inform
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
-| `entity_id` | No | Specific entity to refresh. If omitted, all VRR entities are refreshed. |
+| `entity_id` | No | Specific entity to refresh. If omitted, all entities are refreshed. |
 
 ### Examples
 
 #### Refresh All Sensors
 
 ```yaml
-service: vrr.refresh_departures
+service: openpublictransport.refresh_departures
 ```
 
 #### Refresh Specific Sensor
 
 ```yaml
-service: vrr.refresh_departures
+service: openpublictransport.refresh_departures
 data:
-  entity_id: sensor.vrr_dusseldorf_hauptbahnhof
+  entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
 ```
 
 #### Refresh Multiple Sensors
 
 ```yaml
-service: vrr.refresh_departures
+service: openpublictransport.refresh_departures
 data:
   entity_id:
-    - sensor.vrr_dusseldorf_hauptbahnhof
-    - sensor.vrr_essen_hauptbahnhof
+    - sensor.openpublictransport_dusseldorf_hauptbahnhof
+    - sensor.openpublictransport_essen_hauptbahnhof
 ```
 
 ### Use Cases
@@ -54,9 +54,9 @@ name: Refresh Departures
 icon: mdi:refresh
 tap_action:
   action: call-service
-  service: vrr.refresh_departures
+  service: openpublictransport.refresh_departures
   service_data:
-    entity_id: sensor.vrr_dusseldorf_hauptbahnhof
+    entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
 ```
 
 #### Automation: Refresh When Arriving Home
@@ -69,9 +69,9 @@ automation:
         entity_id: person.john
         to: home
     action:
-      - service: vrr.refresh_departures
+      - service: openpublictransport.refresh_departures
         data:
-          entity_id: sensor.vrr_dusseldorf_hauptbahnhof
+          entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
 ```
 
 #### Automation: Refresh Before Morning Commute
@@ -91,9 +91,9 @@ automation:
           - thu
           - fri
     action:
-      - service: vrr.refresh_departures
+      - service: openpublictransport.refresh_departures
         data:
-          entity_id: sensor.vrr_dusseldorf_hauptbahnhof
+          entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
 ```
 
 #### Script: Refresh and Notify
@@ -103,17 +103,17 @@ script:
   refresh_and_notify_departures:
     alias: "Refresh and Notify Departures"
     sequence:
-      - service: vrr.refresh_departures
+      - service: openpublictransport.refresh_departures
         data:
-          entity_id: sensor.vrr_dusseldorf_hauptbahnhof
+          entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
       - delay:
           seconds: 2
       - service: notify.mobile_app
         data:
           title: "Next Departure"
           message: >
-            {{ states('sensor.vrr_dusseldorf_hauptbahnhof') }} -
-            {{ state_attr('sensor.vrr_dusseldorf_hauptbahnhof', 'next_departure_minutes') }} min
+            {{ states('sensor.openpublictransport_dusseldorf_hauptbahnhof') }} -
+            {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof', 'next_departure_minutes') }} min
 ```
 
 ### Rate Limiting Considerations

@@ -6,13 +6,13 @@ import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
-from custom_components.vrr.const import PROVIDER_HVV, PROVIDER_KVV, PROVIDER_NTA_IE, PROVIDER_TRAFIKLAB_SE, PROVIDER_VRR
-from custom_components.vrr.providers import get_provider
-from custom_components.vrr.providers.hvv import HVVProvider
-from custom_components.vrr.providers.kvv import KVVProvider
-from custom_components.vrr.providers.nta import NTAProvider
-from custom_components.vrr.providers.trafiklab import TrafiklabProvider
-from custom_components.vrr.providers.vrr import VRRProvider
+from custom_components.openpublictransport.const import PROVIDER_HVV, PROVIDER_KVV, PROVIDER_NTA_IE, PROVIDER_TRAFIKLAB_SE, PROVIDER_VRR
+from custom_components.openpublictransport.providers import get_provider
+from custom_components.openpublictransport.providers.hvv import HVVProvider
+from custom_components.openpublictransport.providers.kvv import KVVProvider
+from custom_components.openpublictransport.providers.nta import NTAProvider
+from custom_components.openpublictransport.providers.trafiklab import TrafiklabProvider
+from custom_components.openpublictransport.providers.vrr import VRRProvider
 
 
 @pytest.fixture
@@ -99,7 +99,7 @@ class TestVRRProvider:
         """Test successful departure fetch."""
         mock_response = {"stopEvents": [{"departureTimePlanned": "2025-01-15T10:00:00Z"}]}
 
-        with patch("custom_components.vrr.providers.vrr.async_get_clientsession") as mock_session:
+        with patch("custom_components.openpublictransport.providers.vrr.async_get_clientsession") as mock_session:
             mock_response_obj = MagicMock()
             mock_response_obj.status = 200
             mock_response_obj.json = AsyncMock(return_value=mock_response)
@@ -113,7 +113,7 @@ class TestVRRProvider:
     @pytest.mark.asyncio
     async def test_fetch_departures_error(self, provider, mock_hass):
         """Test departure fetch with error."""
-        with patch("custom_components.vrr.providers.vrr.async_get_clientsession") as mock_session:
+        with patch("custom_components.openpublictransport.providers.vrr.async_get_clientsession") as mock_session:
             mock_response_obj = MagicMock()
             mock_response_obj.status = 500
 
@@ -154,7 +154,7 @@ class TestVRRProvider:
             "locations": [{"id": "stop123", "name": "Hauptbahnhof", "disassembledName": "Hauptbahnhof, Düsseldorf"}]
         }
 
-        with patch("custom_components.vrr.providers.vrr.async_get_clientsession") as mock_session:
+        with patch("custom_components.openpublictransport.providers.vrr.async_get_clientsession") as mock_session:
             mock_response_obj = MagicMock()
             mock_response_obj.status = 200
             mock_response_obj.json = AsyncMock(return_value=mock_response)
@@ -198,7 +198,7 @@ class TestTrafiklabProvider:
             ]
         }
 
-        with patch("custom_components.vrr.providers.trafiklab.async_get_clientsession") as mock_session:
+        with patch("custom_components.openpublictransport.providers.trafiklab.async_get_clientsession") as mock_session:
             mock_response_obj = MagicMock()
             mock_response_obj.status = 200
             mock_response_obj.json = AsyncMock(return_value=mock_response)
@@ -218,7 +218,7 @@ class TestTrafiklabProvider:
             "stop_groups": [{"id": "stop123", "name": "Stockholm Central", "stops": [{"name": "Stockholm Central"}]}]
         }
 
-        with patch("custom_components.vrr.providers.trafiklab.async_get_clientsession") as mock_session:
+        with patch("custom_components.openpublictransport.providers.trafiklab.async_get_clientsession") as mock_session:
             mock_response_obj = MagicMock()
             mock_response_obj.status = 200
             mock_response_obj.json = AsyncMock(return_value=mock_response)
@@ -252,7 +252,7 @@ class TestKVVProvider:
         """Test successful departure fetch."""
         mock_response = {"stopEvents": [{"departureTimePlanned": "2025-01-15T10:00:00Z"}]}
 
-        with patch("custom_components.vrr.providers.kvv.async_get_clientsession") as mock_session:
+        with patch("custom_components.openpublictransport.providers.kvv.async_get_clientsession") as mock_session:
             mock_response_obj = MagicMock()
             mock_response_obj.status = 200
             mock_response_obj.json = AsyncMock(return_value=mock_response)
@@ -285,7 +285,7 @@ class TestHVVProvider:
         """Test successful departure fetch."""
         mock_response = {"stopEvents": [{"departureTimePlanned": "2025-01-15T10:00:00Z"}]}
 
-        with patch("custom_components.vrr.providers.hvv.async_get_clientsession") as mock_session:
+        with patch("custom_components.openpublictransport.providers.hvv.async_get_clientsession") as mock_session:
             mock_response_obj = MagicMock()
             mock_response_obj.status = 200
             mock_response_obj.json = AsyncMock(return_value=mock_response)

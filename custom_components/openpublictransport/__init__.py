@@ -20,7 +20,7 @@ from .const import (
     PROVIDER_NTA_IE,
     PROVIDER_TRAFIKLAB_SE,
 )
-from .sensor import VRRDataUpdateCoordinator
+from .sensor import PublicTransportDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,13 +36,13 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Set up the Public Transport DE component."""
+    """Set up the Open Public Transport component."""
     hass.data.setdefault(DOMAIN, {})
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Public Transport DE from a config entry."""
+    """Set up Open Public Transport from a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
     # Create coordinator and do initial refresh before forwarding entry setups
@@ -64,7 +64,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     departures = entry.options.get(CONF_DEPARTURES, entry.data.get(CONF_DEPARTURES, DEFAULT_DEPARTURES))
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))
 
-    coordinator = VRRDataUpdateCoordinator(
+    coordinator = PublicTransportDataUpdateCoordinator(
         hass,
         provider,
         place_dm,
@@ -91,7 +91,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _LOGGER.warning("Error during coordinator shutdown after failed setup: %s", shutdown_err)
         # Remove coordinator from hass.data if setup fails
         hass.data[DOMAIN].pop(coordinator_key, None)
-        raise ConfigEntryNotReady(f"Failed to initialize VRR API: {err}") from err
+        raise ConfigEntryNotReady(f"Failed to initialize public transport API: {err}") from err
 
     await hass.config_entries.async_forward_entry_setups(entry, ["sensor", "binary_sensor"])
 
@@ -114,7 +114,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                             await ent.coordinator.async_request_refresh()
                             break
         else:
-            # Refresh all VRR entities
+            # Refresh all entities
             entity_registry = er.async_get(hass)
             entities = [e for e in entity_registry.entities.values() if e.platform == DOMAIN]
 
@@ -136,7 +136,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload Public Transport DE config entry."""
+    """Unload Open Public Transport config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, ["sensor", "binary_sensor"])
 
     # Remove coordinator from hass.data and call shutdown
@@ -158,6 +158,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         # Clean up domain data
         hass.data.pop(DOMAIN, None)
-        _LOGGER.info("VRR integration fully unloaded")
+        _LOGGER.info("Open Public Transport integration fully unloaded")
 
     return unload_ok

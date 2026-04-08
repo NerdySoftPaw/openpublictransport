@@ -56,8 +56,8 @@ from .providers import get_provider
 _LOGGER = logging.getLogger(__name__)
 
 
-class VRRDataUpdateCoordinator(DataUpdateCoordinator):
-    """Class to manage fetching VRR/KVV/HVV data from API."""
+class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
+    """Class to manage fetching public transport data from API."""
 
     def __init__(
         self,
@@ -759,7 +759,7 @@ async def async_setup_entry(
             CONF_SCAN_INTERVAL, config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
         )
 
-        coordinator = VRRDataUpdateCoordinator(
+        coordinator = PublicTransportDataUpdateCoordinator(
             hass,
             provider,
             place_dm,
@@ -797,7 +797,7 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: VRRDataUpdateCoordinator,
+        coordinator: PublicTransportDataUpdateCoordinator,
         config_entry: ConfigEntry,
         transportation_types: List[str],
     ):
@@ -831,7 +831,7 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
             manufacturer=f"{provider.upper()} Public Transport",
             model="Departure Monitor",
             sw_version="2026.01.24",
-            configuration_url="https://github.com/NerdySoftPaw/hacs-publictransport",
+            configuration_url="https://github.com/NerdySoftPaw/openpublictransport",
             suggested_area=place_dm,
         )
 

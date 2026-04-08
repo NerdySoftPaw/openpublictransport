@@ -1,12 +1,12 @@
-"""Tests for VRR integration initialization."""
+"""Tests for OpenPublicTransport integration initialization."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from custom_components.vrr import async_setup, async_setup_entry, async_unload_entry
-from custom_components.vrr.const import DOMAIN
+from custom_components.openpublictransport import async_setup, async_setup_entry, async_unload_entry
+from custom_components.openpublictransport.const import DOMAIN
 
 
 async def test_async_setup(hass: HomeAssistant):
@@ -20,7 +20,7 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry: ConfigE
 
     # Mock the coordinator's first refresh to avoid real API calls
     with patch(
-        "custom_components.vrr.VRRDataUpdateCoordinator.async_config_entry_first_refresh",
+        "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_config_entry_first_refresh",
         new_callable=AsyncMock,
     ):
         with patch(
@@ -50,7 +50,7 @@ async def test_refresh_service(hass: HomeAssistant, mock_config_entry: ConfigEnt
 
     # Mock the coordinator's first refresh to avoid real API calls
     with patch(
-        "custom_components.vrr.VRRDataUpdateCoordinator.async_config_entry_first_refresh",
+        "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_config_entry_first_refresh",
         new_callable=AsyncMock,
     ):
         with patch(

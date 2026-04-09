@@ -11,3 +11,43 @@ refresh_departures:
         entity:
           integration: openpublictransport
           domain: sensor
+
+plan_trip:
+  name: Plan Trip
+  description: Plan a trip from A to B and get route options with connections
+  fields:
+    provider:
+      name: Provider
+      description: The transit provider (vrr, kvv, hvv, mvv, vvs, vagfr, bvg)
+      required: true
+      example: "vrr"
+      selector:
+        text:
+    origin:
+      name: Origin
+      description: "Start stop name"
+      required: true
+      example: "Holthausen"
+      selector:
+        text:
+    origin_city:
+      name: Origin City
+      description: "City of the start stop"
+      required: true
+      example: "Düsseldorf"
+      selector:
+        text:
+    destination:
+      name: Destination
+      description: "Destination stop name"
+      required: true
+      example: "Hauptbahnhof"
+      selector:
+        text:
+    destination_city:
+      name: Destination City
+      description: "City of the destination stop"
+      required: true
+      example: "Düsseldorf"
+      selector:
+        text:

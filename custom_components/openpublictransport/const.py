@@ -23,9 +23,18 @@ PROVIDER_VRR = "vrr"
 PROVIDER_KVV = "kvv"
 PROVIDER_HVV = "hvv"
 PROVIDER_BVG = "bvg"
+PROVIDER_DB = "db"
 PROVIDER_TRAFIKLAB_SE = "trafiklab_se"
 PROVIDER_NTA_IE = "nta_ie"
-PROVIDERS = [PROVIDER_VRR, PROVIDER_KVV, PROVIDER_HVV, PROVIDER_BVG, PROVIDER_TRAFIKLAB_SE, PROVIDER_NTA_IE]
+PROVIDERS = [
+    PROVIDER_VRR,
+    PROVIDER_KVV,
+    PROVIDER_HVV,
+    PROVIDER_BVG,
+    PROVIDER_DB,
+    PROVIDER_TRAFIKLAB_SE,
+    PROVIDER_NTA_IE,
+]
 
 # Transportation types mapping
 TRANSPORTATION_TYPES = {"bus": "Bus", "tram": "Tram", "subway": "U-Bahn", "train": "S-Bahn/Train"}
@@ -86,6 +95,7 @@ PROVIDER_ICONS = {
     "kvv": "mdi:tram",
     "hvv": "mdi:ferry",
     "bvg": "mdi:subway-variant",
+    "db": "mdi:train-variant",
     "trafiklab_se": "mdi:train",
     "nta_ie": "mdi:bus-multiple",
 }
@@ -98,6 +108,7 @@ PROVIDER_ENTITY_PICTURES = {
     "kvv": "https://www.kvv.de/favicon.ico",
     "hvv": "https://www.hvv.de/favicon.ico",
     "bvg": "https://www.bvg.de/favicon.ico",
+    "db": "https://www.deutschebahn.com/favicon.ico",
     "trafiklab_se": "https://www.trafiklab.se/favicon.ico",
     "nta_ie": "https://www.transportforireland.ie/favicon.ico",
 }

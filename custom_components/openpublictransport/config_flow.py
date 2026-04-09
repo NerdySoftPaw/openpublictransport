@@ -105,6 +105,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         """Handle the initial step - select entry type and provider."""
         if user_input is not None:
             self._entry_type = user_input.get("entry_type", "departures")
+
+            if self._entry_type == "multi_stop":
+                return await self.async_step_multi_stop()
+
             self._provider = user_input[CONF_PROVIDER]
 
             # Check if provider requires API key
@@ -121,6 +125,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         entry_type_options = {
             "departures": "Abfahrtsanzeige / Departure Monitor",
             "trip": "Verbindungssuche / Trip Planner (A → B)",
+            "multi_stop": "Multi-Stop / Mehrere Haltestellen kombinieren",
         }
         provider_options = (
             self._get_provider_schema().schema[vol.Required(CONF_PROVIDER, default=PROVIDER_VRR)].container
@@ -1197,6 +1202,60 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             step_id="trip_settings",
             data_schema=schema,
             description_placeholders={"origin": origin_name, "destination": dest_name},
+        )
+
+    async def async_step_multi_stop(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+        """Configure a multi-stop sensor by selecting existing entities."""
+        from .multi_stop import CONF_IS_MULTI_STOP, CONF_MULTI_STOP_NAME, CONF_SOURCE_ENTITIES
+
+        if user_input is not None:
+            name = user_input.get("name", "Multi-Stop")
+            entities_str = user_input.get("entities", "")
+            entities = [e.strip() for e in entities_str.split(",") if e.strip()]
+
+            if len(entities) < 2:
+                return self.async_show_form(
+                    step_id="multi_stop",
+                    data_schema=vol.Schema(
+                        {
+                            vol.Required("name", default=name): str,
+                            vol.Required("entities", default=entities_str): str,
+                        }
+                    ),
+                    errors={"entities": "min_two_entities"},
+                )
+
+            data = {
+                CONF_IS_MULTI_STOP: True,
+                CONF_MULTI_STOP_NAME: name,
+                CONF_SOURCE_ENTITIES: entities,
+            }
+
+            unique_id = f"multi_stop_{'_'.join(sorted(entities))}"
+            await self.async_set_unique_id(unique_id)
+            self._abort_if_unique_id_configured()
+
+            return self.async_create_entry(title=f"Multi-Stop: {name}", data=data)
+
+        # Get existing departure sensors for hint
+        existing = [
+            eid
+            for eid in self.hass.states.async_entity_ids("sensor")
+            if self.hass.states.get(eid) and self.hass.states.get(eid).attributes.get("departures") is not None
+        ]
+        hint = ", ".join(existing[:3]) if existing else "sensor.vrr_..."
+
+        schema = vol.Schema(
+            {
+                vol.Required("name"): str,
+                vol.Required("entities"): str,
+            }
+        )
+
+        return self.async_show_form(
+            step_id="multi_stop",
+            data_schema=schema,
+            description_placeholders={"hint": hint},
         )
 
     @staticmethod

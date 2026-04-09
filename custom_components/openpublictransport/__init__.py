@@ -79,6 +79,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Open Public Transport from a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
+    # Check if this is a multi-stop entry
+    if entry.data.get("is_multi_stop"):
+        from .multi_stop import async_setup_multi_stop_entry
+
+        return await async_setup_multi_stop_entry(hass, entry)
+
     # Check if this is a trip entry
     if entry.data.get("is_trip"):
         from .trip_sensor import async_setup_trip_entry

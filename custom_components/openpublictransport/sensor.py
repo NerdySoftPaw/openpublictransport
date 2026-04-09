@@ -239,6 +239,11 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up sensor from a config entry."""
+    # Multi-stop entries are handled by multi_stop.py
+    if config_entry.data.get("is_multi_stop"):
+        from .multi_stop import async_setup_entry as multi_setup
+
+        return await multi_setup(hass, config_entry, async_add_entities)
     # Trip entries are handled by trip_sensor.py
     if config_entry.data.get("is_trip"):
         from .trip_sensor import async_setup_entry as trip_setup

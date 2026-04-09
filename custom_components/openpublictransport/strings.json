@@ -78,6 +78,14 @@
           "stop": "Haltestelle"
         }
       },
+      "multi_stop": {
+        "title": "Multi-Stop konfigurieren",
+        "description": "Kombiniere Abfahrten von mehreren Haltestellen.\nGib die Entity-IDs kommagetrennt ein.\nBeispiel: {hint}",
+        "data": {
+          "name": "Name",
+          "entities": "Entity-IDs (kommagetrennt)"
+        }
+      },
       "trip_settings": {
         "title": "Verbindungseinstellungen",
         "description": "Route: {origin} → {destination}",
@@ -93,7 +101,8 @@
       "api_key_required": "API-Schlüssel ist erforderlich",
       "trafiklab_api_key_required": "Trafiklab API-Schlüssel ist erforderlich",
       "nta_api_key_required": "NTA API-Schlüssel ist erforderlich",
-      "rmv_api_key_required": "RMV API-Schlüssel ist erforderlich"
+      "rmv_api_key_required": "RMV API-Schlüssel ist erforderlich",
+      "min_two_entities": "Bitte mindestens 2 Entity-IDs angeben"
     }
   },
   "options": {

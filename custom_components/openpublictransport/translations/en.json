@@ -78,6 +78,14 @@
           "stop": "Stop"
         }
       },
+      "multi_stop": {
+        "title": "Configure Multi-Stop",
+        "description": "Combine departures from multiple stops.\nEnter entity IDs comma-separated.\nExample: {hint}",
+        "data": {
+          "name": "Name",
+          "entities": "Entity IDs (comma-separated)"
+        }
+      },
       "trip_settings": {
         "title": "Trip Settings",
         "description": "Route: {origin} → {destination}",
@@ -93,7 +101,8 @@
       "api_key_required": "API key is required",
       "trafiklab_api_key_required": "Trafiklab API key is required",
       "nta_api_key_required": "NTA API key is required",
-      "rmv_api_key_required": "RMV API key is required"
+      "rmv_api_key_required": "RMV API key is required",
+      "min_two_entities": "Please provide at least 2 entity IDs"
     }
   },
   "options": {

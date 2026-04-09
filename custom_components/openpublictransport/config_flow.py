@@ -39,7 +39,6 @@ from .const import (
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_VRR,
-    PROVIDERS,
     TRANSPORTATION_TYPES,
 )
 from .providers import get_provider
@@ -64,10 +63,23 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         self._cache_ttl: int = 300  # Cache TTL in seconds (5 minutes)
 
     def _get_provider_schema(self) -> vol.Schema:
-        """Get the provider selection schema."""
+        """Get the provider selection schema with descriptive names."""
+        provider_options = {
+            "vrr": "VRR — Rhein-Ruhr (NRW)",
+            "kvv": "KVV — Karlsruhe",
+            "hvv": "HVV — Hamburg",
+            "bvg": "BVG — Berlin / Brandenburg",
+            "mvv": "MVV — München",
+            "vvs": "VVS — Stuttgart",
+            "vgn": "VGN — Nürnberg",
+            "vagfr": "VAG — Freiburg",
+            "rmv": "RMV — Frankfurt / Rhein-Main (API Key)",
+            "trafiklab_se": "Trafiklab — Schweden (API Key)",
+            "nta_ie": "NTA — Irland (API Key)",
+        }
         return vol.Schema(
             {
-                vol.Required(CONF_PROVIDER, default=PROVIDER_VRR): vol.In(PROVIDERS),
+                vol.Required(CONF_PROVIDER, default=PROVIDER_VRR): vol.In(provider_options),
             }
         )
 

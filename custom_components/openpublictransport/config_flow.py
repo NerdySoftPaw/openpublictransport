@@ -71,7 +71,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             "bvg": "BVG — Berlin / Brandenburg",
             "mvv": "MVV — München",
             "vvs": "VVS — Stuttgart",
-            "vgn": "VGN — Nürnberg",
+            # "vgn": "VGN — Nürnberg",  # Temporarily disabled - API issues
             "vagfr": "VAG — Freiburg",
             "rmv": "RMV — Frankfurt / Rhein-Main (API Key)",
             "trafiklab_se": "Trafiklab — Schweden (API Key)",

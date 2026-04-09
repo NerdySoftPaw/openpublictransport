@@ -18,7 +18,7 @@
 > 
 > 📖 **Full Documentation**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
-A Home Assistant integration for 11 public transport networks: VRR (Rhein-Ruhr), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (München), VVS (Stuttgart), VGN (Nürnberg), VAG (Freiburg), RMV (Frankfurt), Trafiklab (Sweden), and NTA (Ireland). This integration provides real-time departure information for public transport across Germany, Sweden, and Ireland.
+A Home Assistant integration for 10 public transport networks: VRR (Rhein-Ruhr), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (München), VVS (Stuttgart), VAG (Freiburg), RMV (Frankfurt), Trafiklab (Sweden), and NTA (Ireland). This integration provides real-time departure information for public transport across Germany, Sweden, and Ireland.
 
 ## Features
 
@@ -76,7 +76,7 @@ The integration uses an **intuitive multi-step setup wizard** with autocomplete 
 
 1. **Select Provider**
    - Choose from 11 providers in a descriptive dropdown (e.g. "VRR — Rhein-Ruhr (NRW)" instead of just "vrr"):
-     - **German EFA providers**: VRR (NRW), KVV (Karlsruhe), MVV (München), VVS (Stuttgart), VGN (Nürnberg), VAG (Freiburg)
+     - **German EFA providers**: VRR (NRW), KVV (Karlsruhe), MVV (München), VVS (Stuttgart), VAG (Freiburg)
      - **German REST providers**: HVV (Hamburg), BVG (Berlin)
      - **German HAFAS providers**: RMV (Frankfurt) - API key required
      - **International**: Trafiklab (Sweden), NTA (Ireland) - API keys required
@@ -115,7 +115,7 @@ For the Trafiklab provider (Sweden), you need a free API key:
 4. Copy the API key
 5. Enter it in the integration's Config Flow
 
-**Note:** API keys are required for Trafiklab, NTA, and RMV. No API key is required for VRR, KVV, HVV, BVG, MVV, VVS, VGN, or VAG.
+**Note:** API keys are required for Trafiklab, NTA, and RMV. No API key is required for VRR, KVV, HVV, BVG, MVV, VVS, or VAG.
 
 ### NTA Ireland API Key
 
@@ -596,7 +596,7 @@ NTA (National Transport Authority, Ireland) is one of the supported providers.
 - **BVG (Berlin)**: Full Berlin/Brandenburg support via VBB REST API
 - **MVV (München)**: Munich metropolitan area via EFA
 - **VVS (Stuttgart)**: Stuttgart area via EFA
-- **VGN (Nürnberg)**: Nuremberg area via EFA
+- ~~**VGN (Nürnberg)**: Temporarily disabled due to API issues~~
 - **VAG (Freiburg)**: Freiburg area via EFA
 - **RMV (Frankfurt)**: Rhine-Main area via HAFAS REST API (API key required)
 

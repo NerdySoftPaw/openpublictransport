@@ -4,14 +4,15 @@ The Public Transport Integration supports multiple transit providers across Euro
 
 ## Provider Comparison
 
-| Feature | VRR | KVV | HVV | Trafiklab | NTA |
-|---------|-----|-----|-----|-----------|-----|
-| **Region** | NRW, Germany | Karlsruhe, Germany | Hamburg, Germany | Sweden | Ireland |
-| **API Key** | No | No | No | Yes (free) | Yes (free) |
-| **Real-time Data** | Yes | Yes | Yes | Yes | Yes |
-| **Delay Information** | Yes | Yes | Yes | Yes | Yes |
-| **Platform Info** | Yes | Yes | Yes | Yes | Limited |
-| **Stop Search** | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Stop ID |
+| Feature | VRR | KVV | HVV | MVV | VVS | VGN | VAG Freiburg | BVG | RMV | Trafiklab | NTA |
+|---------|-----|-----|-----|-----|-----|-----|--------------|-----|-----|-----------|-----|
+| **Region** | NRW, Germany | Karlsruhe, Germany | Hamburg, Germany | Munich, Germany | Stuttgart, Germany | Nuremberg, Germany | Freiburg, Germany | Berlin, Germany | Frankfurt, Germany | Sweden | Ireland |
+| **API Type** | EFA | EFA | EFA | EFA | EFA | EFA | EFA | FPTF REST | HAFAS REST | REST | GTFS-RT |
+| **API Key** | No | No | No | No | No | No | No | No | Yes (free) | Yes (free) | Yes (free) |
+| **Real-time Data** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
+| **Delay Information** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
+| **Platform Info** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Limited |
+| **Stop Search** | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Stop ID |
 
 ## Timezone Handling
 
@@ -22,6 +23,12 @@ Each provider uses its local timezone for departure times:
 | VRR | Europe/Berlin |
 | KVV | Europe/Berlin |
 | HVV | Europe/Berlin |
+| MVV | Europe/Berlin |
+| VVS | Europe/Berlin |
+| VGN | Europe/Berlin |
+| VAG Freiburg | Europe/Berlin |
+| BVG | Europe/Berlin |
+| RMV | Europe/Berlin |
 | Trafiklab | Europe/Stockholm |
 | NTA | Europe/Dublin |
 
@@ -40,7 +47,7 @@ Different providers use different internal classification systems. The integrati
 | `ferry` | Ferry/Water transport | mdi:ferry |
 | `taxi` | Taxi/On-demand | mdi:taxi |
 
-### VRR/KVV Transport Classes
+### VRR/KVV/MVV/VVS/VGN/VAG Transport Classes (EFA)
 
 | Class | Type | Description |
 |-------|------|-------------|
@@ -54,15 +61,40 @@ Different providers use different internal classification systems. The integrati
 | 15 | train | InterCity (IC) |
 | 16 | train | ICE |
 
-### HVV Transport Classes
+### HVV Transport Classes (EFA)
 
 | Class | Type | Description |
 |-------|------|-------------|
 | 0 | train | High-speed trains |
 | 1, 2 | subway | U-Bahn |
 | 3, 4 | tram | S-Bahn |
-| 5-8 | bus | Various bus types |
-| 9 | ferry | Ferry |
+| 5-8 | bus | Various bus types (Metrobus, Schnellbus, etc.) |
+| 9 | ferry | Hafenfähre (Harbor Ferry) |
+
+### BVG Product Types (FPTF)
+
+| Product | Type | Description |
+|---------|------|-------------|
+| subway | subway | U-Bahn |
+| suburban | train | S-Bahn |
+| tram | tram | Tram/Straßenbahn |
+| bus | bus | Bus services |
+| ferry | ferry | Ferry (BVG Fähre) |
+| express | train | Express trains (ICE, IC, EC) |
+| regional | train | Regional trains (RE, RB) |
+
+### RMV Categories (HAFAS catOut)
+
+| catOut | Type | Description |
+|--------|------|-------------|
+| ICE | train | ICE (InterCity Express) |
+| IC | train | IC/EC (InterCity/EuroCity) |
+| RE | train | Regional Express |
+| RB | train | Regionalbahn |
+| S | train | S-Bahn |
+| U | subway | U-Bahn |
+| Tram | tram | Tram/Straßenbahn |
+| Bus | bus | Bus services |
 
 ### Trafiklab Transport Modes
 

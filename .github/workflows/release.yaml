@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event.release.target_commitish }}
 
       - name: Set version from tag
         run: |
@@ -26,11 +26,12 @@ jobs:
 
       - name: Commit version to repo
         run: |
+          BRANCH=${{ github.event.release.target_commitish }}
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add custom_components/openpublictransport/manifest.json
           git diff --cached --quiet && echo "No changes" || git commit -m "Set version to ${GITHUB_REF#refs/tags/v}"
-          git push origin main
+          git push origin HEAD:${BRANCH}
 
       - name: Update tag to include version commit
         run: |

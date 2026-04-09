@@ -85,7 +85,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             "nta_ie": "NTA — Irland (API Key)",
             "sbb": "SBB — Schweiz",
             "oebb": "ÖBB — Österreich",
-            "transitous": "Transitous — Weltweit \(Community, Beta\)",
+            "transitous": "Transitous — Weltweit (Community, Beta)",
             "vrn": "VRN — Rhein-Neckar",
             "vvo": "VVO — Dresden",
             "ding": "DING — Ulm / Donau-Iller",

@@ -18,7 +18,7 @@
 > 
 > 📖 **Full Documentation**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
-A Home Assistant integration for 20 public transport networks: VRR (Rhein-Ruhr), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (München), VVS (Stuttgart), VAG (Freiburg), RMV (Frankfurt), VRN (Rhein-Neckar), VVO (Dresden), DING (Ulm), AVV (Augsburg), RVV (Regensburg), BSVG (Braunschweig), NWL (Westfalen-Lippe), NVBW (Baden-Württemberg), BEG (Bayern), Trafiklab (Sweden), and NTA (Ireland). This integration provides real-time departure information for public transport across Germany, Sweden, and Ireland.
+A Home Assistant integration for 23 public transport networks: VRR (Rhein-Ruhr), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (München), VVS (Stuttgart), VAG (Freiburg), RMV (Frankfurt), VRN (Rhein-Neckar), VVO (Dresden), DING (Ulm), AVV (Augsburg), RVV (Regensburg), BSVG (Braunschweig), NWL (Westfalen-Lippe), NVBW (Baden-Württemberg), BEG (Bayern), SBB (Switzerland), ÖBB (Austria), Trafiklab (Sweden), NTA (Ireland), and Transitous (Worldwide, Community, Beta). This integration provides real-time departure information for public transport across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide.
 
 ## Features
 
@@ -81,11 +81,14 @@ The integration uses an **intuitive multi-step setup wizard** with autocomplete 
 ### Setup Wizard
 
 1. **Select Provider**
-   - Choose from 20 providers in a descriptive dropdown (e.g. "VRR — Rhein-Ruhr (NRW)" instead of just "vrr"):
+   - Choose from 23 providers in a descriptive dropdown (e.g. "VRR — Rhein-Ruhr (NRW)" instead of just "vrr"):
      - **German EFA providers**: VRR (NRW), KVV (Karlsruhe), MVV (München), VVS (Stuttgart), VAG (Freiburg), VRN (Rhein-Neckar), VVO (Dresden), DING (Ulm), AVV (Augsburg), RVV (Regensburg), BSVG (Braunschweig), NWL (Westfalen-Lippe), NVBW (Baden-Württemberg), BEG (Bayern)
      - **German REST providers**: HVV (Hamburg), BVG (Berlin)
      - **German HAFAS providers**: RMV (Frankfurt) - API key required
+     - **Swiss**: SBB (all Swiss public transport) - no API key required
+     - **Austrian**: ÖBB (all Austrian public transport) - no API key required
      - **International**: Trafiklab (Sweden), NTA (Ireland) - API keys required
+     - **Worldwide**: Transitous (Community, Beta) - aggregated GTFS data, no API key required
    - **For RMV:** A free API key from [opendata.rmv.de](https://opendata.rmv.de) is required
    - **For Trafiklab:** A free API key from [trafiklab.se](https://www.trafiklab.se) is required
    - **For NTA:** A free API key from [developer.nationaltransport.ie](https://developer.nationaltransport.ie) is required
@@ -121,7 +124,7 @@ For the Trafiklab provider (Sweden), you need a free API key:
 4. Copy the API key
 5. Enter it in the integration's Config Flow
 
-**Note:** API keys are required for Trafiklab, NTA, and RMV. No API key is required for VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, BSVG, NWL, NVBW, or BEG.
+**Note:** API keys are required for Trafiklab, NTA, and RMV. No API key is required for VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, BSVG, NWL, NVBW, BEG, SBB, ÖBB, or Transitous.
 
 ### NTA Ireland API Key
 

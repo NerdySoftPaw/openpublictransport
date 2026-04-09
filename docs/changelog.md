@@ -1,17 +1,25 @@
 # Changelog
 
-## v2026.04.12 - Walking Time, Services & Statistics
+## v2026.04.12 - Transitous, SBB, ÖBB, Multi-Stop & More
+
+### New Providers
+
+- **Transitous** - Worldwide public transport via MOTIS2 (Community, Beta). Aggregated GTFS/GTFS-RT data, no API key required. Covers stops globally.
+- **SBB** - Swiss Federal Railways / all Swiss public transport via transport.opendata.ch, no API key required.
+- **ÖBB** - Austrian Federal Railways / all Austrian public transport via FPTF REST API, no API key required.
 
 ### New Features
 
+- **Multi-Stop Sensor** - Combine departures from multiple stops into a single sensor. Configure via "Multi-Stop" entry type in the setup wizard.
+- **Favorite Lines** - Mark lines as favorites; they appear first in departure lists.
 - **Walking Time** - Configure 0-30 min walking time to your stop; departures that can't be reached in time are hidden automatically. Available in both initial setup and options flow.
 - **`check_delays` Service** - Query delayed departures with a configurable `delay_threshold` (default 5 min) and optional `line` filter. Fires an `openpublictransport_delay_alert` event with `entity_id`, `delayed_count`, `max_delay`, `lines`, and `departures`.
 - **`announce_departure` Service** - Returns a spoken-language departure string for use with any TTS integration. Accepts `entity_id` and optional `index` (default 0 = next departure).
 - **Statistics Sensor** - New `sensor.*_statistics` entity per stop. State is overall punctuality (%). Attributes include per-line stats: `total`, `on_time`, `punctuality`, `average_delay`. Delays <= 2 min count as on-time.
 - **VGN re-enabled** - The VGN (Nuremberg) provider is available again.
 
-!!! info "Total providers: 20"
-    With VGN re-enabled, the integration now supports 20 transit networks.
+!!! info "Total providers: 23"
+    The integration now supports 23 transit networks across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide (via Transitous).
 
 ---
 

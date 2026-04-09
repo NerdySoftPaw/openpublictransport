@@ -9,7 +9,7 @@
           "provider": "Anbieter"
         },
         "data_description": {
-          "provider": "VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, RMV, Trafiklab oder NTA"
+          "provider": "VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, RMV, SBB, ÖBB, Transitous, Trafiklab oder NTA"
         }
       },
       "stop_search": {
@@ -52,7 +52,8 @@
           "use_provider_logo": "Anbieter-Logo anzeigen",
           "delay_threshold": "Verspätungs-Schwellwert (Minuten)",
           "line_filter": "Linien-Filter",
-          "walking_time": "Fußweg (Minuten)", "favorite_lines": "Favoriten-Linien"
+          "walking_time": "Fußweg (Minuten)",
+          "favorite_lines": "Favoriten-Linien"
         },
         "data_description": {
           "departures": "Wie viele Abfahrten sollen angezeigt werden? (1-20)",
@@ -61,7 +62,8 @@
           "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
           "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)",
           "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien",
-          "walking_time": "Fußweg zur Haltestelle in Minuten (0 = deaktiviert). Abfahrten die nicht mehr erreichbar sind werden ausgeblendet"
+          "walking_time": "Fußweg zur Haltestelle in Minuten (0 = deaktiviert). Abfahrten die nicht mehr erreichbar sind werden ausgeblendet",
+          "favorite_lines": "Kommagetrennte Linien, die zuerst angezeigt werden (z.B. U79, RE5). Leer = keine Favoriten"
         }
       },
       "trip_search": {
@@ -116,13 +118,15 @@
           "use_provider_logo": "Anbieter-Logo anzeigen",
           "delay_threshold": "Verspätungs-Schwellwert (Minuten)",
           "line_filter": "Linien-Filter",
-          "walking_time": "Fußweg (Minuten)", "favorite_lines": "Favoriten-Linien"
+          "walking_time": "Fußweg (Minuten)",
+          "favorite_lines": "Favoriten-Linien"
         },
         "data_description": {
           "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
           "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)",
           "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien",
-          "walking_time": "Fußweg zur Haltestelle in Minuten (0 = deaktiviert). Abfahrten die nicht mehr erreichbar sind werden ausgeblendet"
+          "walking_time": "Fußweg zur Haltestelle in Minuten (0 = deaktiviert). Abfahrten die nicht mehr erreichbar sind werden ausgeblendet",
+          "favorite_lines": "Kommagetrennte Linien, die zuerst angezeigt werden (z.B. U79, RE5). Leer = keine Favoriten"
         }
       }
     }

@@ -20,8 +20,25 @@ jobs:
       - name: Set version from tag
         run: |
           TAG_VERSION=${GITHUB_REF#refs/tags/v}
-          echo "Setting version to $TAG_VERSION"
-          jq --arg v "$TAG_VERSION" '.version = $v' custom_components/openpublictransport/manifest.json > tmp.json
+          # HA requires calver format (YYYY.M.D or YYYY.M.Dpatch)
+          # Convert beta tags: 2026.04.09-beta.2 → 2026.4.902
+          if [[ "$TAG_VERSION" == *"-beta."* ]]; then
+            BASE=$(echo "$TAG_VERSION" | sed 's/-beta\..*//')
+            BETA_NUM=$(echo "$TAG_VERSION" | sed 's/.*-beta\.//')
+            # Remove leading zeros for HA calver compatibility
+            YEAR=$(echo "$BASE" | cut -d. -f1)
+            MONTH=$(echo "$BASE" | cut -d. -f2 | sed 's/^0*//')
+            DAY=$(echo "$BASE" | cut -d. -f3 | sed 's/^0*//')
+            MANIFEST_VERSION="${YEAR}.${MONTH}.${DAY}b${BETA_NUM}"
+          else
+            # Stable release: remove leading zeros
+            YEAR=$(echo "$TAG_VERSION" | cut -d. -f1)
+            MONTH=$(echo "$TAG_VERSION" | cut -d. -f2 | sed 's/^0*//')
+            DAY=$(echo "$TAG_VERSION" | cut -d. -f3 | sed 's/^0*//')
+            MANIFEST_VERSION="${YEAR}.${MONTH}.${DAY}"
+          fi
+          echo "Setting version to $MANIFEST_VERSION (from tag $TAG_VERSION)"
+          jq --arg v "$MANIFEST_VERSION" '.version = $v' custom_components/openpublictransport/manifest.json > tmp.json
           mv tmp.json custom_components/openpublictransport/manifest.json
 
       - name: Commit version to repo

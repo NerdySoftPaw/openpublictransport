@@ -23,14 +23,26 @@ from .const import (
     PROVIDER_TRAFIKLAB_SE,
 )
 from .sensor import PublicTransportDataUpdateCoordinator
+from .trip import async_plan_trip
 
 _LOGGER = logging.getLogger(__name__)
 
 SERVICE_REFRESH = "refresh_departures"
+SERVICE_PLAN_TRIP = "plan_trip"
 
 SERVICE_REFRESH_SCHEMA = vol.Schema(
     {
         vol.Optional("entity_id"): str,
+    }
+)
+
+SERVICE_PLAN_TRIP_SCHEMA = vol.Schema(
+    {
+        vol.Required("provider"): str,
+        vol.Required("origin"): str,
+        vol.Required("origin_city"): str,
+        vol.Required("destination"): str,
+        vol.Required("destination_city"): str,
     }
 )
 
@@ -139,6 +151,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         schema=SERVICE_REFRESH_SCHEMA,
     )
 
+    # Register trip planning service
+    async def handle_plan_trip(call: ServiceCall) -> dict:
+        """Handle the plan_trip service call."""
+        provider = call.data["provider"]
+        origin = call.data["origin"]
+        origin_city = call.data["origin_city"]
+        destination = call.data["destination"]
+        destination_city = call.data["destination_city"]
+
+        journeys = await async_plan_trip(hass, provider, origin, origin_city, destination, destination_city)
+
+        return {"journeys": journeys or []}
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_PLAN_TRIP,
+        handle_plan_trip,
+        schema=SERVICE_PLAN_TRIP_SCHEMA,
+        supports_response=True,
+    )
+
     return True
 
 
@@ -164,6 +197,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if not hass.config_entries.async_entries(DOMAIN):
         # Remove services
         hass.services.async_remove(DOMAIN, SERVICE_REFRESH)
+        hass.services.async_remove(DOMAIN, SERVICE_PLAN_TRIP)
 
         # Clean up domain data
         hass.data.pop(DOMAIN, None)

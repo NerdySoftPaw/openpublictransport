@@ -5,29 +5,39 @@ from typing import Dict, Optional, Type
 from homeassistant.core import HomeAssistant
 
 from ..const import (
+    PROVIDER_AVV_AUGSBURG,
     PROVIDER_BVG,
+    PROVIDER_DING,
     PROVIDER_HVV,
     PROVIDER_KVV,
     PROVIDER_MVV,
     PROVIDER_NTA_IE,
     PROVIDER_RMV,
+    PROVIDER_RVV,
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_VAGFR,
     PROVIDER_VGN,
+    PROVIDER_VRN,
     PROVIDER_VRR,
+    PROVIDER_VVO,
     PROVIDER_VVS,
 )
+from .avv import AVVProvider
 from .base import BaseProvider
 from .bvg import BVGProvider
+from .ding import DINGProvider
 from .hvv import HVVProvider
 from .kvv import KVVProvider
 from .mvv import MVVProvider
 from .nta import NTAProvider
 from .rmv import RMVProvider
+from .rvv import RVVProvider
 from .trafiklab import TrafiklabProvider
 from .vagfr import VAGFRProvider
 from .vgn import VGNProvider
+from .vrn import VRNProvider
 from .vrr import VRRProvider
+from .vvo import VVOProvider
 from .vvs import VVSProvider
 
 _PROVIDER_REGISTRY: Dict[str, Type[BaseProvider]] = {}
@@ -70,3 +80,8 @@ register_provider(PROVIDER_VAGFR, VAGFRProvider)
 register_provider(PROVIDER_RMV, RMVProvider)
 register_provider(PROVIDER_TRAFIKLAB_SE, TrafiklabProvider)
 register_provider(PROVIDER_NTA_IE, NTAProvider)
+register_provider(PROVIDER_VRN, VRNProvider)
+register_provider(PROVIDER_VVO, VVOProvider)
+register_provider(PROVIDER_DING, DINGProvider)
+register_provider(PROVIDER_AVV_AUGSBURG, AVVProvider)
+register_provider(PROVIDER_RVV, RVVProvider)

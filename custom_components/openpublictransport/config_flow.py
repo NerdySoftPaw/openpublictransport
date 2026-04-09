@@ -81,6 +81,11 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             "rmv": "RMV — Frankfurt / Rhein-Main (API Key)",
             "trafiklab_se": "Trafiklab — Schweden (API Key)",
             "nta_ie": "NTA — Irland (API Key)",
+            "vrn": "VRN — Rhein-Neckar",
+            "vvo": "VVO — Dresden",
+            "ding": "DING — Ulm / Donau-Iller",
+            "avv_augsburg": "AVV — Augsburg",
+            "rvv": "RVV — Regensburg",
         }
         return vol.Schema(
             {

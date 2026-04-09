@@ -9,7 +9,7 @@
           "entry_type": "Type"
         },
         "data_description": {
-          "provider": "VRR (NRW), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (Munich), VVS (Stuttgart), VAG (Freiburg), RMV (Frankfurt), Trafiklab (Sweden) or NTA (Ireland)"
+          "provider": "VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, RMV, Trafiklab or NTA"
         }
       },
       "stop_search": {

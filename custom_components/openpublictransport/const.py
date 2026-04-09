@@ -31,6 +31,11 @@ PROVIDER_RMV = "rmv"
 CONF_RMV_API_KEY = "rmv_api_key"  # For RMV HAFAS API
 PROVIDER_TRAFIKLAB_SE = "trafiklab_se"
 PROVIDER_NTA_IE = "nta_ie"
+PROVIDER_VRN = "vrn"
+PROVIDER_VVO = "vvo"
+PROVIDER_DING = "ding"
+PROVIDER_AVV_AUGSBURG = "avv_augsburg"
+PROVIDER_RVV = "rvv"
 PROVIDERS = [
     PROVIDER_VRR,
     PROVIDER_KVV,
@@ -43,6 +48,11 @@ PROVIDERS = [
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_NTA_IE,
+    PROVIDER_VRN,
+    PROVIDER_VVO,
+    PROVIDER_DING,
+    PROVIDER_AVV_AUGSBURG,
+    PROVIDER_RVV,
 ]
 
 # Transportation types mapping
@@ -111,6 +121,11 @@ PROVIDER_ICONS = {
     "rmv": "mdi:train",
     "trafiklab_se": "mdi:train",
     "nta_ie": "mdi:bus-multiple",
+    "vrn": "mdi:train",
+    "vvo": "mdi:tram",
+    "ding": "mdi:bus",
+    "avv_augsburg": "mdi:tram",
+    "rvv": "mdi:bus",
 }
 
 # Provider-specific entity pictures (logos)
@@ -128,4 +143,9 @@ PROVIDER_ENTITY_PICTURES = {
     "rmv": "https://www.rmv.de/favicon.ico",
     "trafiklab_se": "https://www.trafiklab.se/favicon.ico",
     "nta_ie": "https://www.transportforireland.ie/favicon.ico",
+    "vrn": "https://www.vrn.de/favicon.ico",
+    "vvo": "https://www.vvo-online.de/favicon.ico",
+    "ding": "https://www.ding.eu/favicon.ico",
+    "avv_augsburg": "https://www.avv-augsburg.de/favicon.ico",
+    "rvv": "https://www.rvv.de/favicon.ico",
 }

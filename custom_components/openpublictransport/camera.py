@@ -7,6 +7,7 @@ updates with each coordinator refresh. Yellow on black, classic look.
 import io
 import logging
 from datetime import datetime
+from pathlib import Path
 
 from homeassistant.components.camera import Camera
 from homeassistant.config_entries import ConfigEntry
@@ -39,7 +40,10 @@ MAX_ROWS = 10
 
 def _get_font(size: int) -> ImageFont.FreeTypeFont:
     """Get a font with Unicode support (for umlauts etc.), falling back gracefully."""
+    bundled_font = Path(__file__).parent / "fonts" / "DejaVuSansMono.ttf"
     font_paths = [
+        # Bundled font (always works)
+        str(bundled_font),
         # Linux (HAOS, Docker)
         "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
@@ -49,11 +53,6 @@ def _get_font(size: int) -> ImageFont.FreeTypeFont:
         "/System/Library/Fonts/SFNSMono.ttf",
         "/System/Library/Fonts/Supplemental/Courier New.ttf",
         "/System/Library/Fonts/Helvetica.ttc",
-        # Font names (PIL searches system paths)
-        "DejaVuSansMono.ttf",
-        "DejaVuSans.ttf",
-        "LiberationMono-Regular.ttf",
-        "FreeMono.ttf",
     ]
     for font_path in font_paths:
         try:

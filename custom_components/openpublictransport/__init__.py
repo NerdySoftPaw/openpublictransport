@@ -98,7 +98,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(coordinator_key, None)
         raise ConfigEntryNotReady(f"Failed to initialize public transport API: {err}") from err
 
-    await hass.config_entries.async_forward_entry_setups(entry, ["sensor", "binary_sensor", "calendar"])
+    await hass.config_entries.async_forward_entry_setups(entry, ["sensor", "binary_sensor", "calendar", "event"])
 
     # Register service for manual refresh
     async def handle_refresh(call: ServiceCall) -> None:
@@ -142,7 +142,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload Open Public Transport config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, ["sensor", "binary_sensor", "calendar"])
+    unload_ok = await hass.config_entries.async_unload_platforms(
+        entry, ["sensor", "binary_sensor", "calendar", "event"]
+    )
 
     # Remove coordinator from hass.data and call shutdown
     coordinator_key = f"{entry.entry_id}_coordinator"

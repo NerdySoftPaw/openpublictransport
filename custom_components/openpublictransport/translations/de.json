@@ -13,9 +13,9 @@
       },
       "stop_search": {
         "title": "Haltestelle suchen",
-        "description": "Suche nach einer Haltestelle.\nBeispiel: Hauptbahnhof, Marktplatz, Alexanderplatz...",
+        "description": "Gib den Namen der Haltestelle ein.\nFür bessere Ergebnisse nutze das Format: **Haltestelle, Ort**\n\nBeispiel: Holthausen, Düsseldorf",
         "data": {
-          "stop_search": "Haltestelle / Ort"
+          "stop_search": "Haltestelle, Ort"
         }
       },
       "stop_select": {

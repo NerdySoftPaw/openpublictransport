@@ -53,10 +53,15 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
 
     def __init__(self):
         """Initialize the config flow."""
+        self._entry_type: str = "departures"  # "departures" or "trip"
         self._provider: Optional[str] = None
         self._selected_stop: Optional[Dict[str, Any]] = None
         self._api_key: Optional[str] = None  # For Trafiklab or NTA (Primary)
         self._api_key_secondary: Optional[str] = None  # For NTA (Secondary, optional)
+        # Trip planning fields
+        self._trip_origin: Optional[Dict[str, Any]] = None
+        self._trip_destination: Optional[Dict[str, Any]] = None
+        self._trip_search_phase: str = "origin"  # "origin" or "destination"
 
         # API response cache to avoid duplicate requests
         self._search_cache: Dict[str, Dict[str, Any]] = {}
@@ -84,8 +89,9 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         )
 
     async def async_step_user(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
-        """Handle the initial step - select provider."""
+        """Handle the initial step - select entry type and provider."""
         if user_input is not None:
+            self._entry_type = user_input.get("entry_type", "departures")
             self._provider = user_input[CONF_PROVIDER]
 
             # Check if provider requires API key
@@ -93,9 +99,28 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             if provider_instance and provider_instance.requires_api_key:
                 return await self.async_step_api_key()
 
+            if self._entry_type == "trip":
+                self._trip_search_phase = "origin"
+                return await self.async_step_trip_search()
+
             return await self.async_step_stop_search()
 
-        return self.async_show_form(step_id="user", data_schema=self._get_provider_schema())
+        entry_type_options = {
+            "departures": "Abfahrtsanzeige / Departure Monitor",
+            "trip": "Verbindungssuche / Trip Planner (A → B)",
+        }
+        provider_options = (
+            self._get_provider_schema().schema[vol.Required(CONF_PROVIDER, default=PROVIDER_VRR)].container
+        )
+
+        schema = vol.Schema(
+            {
+                vol.Required("entry_type", default="departures"): vol.In(entry_type_options),
+                vol.Required(CONF_PROVIDER, default=PROVIDER_VRR): vol.In(provider_options),
+            }
+        )
+
+        return self.async_show_form(step_id="user", data_schema=schema)
 
     async def async_step_api_key(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Handle API key input for providers that require it."""
@@ -1019,6 +1044,143 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             score -= 10
 
         return score
+
+    async def async_step_trip_search(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+        """Handle trip stop search (used for both origin and destination)."""
+        errors = {}
+        phase = self._trip_search_phase  # "origin" or "destination"
+
+        if user_input is not None:
+            search_term = user_input.get("stop_search", "").strip()
+            if not search_term:
+                errors["stop_search"] = "empty_search"
+            else:
+                stops = await self._search_stops(search_term)
+                if not stops:
+                    errors["stop_search"] = "no_results"
+                elif len(stops) == 1:
+                    if phase == "origin":
+                        self._trip_origin = stops[0]
+                        self._trip_search_phase = "destination"
+                        return await self.async_step_trip_search()
+                    else:
+                        self._trip_destination = stops[0]
+                        return await self.async_step_trip_settings()
+                else:
+                    self.hass.data[f"{DOMAIN}_temp_stops"] = stops
+                    self._last_search_term = search_term
+                    return await self.async_step_trip_select()
+
+        if phase == "origin":
+            title = "Starthaltestelle / Origin"
+            desc = "Gib die Starthaltestelle ein.\nFormat: **Haltestelle, Ort**"
+        else:
+            origin_name = self._trip_origin.get("name", "") if self._trip_origin else ""
+            title = "Zielhaltestelle / Destination"
+            desc = f"Start: **{origin_name}**\nGib die Zielhaltestelle ein.\nFormat: **Haltestelle, Ort**"
+
+        schema = vol.Schema({vol.Required("stop_search"): str})
+        return self.async_show_form(
+            step_id="trip_search",
+            data_schema=schema,
+            errors=errors,
+            description_placeholders={"title": title, "desc": desc},
+        )
+
+    async def async_step_trip_select(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+        """Select a stop for trip planning."""
+        if user_input is not None:
+            selected_id = user_input.get("stop")
+            if selected_id == "__search_again__":
+                self.hass.data.pop(f"{DOMAIN}_temp_stops", None)
+                return await self.async_step_trip_search()
+
+            if selected_id:
+                for stop in self.hass.data.get(f"{DOMAIN}_temp_stops", []):
+                    if isinstance(stop, dict) and stop.get("id") == selected_id:
+                        if self._trip_search_phase == "origin":
+                            self._trip_origin = stop
+                            self._trip_search_phase = "destination"
+                            self.hass.data.pop(f"{DOMAIN}_temp_stops", None)
+                            return await self.async_step_trip_search()
+                        else:
+                            self._trip_destination = stop
+                            self.hass.data.pop(f"{DOMAIN}_temp_stops", None)
+                            return await self.async_step_trip_settings()
+
+            return await self.async_step_trip_search()
+
+        stops = self.hass.data.get(f"{DOMAIN}_temp_stops", [])
+        if not isinstance(stops, list) or not stops:
+            return await self.async_step_trip_search()
+
+        stop_options = {"__search_again__": "🔍 Neue Suche / New search..."}
+        for stop in stops:
+            if isinstance(stop, dict) and "id" in stop and "name" in stop:
+                name = stop["name"]
+                place = stop.get("place", "")
+                if place and place not in name:
+                    stop_options[stop["id"]] = f"{name}, {place}"
+                else:
+                    stop_options[stop["id"]] = name
+
+        schema = vol.Schema({vol.Required("stop"): vol.In(stop_options)})
+        search_term = getattr(self, "_last_search_term", "")
+        phase_label = "Start" if self._trip_search_phase == "origin" else "Ziel"
+        return self.async_show_form(
+            step_id="trip_select",
+            data_schema=schema,
+            description_placeholders={"count": str(len(stops)), "search_term": search_term, "phase": phase_label},
+        )
+
+    async def async_step_trip_settings(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+        """Handle trip settings."""
+        from .trip_sensor import (
+            CONF_IS_TRIP,
+            CONF_TRIP_DESTINATION,
+            CONF_TRIP_DESTINATION_CITY,
+            CONF_TRIP_ORIGIN,
+            CONF_TRIP_ORIGIN_CITY,
+            CONF_TRIP_PROVIDER,
+        )
+
+        schema = vol.Schema(
+            {
+                vol.Optional(CONF_SCAN_INTERVAL, default=120): vol.All(int, vol.Range(min=60, max=3600)),
+            }
+        )
+
+        if user_input is not None:
+            origin = self._trip_origin or {}
+            dest = self._trip_destination or {}
+
+            data = {
+                CONF_IS_TRIP: True,
+                CONF_TRIP_PROVIDER: self._provider,
+                CONF_TRIP_ORIGIN: origin.get("name", ""),
+                CONF_TRIP_ORIGIN_CITY: origin.get("place", ""),
+                CONF_TRIP_DESTINATION: dest.get("name", ""),
+                CONF_TRIP_DESTINATION_CITY: dest.get("place", ""),
+                CONF_SCAN_INTERVAL: user_input.get(CONF_SCAN_INTERVAL, 120),
+            }
+
+            unique_id = f"{self._provider}_trip_{origin.get('id', '')}_{dest.get('id', '')}"
+            await self.async_set_unique_id(unique_id)
+            self._abort_if_unique_id_configured()
+
+            title = f"{(self._provider or '').upper()} {origin.get('name', '')} → {dest.get('name', '')}"
+
+            self.hass.data.pop(f"{DOMAIN}_temp_stops", None)
+            return self.async_create_entry(title=title, data=data)
+
+        origin_name = self._trip_origin.get("name", "") if self._trip_origin else ""
+        dest_name = self._trip_destination.get("name", "") if self._trip_destination else ""
+
+        return self.async_show_form(
+            step_id="trip_settings",
+            data_schema=schema,
+            description_placeholders={"origin": origin_name, "destination": dest_name},
+        )
 
     @staticmethod
     @callback

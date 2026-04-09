@@ -201,7 +201,12 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the VRR/KVV sensor from a config entry."""
+    """Set up sensor from a config entry."""
+    # Trip entries are handled by trip_sensor.py
+    if config_entry.data.get("is_trip"):
+        from .trip_sensor import async_setup_entry as trip_setup
+
+        return await trip_setup(hass, config_entry, async_add_entities)
     # Reuse coordinator created in __init__.py
     coordinator_key = f"{config_entry.entry_id}_coordinator"
     coordinator = hass.data[DOMAIN].get(coordinator_key)

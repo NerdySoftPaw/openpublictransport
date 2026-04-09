@@ -59,6 +59,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Open Public Transport from a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
+    # Check if this is a trip entry
+    if entry.data.get("is_trip"):
+        from .trip_sensor import async_setup_trip_entry
+
+        return await async_setup_trip_entry(hass, entry)
+
     # Create coordinator and do initial refresh before forwarding entry setups
     # This allows ConfigEntryNotReady to be raised before async_forward_entry_setups
     provider = entry.data.get(CONF_PROVIDER, "vrr")

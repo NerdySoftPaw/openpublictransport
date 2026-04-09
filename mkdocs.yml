@@ -1,5 +1,5 @@
 site_name: Public Transport Integration
-site_description: Multi-Provider Public Transport Home Assistant Integration for 11 transit networks across Germany, Sweden, and Ireland
+site_description: Multi-Provider Public Transport Home Assistant Integration for 23 transit networks across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide
 repo_url: https://github.com/NerdySoftPaw/openpublictransport
 repo_name: NerdySoftPaw/openpublictransport
 
@@ -63,8 +63,20 @@ nav:
       - VGN (Nürnberg): providers/vgn.md
       - VAG (Freiburg): providers/vagfr.md
       - RMV (Frankfurt): providers/rmv.md
+      - VRN (Rhein-Neckar): providers/vrn.md
+      - VVO (Dresden): providers/vvo.md
+      - DING (Ulm): providers/ding.md
+      - AVV (Augsburg): providers/avv.md
+      - RVV (Regensburg): providers/rvv.md
+      - BSVG (Braunschweig): providers/bsvg.md
+      - NWL (Westfalen-Lippe): providers/nwl.md
+      - NVBW (Baden-Württemberg): providers/nvbw.md
+      - BEG (Bayern): providers/beg.md
+      - SBB (Schweiz): providers/sbb.md
+      - ÖBB (Österreich): providers/oebb.md
       - Trafiklab (Sweden): providers/trafiklab.md
       - NTA (Ireland): providers/nta.md
+      - Transitous (Worldwide): providers/transitous.md
   - Sensors & Attributes: sensors.md
   - Services: services.md
   - Trip Planner: trip-planner.md

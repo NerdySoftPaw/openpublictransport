@@ -18,7 +18,7 @@
 > 
 > 📖 **Full Documentation**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
-A Home Assistant integration for 10 public transport networks: VRR (Rhein-Ruhr), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (München), VVS (Stuttgart), VAG (Freiburg), RMV (Frankfurt), Trafiklab (Sweden), and NTA (Ireland). This integration provides real-time departure information for public transport across Germany, Sweden, and Ireland.
+A Home Assistant integration for 23 public transport networks: VRR (Rhein-Ruhr), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (München), VVS (Stuttgart), VAG (Freiburg), RMV (Frankfurt), VRN (Rhein-Neckar), VVO (Dresden), DING (Ulm), AVV (Augsburg), RVV (Regensburg), BSVG (Braunschweig), NWL (Westfalen-Lippe), NVBW (Baden-Württemberg), BEG (Bayern), SBB (Switzerland), ÖBB (Austria), Trafiklab (Sweden), NTA (Ireland), and Transitous (Worldwide, Community, Beta). This integration provides real-time departure information for public transport across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide.
 
 ## Features
 
@@ -35,6 +35,10 @@ A Home Assistant integration for 10 public transport networks: VRR (Rhein-Ruhr),
 - **Error Handling**: Robust error handling with exponential backoff strategy
 - **Timezone Support**: Proper handling of provider-specific timezones (Europe/Berlin for German providers, Europe/Stockholm for Trafiklab, Europe/Dublin for NTA)
 - **Trip Planner**: Plan routes from A to B with connections, transfers, and delay tracking
+- **Walking Time**: Configure walking time to stop (0-30 min) -- departures you can't reach are automatically hidden
+- **Statistics Sensor**: Per-stop punctuality tracking with per-line breakdown
+- **Delay Check Service**: `check_delays` service with event firing for automation-friendly delay monitoring
+- **TTS Departure Announcements**: `announce_departure` service returns spoken-language text for any TTS integration
 
 ### Intelligence & Performance Features (v4.2.0)
 - **Fuzzy Matching with Typo Tolerance**: Intelligently finds stops even with typos
@@ -77,11 +81,14 @@ The integration uses an **intuitive multi-step setup wizard** with autocomplete 
 ### Setup Wizard
 
 1. **Select Provider**
-   - Choose from 11 providers in a descriptive dropdown (e.g. "VRR — Rhein-Ruhr (NRW)" instead of just "vrr"):
-     - **German EFA providers**: VRR (NRW), KVV (Karlsruhe), MVV (München), VVS (Stuttgart), VAG (Freiburg)
+   - Choose from 23 providers in a descriptive dropdown (e.g. "VRR — Rhein-Ruhr (NRW)" instead of just "vrr"):
+     - **German EFA providers**: VRR (NRW), KVV (Karlsruhe), MVV (München), VVS (Stuttgart), VAG (Freiburg), VRN (Rhein-Neckar), VVO (Dresden), DING (Ulm), AVV (Augsburg), RVV (Regensburg), BSVG (Braunschweig), NWL (Westfalen-Lippe), NVBW (Baden-Württemberg), BEG (Bayern)
      - **German REST providers**: HVV (Hamburg), BVG (Berlin)
      - **German HAFAS providers**: RMV (Frankfurt) - API key required
+     - **Swiss**: SBB (all Swiss public transport) - no API key required
+     - **Austrian**: ÖBB (all Austrian public transport) - no API key required
      - **International**: Trafiklab (Sweden), NTA (Ireland) - API keys required
+     - **Worldwide**: Transitous (Community, Beta) - aggregated GTFS data, no API key required
    - **For RMV:** A free API key from [opendata.rmv.de](https://opendata.rmv.de) is required
    - **For Trafiklab:** A free API key from [trafiklab.se](https://www.trafiklab.se) is required
    - **For NTA:** A free API key from [developer.nationaltransport.ie](https://developer.nationaltransport.ie) is required
@@ -117,7 +124,7 @@ For the Trafiklab provider (Sweden), you need a free API key:
 4. Copy the API key
 5. Enter it in the integration's Config Flow
 
-**Note:** API keys are required for Trafiklab, NTA, and RMV. No API key is required for VRR, KVV, HVV, BVG, MVV, VVS, or VAG.
+**Note:** API keys are required for Trafiklab, NTA, and RMV. No API key is required for VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, BSVG, NWL, NVBW, BEG, SBB, ÖBB, or Transitous.
 
 ### NTA Ireland API Key
 
@@ -390,6 +397,56 @@ data:
 
 See [Trip Planner documentation](docs/trip-planner.md) for full details, sensor setup, and example automations.
 
+### Check Delays
+
+Check for delayed departures and fire an event for use in automations.
+
+```yaml
+service: openpublictransport.check_delays
+data:
+  entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
+  delay_threshold: 5
+  line: "U79"  # optional filter
+```
+
+Fires an `openpublictransport_delay_alert` event with `entity_id`, `delayed_count`, `max_delay`, `lines`, and `departures`.
+
+### Announce Departure (TTS)
+
+Get a spoken-language departure announcement for use with any TTS service.
+
+```yaml
+service: openpublictransport.announce_departure
+data:
+  entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
+  index: 0  # 0 = next departure
+```
+
+Returns: `{ text: "U79 Richtung Wittlaer faehrt in 3 Minuten von Gleis 2. Verspaetung: 3 Minuten." }`
+
+Use in an automation:
+
+```yaml
+automation:
+  - alias: "Announce next departure via TTS"
+    trigger:
+      - platform: time
+        at: "07:30:00"
+    action:
+      - service: openpublictransport.announce_departure
+        data:
+          entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
+          index: 0
+        response_variable: result
+      - service: tts.speak
+        target:
+          entity_id: tts.google_translate
+        data:
+          message: "{{ result.text }}"
+```
+
+See [Services documentation](docs/services.md) for full details.
+
 ## API Limits and Rate Limiting
 
 The integration implements intelligent rate limiting:
@@ -628,12 +685,36 @@ NTA (National Transport Authority, Ireland) is one of the supported providers.
 
 ## Changelog
 
+### Version 2026.04.12 - Walking Time, Services & Statistics
+#### New Features
+- **Walking Time**: Configure 0-30 min walking time to stop; unreachable departures are hidden automatically
+- **`check_delays` Service**: Query delayed departures with configurable threshold and optional line filter; fires `openpublictransport_delay_alert` event
+- **`announce_departure` Service**: Returns spoken-language departure text for use with any TTS integration
+- **Statistics Sensor**: New `sensor.*_statistics` entity per stop showing overall punctuality (%) with per-line breakdown
+- **VGN (Nuremberg) re-enabled**: VGN provider is available again
+
+### Version 2026.04.11 - Batch 1+2 Provider Expansion
+#### New Providers
+- **VRN (Rhein-Neckar)**: Mannheim, Heidelberg area via EFA
+- **VVO (Oberelbe)**: Dresden area via EFA
+- **DING (Donau-Iller)**: Ulm area via EFA
+- **AVV (Augsburg)**: Augsburg area via EFA (provider ID: `avv_augsburg`)
+- **RVV (Regensburg)**: Regensburg area via EFA
+- **BSVG (Braunschweig)**: Braunschweig area via EFA
+- **NWL (Westfalen-Lippe)**: Dortmund, Münster, Bielefeld area via EFA
+- **NVBW (Baden-Württemberg)**: Statewide Baden-Württemberg via EFA
+- **BEG (Bayern)**: Statewide Bavaria via EFA
+
+The integration now supports **19 providers** across Germany, Sweden, and Ireland.
+
+---
+
 ### Version 2026.04.09 - Provider Expansion
 #### New Providers
 - **BVG (Berlin)**: Full Berlin/Brandenburg support via VBB REST API
 - **MVV (München)**: Munich metropolitan area via EFA
 - **VVS (Stuttgart)**: Stuttgart area via EFA
-- ~~**VGN (Nürnberg)**: Temporarily disabled due to API issues~~
+- **VGN (Nürnberg)**: Nuremberg area via EFA
 - **VAG (Freiburg)**: Freiburg area via EFA
 - **RMV (Frankfurt)**: Rhine-Main area via HAFAS REST API (API key required)
 

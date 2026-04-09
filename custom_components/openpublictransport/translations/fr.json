@@ -1,0 +1,144 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Sélectionner un fournisseur de transport",
+        "description": "Choisissez votre fournisseur de transport public",
+        "data": {
+          "provider": "Fournisseur",
+          "entry_type": "Type"
+        },
+        "data_description": {
+          "provider": "VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, RMV, SBB, ÖBB, Transitous, Trafiklab ou NTA"
+        }
+      },
+      "stop_search": {
+        "title": "Rechercher un arrêt/gare",
+        "description": "Saisissez le nom de votre arrêt.\nPour de meilleurs résultats, utilisez le format : **Arrêt, Ville**\n\nExemple : Holthausen, Düsseldorf",
+        "data": {
+          "stop_search": "Arrêt, Ville"
+        }
+      },
+      "stop_select": {
+        "title": "Sélectionner un arrêt",
+        "description": "{count} résultats trouvés pour « {search_term} ». Sélectionnez votre arrêt ou lancez une nouvelle recherche :",
+        "data": {
+          "stop": "Arrêt"
+        }
+      },
+      "api_key": {
+        "title": "Saisir la clé API",
+        "description": "{info}",
+        "data": {
+          "trafiklab_api_key": "Clé API Trafiklab",
+          "nta_api_key": "Clé API primaire NTA",
+          "nta_api_key_secondary": "Clé API secondaire NTA (facultatif)",
+          "rmv_api_key": "Clé API RMV"
+        },
+        "data_description": {
+          "trafiklab_api_key": "Clé API Trafiklab (disponible sur trafiklab.se)",
+          "nta_api_key": "Clé API primaire NTA (requise, disponible sur developer.nationaltransport.ie)",
+          "nta_api_key_secondary": "Clé API secondaire NTA (facultatif, utilisée en secours)",
+          "rmv_api_key": "Clé API RMV (à demander sur opendata.rmv.de)"
+        }
+      },
+      "settings": {
+        "title": "Paramètres",
+        "description": "Configurer les paramètres pour {stop}",
+        "data": {
+          "departures": "Nombre de départs",
+          "transportation_types": "Types de transport",
+          "scan_interval": "Intervalle de mise à jour (secondes)",
+          "use_provider_logo": "Afficher le logo du fournisseur",
+          "delay_threshold": "Seuil de retard (minutes)",
+          "line_filter": "Filtre de lignes",
+          "walking_time": "Temps de marche (minutes)",
+          "favorite_lines": "Lignes favorites"
+        },
+        "data_description": {
+          "departures": "Combien de départs doivent être affichés ? (1-20)",
+          "transportation_types": "Quels types de transport doivent être affichés ?",
+          "scan_interval": "À quelle fréquence les données doivent-elles être mises à jour ? (10-3600 secondes)",
+          "use_provider_logo": "Afficher le logo du fournisseur au lieu de l'icône du type de transport",
+          "delay_threshold": "Retard minimum en minutes pour déclencher le capteur de retard (1-30)",
+          "line_filter": "Afficher uniquement certaines lignes, séparées par des virgules (ex. U79, RE5, Bus 42). Vide = toutes les lignes",
+          "walking_time": "Temps de marche jusqu'à l'arrêt en minutes (0 = désactivé). Les départs qui ne peuvent plus être atteints sont masqués",
+          "favorite_lines": "Lignes à afficher en premier, séparées par des virgules (ex. U79, RE5). Vide = pas de favoris"
+        }
+      },
+      "trip_search": {
+        "title": "{title}",
+        "description": "{desc}",
+        "data": {
+          "stop_search": "Arrêt, Ville"
+        }
+      },
+      "trip_select": {
+        "title": "Sélectionner {phase}",
+        "description": "{count} résultats pour « {search_term} »",
+        "data": {
+          "stop": "Arrêt"
+        }
+      },
+      "multi_stop": {
+        "title": "Configurer le multi-arrêt",
+        "description": "Combiner les départs de plusieurs arrêts.\nSaisissez les identifiants d'entités séparés par des virgules.\nExemple : {hint}",
+        "data": {
+          "name": "Nom",
+          "entities": "Identifiants d'entités (séparés par des virgules)"
+        }
+      },
+      "trip_settings": {
+        "title": "Paramètres du trajet",
+        "description": "Itinéraire : {origin} → {destination}",
+        "data": {
+          "scan_interval": "Intervalle de mise à jour (secondes)"
+        }
+      }
+    },
+    "error": {
+      "missing_location": "Veuillez fournir un identifiant de gare ou un emplacement et un nom d'arrêt",
+      "empty_search": "Veuillez saisir un terme de recherche",
+      "no_results": "Aucun résultat trouvé. Veuillez essayer un autre terme de recherche.",
+      "api_key_required": "La clé API est requise",
+      "trafiklab_api_key_required": "La clé API Trafiklab est requise",
+      "nta_api_key_required": "La clé API NTA est requise",
+      "rmv_api_key_required": "La clé API RMV est requise",
+      "min_two_entities": "Veuillez fournir au moins 2 identifiants d'entités"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options des départs de transport public",
+        "data": {
+          "departures": "Nombre de départs",
+          "transportation_types": "Types de transport",
+          "scan_interval": "Intervalle de mise à jour (secondes)",
+          "use_provider_logo": "Afficher le logo du fournisseur",
+          "delay_threshold": "Seuil de retard (minutes)",
+          "line_filter": "Filtre de lignes",
+          "walking_time": "Temps de marche (minutes)",
+          "favorite_lines": "Lignes favorites"
+        },
+        "data_description": {
+          "use_provider_logo": "Afficher le logo du fournisseur au lieu de l'icône du type de transport",
+          "delay_threshold": "Retard minimum en minutes pour déclencher le capteur de retard (1-30)",
+          "line_filter": "Afficher uniquement certaines lignes, séparées par des virgules (ex. U79, RE5, Bus 42). Vide = toutes les lignes",
+          "walking_time": "Temps de marche jusqu'à l'arrêt en minutes (0 = désactivé). Les départs qui ne peuvent plus être atteints sont masqués",
+          "favorite_lines": "Lignes à afficher en premier, séparées par des virgules (ex. U79, RE5). Vide = pas de favoris"
+        }
+      }
+    }
+  },
+  "issues": {
+    "rate_limit_reached": {
+      "title": "Limite de requêtes API atteinte",
+      "description": "La limite quotidienne de {limit} requêtes pour {provider} a été atteinte. L'intégration reprendra automatiquement demain. Envisagez d'augmenter l'intervalle de mise à jour."
+    },
+    "api_error": {
+      "title": "Erreur API",
+      "description": "Une erreur est survenue lors de la récupération des données de {provider}. Veuillez vérifier votre identifiant de gare ou les informations d'arrêt dans les paramètres."
+    }
+  }
+}

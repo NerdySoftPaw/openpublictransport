@@ -184,7 +184,7 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry, mock_ap
 
         await async_setup_entry(hass, mock_config_entry, mock_add_entities)
 
-        assert len(entities) == 1
+        assert len(entities) == 2  # MultiProviderSensor + PunctualitySensor
         assert isinstance(entities[0], MultiProviderSensor)
 
 

@@ -9,7 +9,7 @@
           "entry_type": "Type"
         },
         "data_description": {
-          "provider": "VRR (NRW), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (Munich), VVS (Stuttgart), VAG (Freiburg), RMV (Frankfurt), Trafiklab (Sweden) or NTA (Ireland)"
+          "provider": "VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, RMV, SBB, ÖBB, Transitous, Trafiklab or NTA"
         }
       },
       "stop_search": {
@@ -51,7 +51,9 @@
           "scan_interval": "Update interval (seconds)",
           "use_provider_logo": "Show provider logo",
           "delay_threshold": "Delay threshold (minutes)",
-          "line_filter": "Line filter"
+          "line_filter": "Line filter",
+          "walking_time": "Walking time (minutes)",
+          "favorite_lines": "Favorite lines"
         },
         "data_description": {
           "departures": "How many departures should be displayed? (1-20)",
@@ -59,7 +61,9 @@
           "scan_interval": "How often should data be updated? (10-3600 seconds)",
           "use_provider_logo": "Show the provider logo instead of the transport type icon",
           "delay_threshold": "Minimum delay in minutes to trigger the delay sensor (1-30)",
-          "line_filter": "Only show specific lines, comma-separated (e.g. U79, RE5, Bus 42). Empty = all lines"
+          "line_filter": "Only show specific lines, comma-separated (e.g. U79, RE5, Bus 42). Empty = all lines",
+          "walking_time": "Walking time to stop in minutes (0 = disabled). Departures that can no longer be reached are hidden",
+          "favorite_lines": "Comma-separated lines to show first (e.g. U79, RE5). Empty = no favorites"
         }
       },
       "trip_search": {
@@ -74,6 +78,14 @@
         "description": "{count} results for \"{search_term}\"",
         "data": {
           "stop": "Stop"
+        }
+      },
+      "multi_stop": {
+        "title": "Configure Multi-Stop",
+        "description": "Combine departures from multiple stops.\nEnter entity IDs comma-separated.\nExample: {hint}",
+        "data": {
+          "name": "Name",
+          "entities": "Entity IDs (comma-separated)"
         }
       },
       "trip_settings": {
@@ -91,7 +103,8 @@
       "api_key_required": "API key is required",
       "trafiklab_api_key_required": "Trafiklab API key is required",
       "nta_api_key_required": "NTA API key is required",
-      "rmv_api_key_required": "RMV API key is required"
+      "rmv_api_key_required": "RMV API key is required",
+      "min_two_entities": "Please provide at least 2 entity IDs"
     }
   },
   "options": {
@@ -104,12 +117,16 @@
           "scan_interval": "Update interval (seconds)",
           "use_provider_logo": "Show provider logo",
           "delay_threshold": "Delay threshold (minutes)",
-          "line_filter": "Line filter"
+          "line_filter": "Line filter",
+          "walking_time": "Walking time (minutes)",
+          "favorite_lines": "Favorite lines"
         },
         "data_description": {
           "use_provider_logo": "Show the provider logo instead of the transport type icon",
           "delay_threshold": "Minimum delay in minutes to trigger the delay sensor (1-30)",
-          "line_filter": "Only show specific lines, comma-separated (e.g. U79, RE5, Bus 42). Empty = all lines"
+          "line_filter": "Only show specific lines, comma-separated (e.g. U79, RE5, Bus 42). Empty = all lines",
+          "walking_time": "Walking time to stop in minutes (0 = disabled). Departures that can no longer be reached are hidden",
+          "favorite_lines": "Comma-separated lines to show first (e.g. U79, RE5). Empty = no favorites"
         }
       }
     }

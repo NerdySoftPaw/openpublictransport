@@ -149,6 +149,65 @@ The binary sensor indicates whether there are significant delays at the stop.
 }
 ```
 
+## Statistics Sensor
+
+A separate statistics sensor is created for each configured stop: `sensor.*_statistics`.
+
+### State
+
+Overall punctuality percentage (%). Delays of 2 minutes or less are considered on-time.
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `lines` | Dict | Per-line statistics (see below) |
+
+Each entry in `lines` contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total` | Integer | Total observed departures for the line |
+| `on_time` | Integer | Departures with delay <= 2 min |
+| `punctuality` | Float | Punctuality percentage for the line |
+| `average_delay` | Float | Average delay in minutes for the line |
+
+### Example
+
+```json
+{
+  "state": "87.5",
+  "attributes": {
+    "lines": {
+      "U79": {
+        "total": 40,
+        "on_time": 36,
+        "punctuality": 90.0,
+        "average_delay": 1.8
+      },
+      "RE5": {
+        "total": 20,
+        "on_time": 15,
+        "punctuality": 75.0,
+        "average_delay": 4.2
+      }
+    }
+  }
+}
+```
+
+### Template Sensor Example
+
+```yaml
+template:
+  - sensor:
+      - name: "U79 Punctuality"
+        state: >
+          {{ state_attr('sensor.openpublictransport_dusseldorf_hauptbahnhof_statistics', 'lines').U79.punctuality }}
+        unit_of_measurement: "%"
+        icon: mdi:chart-line
+```
+
 ## Device Grouping
 
 Both entities are grouped under a single device:

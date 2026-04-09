@@ -1,0 +1,144 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Välj kollektivtrafikleverantör",
+        "description": "Välj din kollektivtrafikleverantör",
+        "data": {
+          "provider": "Leverantör",
+          "entry_type": "Typ"
+        },
+        "data_description": {
+          "provider": "VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, RMV, SBB, ÖBB, Transitous, Trafiklab eller NTA"
+        }
+      },
+      "stop_search": {
+        "title": "Sök hållplats/station",
+        "description": "Ange namnet på din hållplats.\nFör bättre resultat, använd formatet: **Hållplats, Stad**\n\nExempel: Holthausen, Düsseldorf",
+        "data": {
+          "stop_search": "Hållplats, Stad"
+        }
+      },
+      "stop_select": {
+        "title": "Välj hållplats",
+        "description": "Hittade {count} resultat för \"{search_term}\". Välj din hållplats eller starta en ny sökning:",
+        "data": {
+          "stop": "Hållplats"
+        }
+      },
+      "api_key": {
+        "title": "Ange API-nyckel",
+        "description": "{info}",
+        "data": {
+          "trafiklab_api_key": "Trafiklab API-nyckel",
+          "nta_api_key": "NTA primär API-nyckel",
+          "nta_api_key_secondary": "NTA sekundär API-nyckel (valfritt)",
+          "rmv_api_key": "RMV API-nyckel"
+        },
+        "data_description": {
+          "trafiklab_api_key": "Trafiklab API-nyckel (tillgänglig på trafiklab.se)",
+          "nta_api_key": "NTA primär API-nyckel (obligatorisk, tillgänglig på developer.nationaltransport.ie)",
+          "nta_api_key_secondary": "NTA sekundär API-nyckel (valfritt, används som reserv)",
+          "rmv_api_key": "RMV API-nyckel (begär på opendata.rmv.de)"
+        }
+      },
+      "settings": {
+        "title": "Inställningar",
+        "description": "Konfigurera inställningar för {stop}",
+        "data": {
+          "departures": "Antal avgångar",
+          "transportation_types": "Transporttyper",
+          "scan_interval": "Uppdateringsintervall (sekunder)",
+          "use_provider_logo": "Visa leverantörens logotyp",
+          "delay_threshold": "Försenigströskel (minuter)",
+          "line_filter": "Linjefilter",
+          "walking_time": "Gångtid (minuter)",
+          "favorite_lines": "Favoritlinjer"
+        },
+        "data_description": {
+          "departures": "Hur många avgångar ska visas? (1-20)",
+          "transportation_types": "Vilka transporttyper ska visas?",
+          "scan_interval": "Hur ofta ska data uppdateras? (10-3600 sekunder)",
+          "use_provider_logo": "Visa leverantörens logotyp istället för transporttypens ikon",
+          "delay_threshold": "Minsta försening i minuter för att utlösa förseningssensorn (1-30)",
+          "line_filter": "Visa bara specifika linjer, kommaseparerade (t.ex. U79, RE5, Bus 42). Tomt = alla linjer",
+          "walking_time": "Gångtid till hållplatsen i minuter (0 = inaktiverat). Avgångar som inte längre kan nås döljs",
+          "favorite_lines": "Linjer som visas först, kommaseparerade (t.ex. U79, RE5). Tomt = inga favoriter"
+        }
+      },
+      "trip_search": {
+        "title": "{title}",
+        "description": "{desc}",
+        "data": {
+          "stop_search": "Hållplats, Stad"
+        }
+      },
+      "trip_select": {
+        "title": "Välj {phase}",
+        "description": "{count} resultat för \"{search_term}\"",
+        "data": {
+          "stop": "Hållplats"
+        }
+      },
+      "multi_stop": {
+        "title": "Konfigurera flerhållplats",
+        "description": "Kombinera avgångar från flera hållplatser.\nAnge entitets-ID:n kommaseparerade.\nExempel: {hint}",
+        "data": {
+          "name": "Namn",
+          "entities": "Entitets-ID:n (kommaseparerade)"
+        }
+      },
+      "trip_settings": {
+        "title": "Reseinställningar",
+        "description": "Rutt: {origin} → {destination}",
+        "data": {
+          "scan_interval": "Uppdateringsintervall (sekunder)"
+        }
+      }
+    },
+    "error": {
+      "missing_location": "Ange antingen ett stations-ID eller en plats och hållplatsnamn",
+      "empty_search": "Ange en sökterm",
+      "no_results": "Inga resultat hittades. Försök med en annan sökterm.",
+      "api_key_required": "API-nyckel krävs",
+      "trafiklab_api_key_required": "Trafiklab API-nyckel krävs",
+      "nta_api_key_required": "NTA API-nyckel krävs",
+      "rmv_api_key_required": "RMV API-nyckel krävs",
+      "min_two_entities": "Ange minst 2 entitets-ID:n"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Alternativ för kollektivtrafikavgångar",
+        "data": {
+          "departures": "Antal avgångar",
+          "transportation_types": "Transporttyper",
+          "scan_interval": "Uppdateringsintervall (sekunder)",
+          "use_provider_logo": "Visa leverantörens logotyp",
+          "delay_threshold": "Försenigströskel (minuter)",
+          "line_filter": "Linjefilter",
+          "walking_time": "Gångtid (minuter)",
+          "favorite_lines": "Favoritlinjer"
+        },
+        "data_description": {
+          "use_provider_logo": "Visa leverantörens logotyp istället för transporttypens ikon",
+          "delay_threshold": "Minsta försening i minuter för att utlösa förseningssensorn (1-30)",
+          "line_filter": "Visa bara specifika linjer, kommaseparerade (t.ex. U79, RE5, Bus 42). Tomt = alla linjer",
+          "walking_time": "Gångtid till hållplatsen i minuter (0 = inaktiverat). Avgångar som inte längre kan nås döljs",
+          "favorite_lines": "Linjer som visas först, kommaseparerade (t.ex. U79, RE5). Tomt = inga favoriter"
+        }
+      }
+    }
+  },
+  "issues": {
+    "rate_limit_reached": {
+      "title": "API-gräns nådd",
+      "description": "Den dagliga API-gränsen på {limit} förfrågningar för {provider} har nåtts. Integrationen återupptas automatiskt imorgon. Överväg att öka uppdateringsintervallet."
+    },
+    "api_error": {
+      "title": "API-fel",
+      "description": "Ett fel uppstod vid hämtning av data från {provider}. Kontrollera ditt stations-ID eller hållplatsinformation i inställningarna."
+    }
+  }
+}

@@ -29,6 +29,8 @@ _LOGGER = logging.getLogger(__name__)
 
 SERVICE_REFRESH = "refresh_departures"
 SERVICE_PLAN_TRIP = "plan_trip"
+SERVICE_CHECK_DELAYS = "check_delays"
+SERVICE_ANNOUNCE = "announce_departure"
 
 SERVICE_REFRESH_SCHEMA = vol.Schema(
     {
@@ -46,6 +48,24 @@ SERVICE_PLAN_TRIP_SCHEMA = vol.Schema(
     }
 )
 
+SERVICE_CHECK_DELAYS_SCHEMA = vol.Schema(
+    {
+        vol.Required("entity_id"): str,
+        vol.Optional("delay_threshold", default=5): int,
+        vol.Optional("line"): str,
+    }
+)
+
+SERVICE_ANNOUNCE_SCHEMA = vol.Schema(
+    {
+        vol.Required("entity_id"): str,
+        vol.Optional("index", default=0): int,
+        vol.Optional("tts_service"): str,
+        vol.Optional("media_player"): str,
+        vol.Optional("language", default="de"): str,
+    }
+)
+
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
@@ -58,6 +78,12 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Open Public Transport from a config entry."""
     hass.data.setdefault(DOMAIN, {})
+
+    # Check if this is a multi-stop entry
+    if entry.data.get("is_multi_stop"):
+        from .multi_stop import async_setup_multi_stop_entry
+
+        return await async_setup_multi_stop_entry(hass, entry)
 
     # Check if this is a trip entry
     if entry.data.get("is_trip"):
@@ -178,6 +204,153 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         supports_response=True,
     )
 
+    # Register delay check service
+    async def handle_check_delays(call: ServiceCall) -> dict:
+        """Check delays and return delayed departures."""
+        entity_id = call.data["entity_id"]
+        threshold = call.data.get("delay_threshold", 5)
+        line_filter = call.data.get("line", "").strip().lower()
+
+        state_obj = hass.states.get(entity_id)
+        if not state_obj:
+            return {"delayed": [], "count": 0}
+
+        departures = state_obj.attributes.get("departures", [])
+        delayed = []
+        for dep in departures:
+            if not isinstance(dep, dict):
+                continue
+            delay = dep.get("delay", 0)
+            line = dep.get("line", "")
+            if delay >= threshold:
+                if not line_filter or line.lower() == line_filter:
+                    delayed.append(dep)
+
+        # Fire event if delays found
+        if delayed:
+            hass.bus.async_fire(
+                f"{DOMAIN}_delay_alert",
+                {
+                    "entity_id": entity_id,
+                    "delayed_count": len(delayed),
+                    "max_delay": max(d.get("delay", 0) for d in delayed),
+                    "lines": list({d.get("line", "") for d in delayed}),
+                    "departures": delayed[:5],
+                },
+            )
+
+        return {"delayed": delayed, "count": len(delayed)}
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_CHECK_DELAYS,
+        handle_check_delays,
+        schema=SERVICE_CHECK_DELAYS_SCHEMA,
+        supports_response=True,
+    )
+
+    # Register TTS announcement service
+    async def handle_announce(call: ServiceCall) -> dict:
+        """Generate and optionally speak a departure announcement."""
+        entity_id = call.data["entity_id"]
+        index = call.data.get("index", 0)
+        tts_service = call.data.get("tts_service")
+        media_player = call.data.get("media_player")
+        language = call.data.get("language", "de")
+
+        state_obj = hass.states.get(entity_id)
+        if not state_obj:
+            return {"text": "Keine Abfahrtsinformationen verfügbar."}
+
+        departures = state_obj.attributes.get("departures", [])
+        if not departures or index >= len(departures):
+            return {"text": "Keine Abfahrten verfügbar."}
+
+        dep = departures[index]
+        line = dep.get("line", "")
+        destination = dep.get("destination", "")
+        planned_time = dep.get("planned_time", "")
+        minutes = dep.get("minutes_until_departure", 0)
+        platform = dep.get("platform", "")
+        delay = dep.get("delay", 0)
+        transport_type = dep.get("transportation_type", "")
+
+        # Build station-style announcement
+        if language == "de":
+            # German: DB-style announcement
+            type_name = {
+                "train": "Zug",
+                "subway": "U-Bahn",
+                "tram": "Straßenbahn",
+                "bus": "Bus",
+                "ferry": "Fähre",
+            }.get(transport_type, "")
+
+            text = "Achtung, eine Durchsage. "
+
+            if type_name:
+                text += f"{type_name} {line}"
+            else:
+                text += f"Linie {line}"
+
+            text += f" Richtung {destination}"
+
+            if planned_time:
+                text += f", planmäßige Abfahrt {planned_time} Uhr"
+
+            if delay > 0:
+                text += f", hat heute circa {delay} Minuten Verspätung"
+
+            if platform:
+                text += f", Abfahrt von Gleis {platform}"
+
+            if minutes <= 0:
+                text += ". Bitte einsteigen, Türen schließen selbsttätig."
+            elif minutes <= 2:
+                text += ". Bitte begeben Sie sich zum Bahnsteig."
+            else:
+                text += f". Abfahrt in {minutes} Minuten."
+        else:
+            # English
+            text = f"Attention please. {line} to {destination}"
+            if planned_time:
+                text += f", scheduled departure {planned_time}"
+            if delay > 0:
+                text += f", is delayed by approximately {delay} minutes"
+            if platform:
+                text += f", departing from platform {platform}"
+            if minutes <= 0:
+                text += ". Please board now."
+            else:
+                text += f". Departing in {minutes} minutes."
+
+        # Optionally speak via TTS service
+        if tts_service and media_player:
+            try:
+                service_parts = tts_service.split(".", 1)
+                if len(service_parts) == 2:
+                    service_data = {
+                        "entity_id": media_player,
+                        "message": text,
+                    }
+                    await hass.services.async_call(
+                        service_parts[0],
+                        service_parts[1],
+                        service_data,
+                    )
+            except Exception as e:
+                _LOGGER.warning("Failed to call TTS service: %s", e)
+
+        return {"text": text}
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_ANNOUNCE,
+        handle_announce,
+        schema=SERVICE_ANNOUNCE_SCHEMA,
+        supports_response=True,
+    )
+
     return True
 
 
@@ -204,6 +377,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # Remove services
         hass.services.async_remove(DOMAIN, SERVICE_REFRESH)
         hass.services.async_remove(DOMAIN, SERVICE_PLAN_TRIP)
+        hass.services.async_remove(DOMAIN, SERVICE_CHECK_DELAYS)
+        hass.services.async_remove(DOMAIN, SERVICE_ANNOUNCE)
 
         # Clean up domain data
         hass.data.pop(DOMAIN, None)

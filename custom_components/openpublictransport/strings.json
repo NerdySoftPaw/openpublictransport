@@ -9,7 +9,7 @@
           "provider": "Anbieter"
         },
         "data_description": {
-          "provider": "VRR (NRW), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (München), VVS (Stuttgart), VAG (Freiburg), RMV (Frankfurt), Trafiklab (Schweden) oder NTA (Irland)"
+          "provider": "VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, RMV, SBB, ÖBB, Transitous, Trafiklab oder NTA"
         }
       },
       "stop_search": {
@@ -51,7 +51,9 @@
           "scan_interval": "Update-Intervall (Sekunden)",
           "use_provider_logo": "Anbieter-Logo anzeigen",
           "delay_threshold": "Verspätungs-Schwellwert (Minuten)",
-          "line_filter": "Linien-Filter"
+          "line_filter": "Linien-Filter",
+          "walking_time": "Fußweg (Minuten)",
+          "favorite_lines": "Favoriten-Linien"
         },
         "data_description": {
           "departures": "Wie viele Abfahrten sollen angezeigt werden? (1-20)",
@@ -59,7 +61,9 @@
           "scan_interval": "Wie oft sollen die Daten aktualisiert werden? (10-3600 Sekunden)",
           "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
           "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)",
-          "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien"
+          "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien",
+          "walking_time": "Fußweg zur Haltestelle in Minuten (0 = deaktiviert). Abfahrten die nicht mehr erreichbar sind werden ausgeblendet",
+          "favorite_lines": "Kommagetrennte Linien, die zuerst angezeigt werden (z.B. U79, RE5). Leer = keine Favoriten"
         }
       },
       "trip_search": {
@@ -74,6 +78,14 @@
         "description": "{count} Ergebnisse für \"{search_term}\"",
         "data": {
           "stop": "Haltestelle"
+        }
+      },
+      "multi_stop": {
+        "title": "Multi-Stop konfigurieren",
+        "description": "Kombiniere Abfahrten von mehreren Haltestellen.\nGib die Entity-IDs kommagetrennt ein.\nBeispiel: {hint}",
+        "data": {
+          "name": "Name",
+          "entities": "Entity-IDs (kommagetrennt)"
         }
       },
       "trip_settings": {
@@ -91,7 +103,8 @@
       "api_key_required": "API-Schlüssel ist erforderlich",
       "trafiklab_api_key_required": "Trafiklab API-Schlüssel ist erforderlich",
       "nta_api_key_required": "NTA API-Schlüssel ist erforderlich",
-      "rmv_api_key_required": "RMV API-Schlüssel ist erforderlich"
+      "rmv_api_key_required": "RMV API-Schlüssel ist erforderlich",
+      "min_two_entities": "Bitte mindestens 2 Entity-IDs angeben"
     }
   },
   "options": {
@@ -104,12 +117,16 @@
           "scan_interval": "Update-Intervall (Sekunden)",
           "use_provider_logo": "Anbieter-Logo anzeigen",
           "delay_threshold": "Verspätungs-Schwellwert (Minuten)",
-          "line_filter": "Linien-Filter"
+          "line_filter": "Linien-Filter",
+          "walking_time": "Fußweg (Minuten)",
+          "favorite_lines": "Favoriten-Linien"
         },
         "data_description": {
           "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
           "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)",
-          "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien"
+          "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien",
+          "walking_time": "Fußweg zur Haltestelle in Minuten (0 = deaktiviert). Abfahrten die nicht mehr erreichbar sind werden ausgeblendet",
+          "favorite_lines": "Kommagetrennte Linien, die zuerst angezeigt werden (z.B. U79, RE5). Leer = keine Favoriten"
         }
       }
     }

@@ -19,6 +19,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const import (
     CONF_DELAY_THRESHOLD,
     CONF_DEPARTURES,
+    CONF_FAVORITE_LINES,
     CONF_LINE_FILTER,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
@@ -29,6 +30,7 @@ from .const import (
     CONF_TRAFIKLAB_API_KEY,
     CONF_TRANSPORTATION_TYPES,
     CONF_USE_PROVIDER_LOGO,
+    CONF_WALKING_TIME,
     DEFAULT_DELAY_THRESHOLD,
     DEFAULT_DEPARTURES,
     DEFAULT_SCAN_INTERVAL,
@@ -76,11 +78,23 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             "bvg": "BVG — Berlin / Brandenburg",
             "mvv": "MVV — München",
             "vvs": "VVS — Stuttgart",
-            # "vgn": "VGN — Nürnberg",  # Temporarily disabled - API issues
+            "vgn": "VGN — Nürnberg",
             "vagfr": "VAG — Freiburg",
             "rmv": "RMV — Frankfurt / Rhein-Main (API Key)",
             "trafiklab_se": "Trafiklab — Schweden (API Key)",
             "nta_ie": "NTA — Irland (API Key)",
+            "sbb": "SBB — Schweiz",
+            "oebb": "ÖBB — Österreich",
+            "transitous": "Transitous — Weltweit (Community, Beta)",
+            "vrn": "VRN — Rhein-Neckar",
+            "vvo": "VVO — Dresden",
+            "ding": "DING — Ulm / Donau-Iller",
+            "avv_augsburg": "AVV — Augsburg",
+            "rvv": "RVV — Regensburg",
+            "bsvg": "BSVG — Braunschweig",
+            "nwl": "NWL — Westfalen-Lippe",
+            "nvbw": "NVBW — Baden-Württemberg",
+            "beg": "BEG — Bayern",
         }
         return vol.Schema(
             {
@@ -92,6 +106,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         """Handle the initial step - select entry type and provider."""
         if user_input is not None:
             self._entry_type = user_input.get("entry_type", "departures")
+
+            if self._entry_type == "multi_stop":
+                return await self.async_step_multi_stop()
+
             self._provider = user_input[CONF_PROVIDER]
 
             # Check if provider requires API key
@@ -108,6 +126,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         entry_type_options = {
             "departures": "Abfahrtsanzeige / Departure Monitor",
             "trip": "Verbindungssuche / Trip Planner (A → B)",
+            "multi_stop": "Multi-Stop / Mehrere Haltestellen kombinieren",
         }
         provider_options = (
             self._get_provider_schema().schema[vol.Required(CONF_PROVIDER, default=PROVIDER_VRR)].container
@@ -327,6 +346,8 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     int, vol.Range(min=1, max=30)
                 ),
                 vol.Optional(CONF_LINE_FILTER, default=""): str,
+                vol.Optional(CONF_FAVORITE_LINES, default=""): str,
+                vol.Optional(CONF_WALKING_TIME, default=0): vol.All(int, vol.Range(min=0, max=30)),
             }
         )
 
@@ -1184,6 +1205,60 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             description_placeholders={"origin": origin_name, "destination": dest_name},
         )
 
+    async def async_step_multi_stop(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+        """Configure a multi-stop sensor by selecting existing entities."""
+        from .multi_stop import CONF_IS_MULTI_STOP, CONF_MULTI_STOP_NAME, CONF_SOURCE_ENTITIES
+
+        if user_input is not None:
+            name = user_input.get("name", "Multi-Stop")
+            entities_str = user_input.get("entities", "")
+            entities = [e.strip() for e in entities_str.split(",") if e.strip()]
+
+            if len(entities) < 2:
+                return self.async_show_form(
+                    step_id="multi_stop",
+                    data_schema=vol.Schema(
+                        {
+                            vol.Required("name", default=name): str,
+                            vol.Required("entities", default=entities_str): str,
+                        }
+                    ),
+                    errors={"entities": "min_two_entities"},
+                )
+
+            data = {
+                CONF_IS_MULTI_STOP: True,
+                CONF_MULTI_STOP_NAME: name,
+                CONF_SOURCE_ENTITIES: entities,
+            }
+
+            unique_id = f"multi_stop_{'_'.join(sorted(entities))}"
+            await self.async_set_unique_id(unique_id)
+            self._abort_if_unique_id_configured()
+
+            return self.async_create_entry(title=f"Multi-Stop: {name}", data=data)
+
+        # Get existing departure sensors for hint
+        existing = [
+            eid
+            for eid in self.hass.states.async_entity_ids("sensor")
+            if self.hass.states.get(eid) and self.hass.states.get(eid).attributes.get("departures") is not None
+        ]
+        hint = ", ".join(existing[:3]) if existing else "sensor.vrr_..."
+
+        schema = vol.Schema(
+            {
+                vol.Required("name"): str,
+                vol.Required("entities"): str,
+            }
+        )
+
+        return self.async_show_form(
+            step_id="multi_stop",
+            data_schema=schema,
+            description_placeholders={"hint": hint},
+        )
+
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
@@ -1238,6 +1313,10 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
             CONF_LINE_FILTER,
             self.config_entry.data.get(CONF_LINE_FILTER, ""),
         )
+        current_walking_time = self.config_entry.options.get(
+            CONF_WALKING_TIME,
+            self.config_entry.data.get(CONF_WALKING_TIME, 0),
+        )
 
         schema = vol.Schema(
             {
@@ -1253,6 +1332,13 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
                     int, vol.Range(min=1, max=30)
                 ),
                 vol.Optional(CONF_LINE_FILTER, default=current_line_filter): str,
+                vol.Optional(
+                    CONF_FAVORITE_LINES,
+                    default=self.config_entry.options.get(
+                        CONF_FAVORITE_LINES, self.config_entry.data.get(CONF_FAVORITE_LINES, "")
+                    ),
+                ): str,
+                vol.Optional(CONF_WALKING_TIME, default=current_walking_time): vol.All(int, vol.Range(min=0, max=30)),
             }
         )
 

@@ -198,13 +198,14 @@ def _parse_journeys(journeys: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 
 def _format_time(iso_str: str) -> str:
-    """Format ISO datetime string to HH:MM."""
+    """Format ISO datetime string to HH:MM in local time."""
     if not iso_str:
         return ""
     try:
         dt = dt_util.parse_datetime(iso_str)
         if dt:
-            return dt.strftime("%H:%M")
+            local_dt = dt_util.as_local(dt)
+            return local_dt.strftime("%H:%M")
     except (ValueError, TypeError):
         pass
     return ""

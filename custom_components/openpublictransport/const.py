@@ -16,7 +16,10 @@ CONF_NTA_API_KEY_SECONDARY = "nta_api_key_secondary"  # For NTA Ireland API (Sec
 CONF_USE_PROVIDER_LOGO = "use_provider_logo"  # Show provider logo instead of transport icon
 CONF_DELAY_THRESHOLD = "delay_threshold"  # Minutes threshold for delay binary sensor
 CONF_LINE_FILTER = "line_filter"  # Comma-separated line numbers to show
+CONF_WALKING_TIME = "walking_time"  # Minutes to walk to the stop
+CONF_FAVORITE_LINES = "favorite_lines"  # Comma-separated favorite lines (shown first)
 DEFAULT_DELAY_THRESHOLD = 5
+DEFAULT_WALKING_TIME = 0
 
 # Provider
 PROVIDER_VRR = "vrr"
@@ -31,6 +34,18 @@ PROVIDER_RMV = "rmv"
 CONF_RMV_API_KEY = "rmv_api_key"  # For RMV HAFAS API
 PROVIDER_TRAFIKLAB_SE = "trafiklab_se"
 PROVIDER_NTA_IE = "nta_ie"
+PROVIDER_VRN = "vrn"
+PROVIDER_VVO = "vvo"
+PROVIDER_DING = "ding"
+PROVIDER_AVV_AUGSBURG = "avv_augsburg"
+PROVIDER_RVV = "rvv"
+PROVIDER_BSVG = "bsvg"
+PROVIDER_NWL = "nwl"
+PROVIDER_NVBW = "nvbw"
+PROVIDER_BEG = "beg"
+PROVIDER_SBB = "sbb"
+PROVIDER_OEBB = "oebb"
+PROVIDER_TRANSITOUS = "transitous"
 PROVIDERS = [
     PROVIDER_VRR,
     PROVIDER_KVV,
@@ -43,6 +58,18 @@ PROVIDERS = [
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_NTA_IE,
+    PROVIDER_VRN,
+    PROVIDER_VVO,
+    PROVIDER_DING,
+    PROVIDER_AVV_AUGSBURG,
+    PROVIDER_RVV,
+    PROVIDER_BSVG,
+    PROVIDER_NWL,
+    PROVIDER_NVBW,
+    PROVIDER_BEG,
+    PROVIDER_SBB,
+    PROVIDER_OEBB,
+    PROVIDER_TRANSITOUS,
 ]
 
 # Transportation types mapping
@@ -111,6 +138,18 @@ PROVIDER_ICONS = {
     "rmv": "mdi:train",
     "trafiklab_se": "mdi:train",
     "nta_ie": "mdi:bus-multiple",
+    "sbb": "mdi:train",
+    "oebb": "mdi:train",
+    "transitous": "mdi:earth",
+    "vrn": "mdi:train",
+    "vvo": "mdi:tram",
+    "ding": "mdi:bus",
+    "avv_augsburg": "mdi:tram",
+    "rvv": "mdi:bus",
+    "bsvg": "mdi:bus",
+    "nwl": "mdi:train",
+    "nvbw": "mdi:train",
+    "beg": "mdi:train",
 }
 
 # Provider-specific entity pictures (logos)
@@ -128,4 +167,16 @@ PROVIDER_ENTITY_PICTURES = {
     "rmv": "https://www.rmv.de/favicon.ico",
     "trafiklab_se": "https://www.trafiklab.se/favicon.ico",
     "nta_ie": "https://www.transportforireland.ie/favicon.ico",
+    "sbb": "https://www.sbb.ch/favicon.ico",
+    "oebb": "https://www.oebb.at/favicon.ico",
+    "transitous": "https://transitous.org/favicon.ico",
+    "vrn": "https://www.vrn.de/favicon.ico",
+    "vvo": "https://www.vvo-online.de/favicon.ico",
+    "ding": "https://www.ding.eu/favicon.ico",
+    "avv_augsburg": "https://www.avv-augsburg.de/favicon.ico",
+    "rvv": "https://www.rvv.de/favicon.ico",
+    "bsvg": "https://www.bsvg.net/favicon.ico",
+    "nwl": "https://www.westfalenfahrplan.de/favicon.ico",
+    "nvbw": "https://www.efa-bw.de/favicon.ico",
+    "beg": "https://www.bahnland-bayern.de/favicon.ico",
 }

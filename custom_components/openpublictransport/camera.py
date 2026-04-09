@@ -29,6 +29,7 @@ TEXT_COLOR = (255, 200, 0)
 DELAY_COLOR = (255, 80, 80)
 ON_TIME_COLOR = (80, 255, 80)
 LINE_COLOR = (60, 60, 60)
+HEADER_TEXT_COLOR = (160, 160, 140)
 BOARD_WIDTH = 800
 ROW_HEIGHT = 36
 HEADER_HEIGHT = 50
@@ -98,18 +99,16 @@ def render_departure_board(
 
     # Column positions
     col_time = PADDING
-    col_line = 90
-    col_dest = 200
-    col_platform = 620
-    col_delay = 710
+    col_line = 130
+    col_dest = 240
+    col_platform = 680
 
     # Column headers
     y = HEADER_HEIGHT + 4
-    draw.text((col_time, y), "Zeit", fill=LINE_COLOR, font=font_small)
-    draw.text((col_line, y), "Linie", fill=LINE_COLOR, font=font_small)
-    draw.text((col_dest, y), "Ziel", fill=LINE_COLOR, font=font_small)
-    draw.text((col_platform, y), "Gleis", fill=LINE_COLOR, font=font_small)
-    draw.text((col_delay, y), "Delay", fill=LINE_COLOR, font=font_small)
+    draw.text((col_time, y), "Zeit", fill=HEADER_TEXT_COLOR, font=font_small)
+    draw.text((col_line, y), "Linie", fill=HEADER_TEXT_COLOR, font=font_small)
+    draw.text((col_dest, y), "Ziel", fill=HEADER_TEXT_COLOR, font=font_small)
+    draw.text((col_platform, y), "Gleis", fill=HEADER_TEXT_COLOR, font=font_small)
 
     # Departure rows
     for i, dep in enumerate(departures[:MAX_ROWS]):
@@ -120,18 +119,24 @@ def render_departure_board(
 
         row_y = y + 8
 
-        # Time
-        dep_time = dep.get("departure_time", "")
+        # Time (planned) + delay in brackets
+        dep_time = dep.get("planned_time", dep.get("departure_time", ""))
+        delay = dep.get("delay", 0)
         draw.text((col_time, row_y), dep_time, fill=TEXT_COLOR, font=font_row)
+        if delay > 0:
+            delay_text = f"(+{delay})"
+            time_bbox = draw.textbbox((0, 0), dep_time, font=font_row)
+            time_w = time_bbox[2] - time_bbox[0]
+            draw.text((col_time + time_w + 4, row_y), delay_text, fill=DELAY_COLOR, font=font_row)
 
         # Line number
         line = dep.get("line", "")
-        draw.text((col_line, row_y), line[:12], fill=TEXT_COLOR, font=font_row)
+        draw.text((col_line + 20, row_y), line[:12], fill=TEXT_COLOR, font=font_row)
 
         # Destination (truncate)
         dest = dep.get("destination", "")
-        if len(dest) > 30:
-            dest = dest[:28] + "…"
+        if len(dest) > 35:
+            dest = dest[:33] + "…"
         draw.text((col_dest, row_y), dest, fill=TEXT_COLOR, font=font_row)
 
         # Platform
@@ -139,13 +144,13 @@ def render_departure_board(
         if platform:
             draw.text((col_platform, row_y), str(platform)[:6], fill=TEXT_COLOR, font=font_row)
 
-        # Delay
-        delay = dep.get("delay", 0)
-        if delay > 0:
-            delay_text = f"+{delay}"
-            draw.text((col_delay, row_y), delay_text, fill=DELAY_COLOR, font=font_row)
-        elif dep.get("is_realtime"):
-            draw.text((col_delay, row_y), "✓", fill=ON_TIME_COLOR, font=font_row)
+        # Realtime indicator after platform
+        if dep.get("is_realtime") and delay == 0:
+            platform_text = str(platform)[:6] if platform else ""
+            if platform_text:
+                plat_bbox = draw.textbbox((0, 0), platform_text, font=font_row)
+                plat_w = plat_bbox[2] - plat_bbox[0]
+                draw.text((col_platform + plat_w + 6, row_y), "✓", fill=ON_TIME_COLOR, font=font_small)
 
     buf = io.BytesIO()
     img.save(buf, format="PNG")

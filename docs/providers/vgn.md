@@ -1,8 +1,5 @@
 # VGN (Verkehrsverbund Großraum Nürnberg)
 
-!!! warning "Temporarily Disabled"
-    The VGN provider is currently disabled due to API compatibility issues. The code is still in the repository and will be re-enabled once the issues are resolved.
-
 VGN is the transit authority for the Nuremberg greater area in Bavaria, Germany.
 
 ## Coverage Area

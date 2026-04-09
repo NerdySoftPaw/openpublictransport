@@ -18,7 +18,7 @@
 > 
 > 📖 **Full Documentation**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
-A Home Assistant integration for 19 public transport networks: VRR (Rhein-Ruhr), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (München), VVS (Stuttgart), VAG (Freiburg), RMV (Frankfurt), VRN (Rhein-Neckar), VVO (Dresden), DING (Ulm), AVV (Augsburg), RVV (Regensburg), BSVG (Braunschweig), NWL (Westfalen-Lippe), NVBW (Baden-Württemberg), BEG (Bayern), Trafiklab (Sweden), and NTA (Ireland). This integration provides real-time departure information for public transport across Germany, Sweden, and Ireland.
+A Home Assistant integration for 20 public transport networks: VRR (Rhein-Ruhr), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (München), VVS (Stuttgart), VAG (Freiburg), RMV (Frankfurt), VRN (Rhein-Neckar), VVO (Dresden), DING (Ulm), AVV (Augsburg), RVV (Regensburg), BSVG (Braunschweig), NWL (Westfalen-Lippe), NVBW (Baden-Württemberg), BEG (Bayern), Trafiklab (Sweden), and NTA (Ireland). This integration provides real-time departure information for public transport across Germany, Sweden, and Ireland.
 
 ## Features
 
@@ -649,7 +649,7 @@ The integration now supports **19 providers** across Germany, Sweden, and Irelan
 - **BVG (Berlin)**: Full Berlin/Brandenburg support via VBB REST API
 - **MVV (München)**: Munich metropolitan area via EFA
 - **VVS (Stuttgart)**: Stuttgart area via EFA
-- ~~**VGN (Nürnberg)**: Temporarily disabled due to API issues~~
+- **VGN (Nürnberg)**: Nuremberg area via EFA
 - **VAG (Freiburg)**: Freiburg area via EFA
 - **RMV (Frankfurt)**: Rhine-Main area via HAFAS REST API (API key required)
 

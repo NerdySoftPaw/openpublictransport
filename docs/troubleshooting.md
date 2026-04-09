@@ -123,6 +123,9 @@ This information is helpful when reporting issues on GitHub.
 "Hbf" → "Hauptbahnhof"
 ```
 
+!!! tip "Use 'Stop, City' format for better results"
+    If your search returns too many or inaccurate results, use the comma-separated format: `Holthausen, Düsseldorf`. The integration splits this into a stop name and a city filter, which narrows results significantly.
+
 **Platform information missing**: Some stops don't provide platform data in the API response.
 
 ### Trafiklab (Sweden)

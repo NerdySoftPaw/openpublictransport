@@ -2,6 +2,13 @@
 
 ## v2026.04.09 - Provider Expansion & New Features
 
+### UX Improvements
+
+- **Descriptive provider dropdown**: Provider selector now shows full names with regions (e.g. "VRR — Rhein-Ruhr (NRW)") instead of short codes
+- **Smart stop search**: Entering "Holthausen, Düsseldorf" automatically splits into stop name + city filter for more accurate results
+- **"New search" option**: Results dropdown includes a "New search" entry to start over without clearing the field manually
+- **Search term in results**: The results description shows your original search term for reference
+
 ### New Providers
 
 - **BVG** - Berlin and Brandenburg (FPTF REST API)
@@ -26,9 +33,8 @@
 - **EFA Base Provider extracted** - new EFA-based providers need ~50 lines of code instead of ~200
 - **sensor.py legacy code cleanup** - reduced from 1371 to 530 lines, test coverage improved from 32% to 82%
 
-### Breaking Changes
-
-None - all changes are additive.
+!!! info "No Breaking Changes"
+    All changes in v2026.04.09 are additive.
 
 ---
 

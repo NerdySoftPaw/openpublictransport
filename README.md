@@ -75,7 +75,7 @@ The integration uses an **intuitive multi-step setup wizard** with autocomplete 
 ### Setup Wizard
 
 1. **Select Provider**
-   - Choose from 11 providers:
+   - Choose from 11 providers in a descriptive dropdown (e.g. "VRR — Rhein-Ruhr (NRW)" instead of just "vrr"):
      - **German EFA providers**: VRR (NRW), KVV (Karlsruhe), MVV (München), VVS (Stuttgart), VGN (Nürnberg), VAG (Freiburg)
      - **German REST providers**: HVV (Hamburg), BVG (Berlin)
      - **German HAFAS providers**: RMV (Frankfurt) - API key required
@@ -90,6 +90,7 @@ The integration uses an **intuitive multi-step setup wizard** with autocomplete 
 
 3. **Select Stop**
    - Enter the name of your stop (e.g. "Hauptbahnhof", "Marktplatz")
+   - For more precise results, use the "Stop, City" format (e.g. "Holthausen, Düsseldorf") — the integration splits this into a stop name and city filter
    - The integration automatically suggests stops in your location
 
 4. **Configure Settings**

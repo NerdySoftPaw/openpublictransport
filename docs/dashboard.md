@@ -2,6 +2,59 @@
 
 This page provides various Lovelace dashboard examples for displaying departure information.
 
+## Custom Lovelace Card (Recommended)
+
+For the best experience, install the dedicated **[openpublictransport-card](https://github.com/NerdySoftPaw/openpublictransport-card)** via HACS.
+
+### Installation
+
+1. Open HACS in Home Assistant
+2. Go to **Frontend**
+3. Click the three dots in the top right and select **Custom repositories**
+4. Add the URL: `https://github.com/NerdySoftPaw/openpublictransport-card`
+5. Select **Lovelace** as category and click **Add**
+6. Search for "openpublictransport-card" and install it
+7. Restart Home Assistant (or clear browser cache)
+
+### Layouts
+
+The card supports three layouts: **table**, **compact**, and **trip**.
+
+#### Table Layout
+
+Station-style departure board with dark or light theme.
+
+```yaml
+type: custom:openpublictransport-card
+entity: sensor.openpublictransport_dusseldorf_hauptbahnhof
+layout: table
+theme: dark
+```
+
+#### Compact Layout
+
+Horizontal chips for small dashboards and sidebar panels.
+
+```yaml
+type: custom:openpublictransport-card
+entity: sensor.openpublictransport_dusseldorf_hauptbahnhof
+layout: compact
+```
+
+#### Trip Layout
+
+Route display A -> B with transfer risk indicator.
+
+```yaml
+type: custom:openpublictransport-card
+entity: sensor.openpublictransport_trip_dusseldorf_koeln
+layout: trip
+```
+
+---
+
+The examples below use **standard Home Assistant cards** as a fallback alternative.
+
 ## Simple Entities Card
 
 A basic card showing the sensor state and key attributes.

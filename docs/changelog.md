@@ -1,5 +1,13 @@
 # Changelog
 
+## v2026.04.10 - Custom Lovelace Card
+
+### New
+
+- **Custom Lovelace Card**: Dedicated [openpublictransport-card](https://github.com/NerdySoftPaw/openpublictransport-card) with table, compact, and trip layouts -- available as a separate HACS plugin
+
+---
+
 ## v2026.04.09 - Provider Expansion & New Features
 
 ### UX Improvements

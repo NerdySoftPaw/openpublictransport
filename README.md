@@ -156,6 +156,25 @@ After installation, add the integration via UI:
 
 ## Lovelace Dashboard Examples
 
+### Custom Lovelace Card (Recommended)
+
+For the best dashboard experience, use the dedicated **[openpublictransport-card](https://github.com/NerdySoftPaw/openpublictransport-card)** -- a custom Lovelace card with three layouts:
+
+- **Table**: Station-style departure board (dark/light theme)
+- **Compact**: Horizontal chips for small dashboards
+- **Trip**: Route display A -> B with transfer risk
+
+Install via HACS (Frontend -> Custom Repositories -> add URL -> category: Lovelace).
+
+```yaml
+type: custom:openpublictransport-card
+entity: sensor.YOUR_ENTITY_HERE
+layout: table
+theme: dark
+```
+
+The examples below use standard HA cards as a fallback alternative.
+
 ### 1. Simple Entities Card
 
 ```yaml

@@ -18,7 +18,7 @@
 > 
 > 📖 **Full Documentation**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
-A Home Assistant integration for the public transport networks VRR (Verkehrsverbund Rhein-Ruhr), KVV (Karlsruher Verkehrsverbund), HVV (Hochbahn), Trafiklab (Sweden) and NTA (National Transport Authority, Ireland). This integration provides real-time departure information for public transport in NRW, Karlsruhe, Hamburg, Sweden and Ireland.
+A Home Assistant integration for 11 public transport networks: VRR (Rhein-Ruhr), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (München), VVS (Stuttgart), VGN (Nürnberg), VAG (Freiburg), RMV (Frankfurt), Trafiklab (Sweden), and NTA (Ireland). This integration provides real-time departure information for public transport across Germany, Sweden, and Ireland.
 
 ## Features
 
@@ -27,12 +27,12 @@ A Home Assistant integration for the public transport networks VRR (Verkehrsverb
 - **Real-time Departures**: Shows current departure times with delays
 - **Multiple Transport Types**: Supports trains (ICE, IC, RE), subway, trams, and buses
 - **Smart Filtering**: Filter by specific transportation types
-- **Binary Sensor for Delays**: Automatic detection of delays > 5 minutes
+- **Binary Sensor for Delays**: Automatic detection of delays (configurable threshold, 1-30 minutes)
 - **Device Support**: Entities are grouped together with suggested areas
 - **Repair Issues Integration**: Automatic notifications for API errors or rate limits
 - **Rate Limiting**: Intelligent API rate limiting to prevent overload (60,000 calls/day)
 - **Error Handling**: Robust error handling with exponential backoff strategy
-- **Timezone Support**: Proper handling of provider-specific timezones (Europe/Berlin for VRR/KVV/HVV, Europe/Stockholm for Trafiklab, Europe/Dublin for NTA)
+- **Timezone Support**: Proper handling of provider-specific timezones (Europe/Berlin for German providers, Europe/Stockholm for Trafiklab, Europe/Dublin for NTA)
 
 ### Intelligence & Performance Features (v4.2.0)
 - **Fuzzy Matching with Typo Tolerance**: Intelligently finds stops even with typos
@@ -75,7 +75,12 @@ The integration uses an **intuitive multi-step setup wizard** with autocomplete 
 ### Setup Wizard
 
 1. **Select Provider**
-   - Choose between VRR (NRW), KVV (Karlsruhe), HVV (Hamburg), Trafiklab (Sweden) or NTA (Ireland)
+   - Choose from 11 providers:
+     - **German EFA providers**: VRR (NRW), KVV (Karlsruhe), MVV (München), VVS (Stuttgart), VGN (Nürnberg), VAG (Freiburg)
+     - **German REST providers**: HVV (Hamburg), BVG (Berlin)
+     - **German HAFAS providers**: RMV (Frankfurt) - API key required
+     - **International**: Trafiklab (Sweden), NTA (Ireland) - API keys required
+   - **For RMV:** A free API key from [opendata.rmv.de](https://opendata.rmv.de) is required
    - **For Trafiklab:** A free API key from [trafiklab.se](https://www.trafiklab.se) is required
    - **For NTA:** A free API key from [developer.nationaltransport.ie](https://developer.nationaltransport.ie) is required
 
@@ -109,7 +114,7 @@ For the Trafiklab provider (Sweden), you need a free API key:
 4. Copy the API key
 5. Enter it in the integration's Config Flow
 
-**Note:** The API key is only required for Trafiklab sensors. No API key is required for VRR, KVV and HVV.
+**Note:** API keys are required for Trafiklab, NTA, and RMV. No API key is required for VRR, KVV, HVV, BVG, MVV, VVS, VGN, or VAG.
 
 ### NTA Ireland API Key
 
@@ -403,7 +408,7 @@ logger:
 
 2. **API Rate Limit Reached**:
    - Increase scan_interval
-   - Reduce number of VRR sensors
+   - Reduce number of sensors
 
 3. **Unknown Transportation Types**:
    - Check debug logs for new product.class values
@@ -517,7 +522,7 @@ https://openservice-test.vrr.de/static03/XML_DM_REQUEST?outputFormat=RapidJSON&p
 
 ## HVV Support
 
-HVV (Hamburger Verkehrsverbund) is now supported!
+HVV (Hamburger Verkehrsverbund) is one of the supported providers.
 
 - Use `provider: hvv` in your configuration to fetch departures from any HVV stop.
 - Platform information is parsed from `location.properties.platform` in the HVV API response.
@@ -526,7 +531,7 @@ HVV (Hamburger Verkehrsverbund) is now supported!
 
 ## NTA Ireland Support
 
-NTA (National Transport Authority, Ireland) is now supported!
+NTA (National Transport Authority, Ireland) is one of the supported providers.
 
 - Use `provider: nta_ie` in your configuration to fetch real-time departures from any Irish public transport stop.
 - Uses GTFS-RT (General Transit Feed Specification - Realtime) API for real-time data.
@@ -585,6 +590,26 @@ NTA (National Transport Authority, Ireland) is now supported!
 
 ## Changelog
 
+### Version 2026.04.09 - Provider Expansion
+#### New Providers
+- **BVG (Berlin)**: Full Berlin/Brandenburg support via VBB REST API
+- **MVV (München)**: Munich metropolitan area via EFA
+- **VVS (Stuttgart)**: Stuttgart area via EFA
+- **VGN (Nürnberg)**: Nuremberg area via EFA
+- **VAG (Freiburg)**: Freiburg area via EFA
+- **RMV (Frankfurt)**: Rhine-Main area via HAFAS REST API (API key required)
+
+#### New Features
+- **Configurable delay threshold**: 1-30 minutes (was hardcoded 5min)
+- **Line filter**: Show only specific lines (e.g. "U79, RE5")
+- **Richer departure data**: Disruption notices and platform change detection
+
+#### Improvements
+- **EFA Base Provider**: Shared base class eliminates code duplication
+- **Code cleanup**: sensor.py reduced from 1371 to 530 lines
+
+---
+
 ### Version 2026.04.08 - Rebranding & HACS Default Store
 
 > **⚠️ BREAKING CHANGE** — This release renames the integration from `vrr` to `openpublictransport`. Existing users must re-install and re-configure.
@@ -603,7 +628,7 @@ NTA (National Transport Authority, Ireland) is now supported!
 5. Update all automations and dashboards (see [MIGRATION.md](MIGRATION.md) for details)
 
 #### Why?
-The integration started as a VRR-only tool but now supports 5 providers (VRR, KVV, HVV, Trafiklab, NTA). The old name `vrr` no longer reflected the scope. The rename also enables listing in the official HACS Default Store.
+The integration started as a VRR-only tool but now supports 11 providers across Germany, Sweden, and Ireland. The old name `vrr` no longer reflected the scope. The rename also enables listing in the official HACS Default Store.
 
 #### New
 - **HACS Default Store**: The integration is now available in the official HACS store
@@ -735,7 +760,7 @@ for dep in departures:
   - Search for locations (cities) with autocomplete via STOPFINDER API
   - Search for stops/stations based on selected location
   - Automatic suggestions for both locations and stops
-  - Support for all 3 providers (VRR, KVV, HVV)
+  - Support for all providers
 - **Comprehensive Test Suite**: 50+ unit tests for all components
 - **GitHub Actions CI/CD**: Automated testing, linting, and releases
 - **Enhanced Error Messages**: Better German and English translations

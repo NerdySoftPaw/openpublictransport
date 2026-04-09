@@ -1,5 +1,5 @@
 site_name: Public Transport Integration
-site_description: Multi-Provider Public Transport Home Assistant Integration for VRR, KVV, HVV, Trafiklab, and NTA
+site_description: Multi-Provider Public Transport Home Assistant Integration for 11 transit networks across Germany, Sweden, and Ireland
 repo_url: https://github.com/NerdySoftPaw/openpublictransport
 repo_name: NerdySoftPaw/openpublictransport
 
@@ -57,12 +57,19 @@ nav:
       - VRR (Rhein-Ruhr): providers/vrr.md
       - KVV (Karlsruhe): providers/kvv.md
       - HVV (Hamburg): providers/hvv.md
+      - BVG (Berlin): providers/bvg.md
+      - MVV (München): providers/mvv.md
+      - VVS (Stuttgart): providers/vvs.md
+      - VGN (Nürnberg): providers/vgn.md
+      - VAG (Freiburg): providers/vagfr.md
+      - RMV (Frankfurt): providers/rmv.md
       - Trafiklab (Sweden): providers/trafiklab.md
       - NTA (Ireland): providers/nta.md
   - Sensors & Attributes: sensors.md
   - Services: services.md
   - Dashboard Examples: dashboard.md
   - Automations: automations.md
+  - Changelog: changelog.md
   - Troubleshooting: troubleshooting.md
 
 extra:

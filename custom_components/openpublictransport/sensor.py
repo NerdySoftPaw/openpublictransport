@@ -292,13 +292,19 @@ async def async_setup_entry(
     )
 
     # Create sensor
+    from .statistics import PunctualitySensor
+
     async_add_entities(
         [
             MultiProviderSensor(
                 coordinator,
                 config_entry,
                 transportation_types,
-            )
+            ),
+            PunctualitySensor(
+                coordinator,
+                config_entry,
+            ),
         ]
     )
 

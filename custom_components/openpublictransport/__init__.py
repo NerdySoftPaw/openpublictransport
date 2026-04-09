@@ -29,6 +29,8 @@ _LOGGER = logging.getLogger(__name__)
 
 SERVICE_REFRESH = "refresh_departures"
 SERVICE_PLAN_TRIP = "plan_trip"
+SERVICE_CHECK_DELAYS = "check_delays"
+SERVICE_ANNOUNCE = "announce_departure"
 
 SERVICE_REFRESH_SCHEMA = vol.Schema(
     {
@@ -43,6 +45,21 @@ SERVICE_PLAN_TRIP_SCHEMA = vol.Schema(
         vol.Required("origin_city"): str,
         vol.Required("destination"): str,
         vol.Required("destination_city"): str,
+    }
+)
+
+SERVICE_CHECK_DELAYS_SCHEMA = vol.Schema(
+    {
+        vol.Required("entity_id"): str,
+        vol.Optional("delay_threshold", default=5): int,
+        vol.Optional("line"): str,
+    }
+)
+
+SERVICE_ANNOUNCE_SCHEMA = vol.Schema(
+    {
+        vol.Required("entity_id"): str,
+        vol.Optional("index", default=0): int,
     }
 )
 
@@ -178,6 +195,99 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         supports_response=True,
     )
 
+    # Register delay check service
+    async def handle_check_delays(call: ServiceCall) -> dict:
+        """Check delays and return delayed departures."""
+        entity_id = call.data["entity_id"]
+        threshold = call.data.get("delay_threshold", 5)
+        line_filter = call.data.get("line", "").strip().lower()
+
+        state_obj = hass.states.get(entity_id)
+        if not state_obj:
+            return {"delayed": [], "count": 0}
+
+        departures = state_obj.attributes.get("departures", [])
+        delayed = []
+        for dep in departures:
+            if not isinstance(dep, dict):
+                continue
+            delay = dep.get("delay", 0)
+            line = dep.get("line", "")
+            if delay >= threshold:
+                if not line_filter or line.lower() == line_filter:
+                    delayed.append(dep)
+
+        # Fire event if delays found
+        if delayed:
+            hass.bus.async_fire(
+                f"{DOMAIN}_delay_alert",
+                {
+                    "entity_id": entity_id,
+                    "delayed_count": len(delayed),
+                    "max_delay": max(d.get("delay", 0) for d in delayed),
+                    "lines": list({d.get("line", "") for d in delayed}),
+                    "departures": delayed[:5],
+                },
+            )
+
+        return {"delayed": delayed, "count": len(delayed)}
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_CHECK_DELAYS,
+        handle_check_delays,
+        schema=SERVICE_CHECK_DELAYS_SCHEMA,
+        supports_response=True,
+    )
+
+    # Register TTS announcement service
+    async def handle_announce(call: ServiceCall) -> dict:
+        """Generate a TTS-ready departure announcement."""
+        entity_id = call.data["entity_id"]
+        index = call.data.get("index", 0)
+
+        state_obj = hass.states.get(entity_id)
+        if not state_obj:
+            return {"text": "Keine Abfahrtsinformationen verfügbar."}
+
+        departures = state_obj.attributes.get("departures", [])
+        if not departures or index >= len(departures):
+            return {"text": "Keine Abfahrten verfügbar."}
+
+        dep = departures[index]
+        line = dep.get("line", "")
+        destination = dep.get("destination", "")
+        minutes = dep.get("minutes_until_departure", 0)
+        platform = dep.get("platform", "")
+        delay = dep.get("delay", 0)
+
+        # Build announcement
+        text = f"{line} Richtung {destination}"
+        if minutes <= 0:
+            text += " fährt jetzt ab"
+        elif minutes == 1:
+            text += " fährt in einer Minute"
+        else:
+            text += f" fährt in {minutes} Minuten"
+
+        if platform:
+            text += f" von Gleis {platform}"
+
+        if delay > 0:
+            text += f". Verspätung: {delay} Minuten"
+
+        text += "."
+
+        return {"text": text}
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_ANNOUNCE,
+        handle_announce,
+        schema=SERVICE_ANNOUNCE_SCHEMA,
+        supports_response=True,
+    )
+
     return True
 
 
@@ -204,6 +314,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # Remove services
         hass.services.async_remove(DOMAIN, SERVICE_REFRESH)
         hass.services.async_remove(DOMAIN, SERVICE_PLAN_TRIP)
+        hass.services.async_remove(DOMAIN, SERVICE_CHECK_DELAYS)
+        hass.services.async_remove(DOMAIN, SERVICE_ANNOUNCE)
 
         # Clean up domain data
         hass.data.pop(DOMAIN, None)

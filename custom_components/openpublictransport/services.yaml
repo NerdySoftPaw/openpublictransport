@@ -51,3 +51,55 @@ plan_trip:
       example: "Düsseldorf"
       selector:
         text:
+
+check_delays:
+  name: Check Delays
+  description: Check for delays on a specific entity and fire an event if threshold exceeded
+  fields:
+    entity_id:
+      name: Entity
+      description: The departure sensor to check
+      required: true
+      selector:
+        entity:
+          integration: openpublictransport
+          domain: sensor
+    delay_threshold:
+      name: Delay Threshold
+      description: Minimum delay in minutes to trigger (default 5)
+      required: false
+      default: 5
+      example: 3
+      selector:
+        number:
+          min: 1
+          max: 60
+    line:
+      name: Line Filter
+      description: Only check a specific line (optional, e.g. U79)
+      required: false
+      example: "U79"
+      selector:
+        text:
+
+announce_departure:
+  name: Announce Departure
+  description: Generate a TTS-ready departure announcement text
+  fields:
+    entity_id:
+      name: Entity
+      description: The departure sensor to announce
+      required: true
+      selector:
+        entity:
+          integration: openpublictransport
+          domain: sensor
+    index:
+      name: Departure Index
+      description: Which departure to announce (0 = next, 1 = second, etc.)
+      required: false
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 10

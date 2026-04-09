@@ -8,7 +8,7 @@
           "provider": "Anbieter"
         },
         "data_description": {
-          "provider": "VRR (NRW), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (München), VVS (Stuttgart), VGN (Nürnberg), VAG (Freiburg), Trafiklab (Schweden) oder NTA (Irland)"
+          "provider": "VRR (NRW), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (München), VVS (Stuttgart), VGN (Nürnberg), VAG (Freiburg), RMV (Frankfurt), Trafiklab (Schweden) oder NTA (Irland)"
         }
       },
       "location": {
@@ -45,12 +45,14 @@
         "data": {
           "trafiklab_api_key": "Trafiklab API-Schlüssel",
           "nta_api_key": "NTA Primary API-Schlüssel",
-          "nta_api_key_secondary": "NTA Secondary API-Schlüssel (optional)"
+          "nta_api_key_secondary": "NTA Secondary API-Schlüssel (optional)",
+          "rmv_api_key": "RMV API-Schlüssel"
         },
         "data_description": {
           "trafiklab_api_key": "Trafiklab API-Schlüssel (erhältlich auf trafiklab.se)",
           "nta_api_key": "NTA Primary API-Schlüssel (erforderlich, erhältlich auf developer.nationaltransport.ie)",
-          "nta_api_key_secondary": "NTA Secondary API-Schlüssel (optional, als Fallback)"
+          "nta_api_key_secondary": "NTA Secondary API-Schlüssel (optional, als Fallback)",
+          "rmv_api_key": "RMV API-Schlüssel (erhältlich auf opendata.rmv.de)"
         }
       },
       "settings": {
@@ -80,7 +82,8 @@
       "no_results": "Keine Ergebnisse gefunden. Bitte versuchen Sie einen anderen Suchbegriff.",
       "api_key_required": "API-Schlüssel ist erforderlich",
       "trafiklab_api_key_required": "Trafiklab API-Schlüssel ist erforderlich",
-      "nta_api_key_required": "NTA API-Schlüssel ist erforderlich"
+      "nta_api_key_required": "NTA API-Schlüssel ist erforderlich",
+      "rmv_api_key_required": "RMV API-Schlüssel ist erforderlich"
     }
   },
   "options": {

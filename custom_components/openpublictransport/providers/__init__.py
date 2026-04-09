@@ -10,6 +10,7 @@ from ..const import (
     PROVIDER_KVV,
     PROVIDER_MVV,
     PROVIDER_NTA_IE,
+    PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_VAGFR,
     PROVIDER_VGN,
@@ -22,6 +23,7 @@ from .hvv import HVVProvider
 from .kvv import KVVProvider
 from .mvv import MVVProvider
 from .nta import NTAProvider
+from .rmv import RMVProvider
 from .trafiklab import TrafiklabProvider
 from .vagfr import VAGFRProvider
 from .vgn import VGNProvider
@@ -65,5 +67,6 @@ register_provider(PROVIDER_MVV, MVVProvider)
 register_provider(PROVIDER_VVS, VVSProvider)
 register_provider(PROVIDER_VGN, VGNProvider)
 register_provider(PROVIDER_VAGFR, VAGFRProvider)
+register_provider(PROVIDER_RMV, RMVProvider)
 register_provider(PROVIDER_TRAFIKLAB_SE, TrafiklabProvider)
 register_provider(PROVIDER_NTA_IE, NTAProvider)

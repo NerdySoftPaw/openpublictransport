@@ -27,6 +27,8 @@ PROVIDER_MVV = "mvv"
 PROVIDER_VVS = "vvs"
 PROVIDER_VGN = "vgn"
 PROVIDER_VAGFR = "vagfr"
+PROVIDER_RMV = "rmv"
+CONF_RMV_API_KEY = "rmv_api_key"  # For RMV HAFAS API
 PROVIDER_TRAFIKLAB_SE = "trafiklab_se"
 PROVIDER_NTA_IE = "nta_ie"
 PROVIDERS = [
@@ -38,6 +40,7 @@ PROVIDERS = [
     PROVIDER_VVS,
     PROVIDER_VGN,
     PROVIDER_VAGFR,
+    PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_NTA_IE,
 ]
@@ -105,6 +108,7 @@ PROVIDER_ICONS = {
     "vvs": "mdi:train",
     "vgn": "mdi:subway-variant",
     "vagfr": "mdi:tram",
+    "rmv": "mdi:train",
     "trafiklab_se": "mdi:train",
     "nta_ie": "mdi:bus-multiple",
 }
@@ -121,6 +125,7 @@ PROVIDER_ENTITY_PICTURES = {
     "vvs": "https://www.vvs.de/favicon.ico",
     "vgn": "https://www.vgn.de/favicon.ico",
     "vagfr": "https://www.vagfr.de/favicon.ico",
+    "rmv": "https://www.rmv.de/favicon.ico",
     "trafiklab_se": "https://www.trafiklab.se/favicon.ico",
     "nta_ie": "https://www.transportforireland.ie/favicon.ico",
 }

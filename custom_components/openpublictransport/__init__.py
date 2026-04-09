@@ -323,14 +323,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             try:
                 service_parts = tts_service.split(".", 1)
                 if len(service_parts) == 2:
+                    service_data = {
+                        "entity_id": media_player,
+                        "message": text,
+                    }
                     await hass.services.async_call(
                         service_parts[0],
                         service_parts[1],
-                        {
-                            "entity_id": media_player,
-                            "message": text,
-                            "language": language,
-                        },
+                        service_data,
                     )
             except Exception as e:
                 _LOGGER.warning("Failed to call TTS service: %s", e)

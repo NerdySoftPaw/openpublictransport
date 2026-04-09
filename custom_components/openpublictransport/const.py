@@ -22,9 +22,10 @@ DEFAULT_DELAY_THRESHOLD = 5
 PROVIDER_VRR = "vrr"
 PROVIDER_KVV = "kvv"
 PROVIDER_HVV = "hvv"
+PROVIDER_BVG = "bvg"
 PROVIDER_TRAFIKLAB_SE = "trafiklab_se"
 PROVIDER_NTA_IE = "nta_ie"
-PROVIDERS = [PROVIDER_VRR, PROVIDER_KVV, PROVIDER_HVV, PROVIDER_TRAFIKLAB_SE, PROVIDER_NTA_IE]
+PROVIDERS = [PROVIDER_VRR, PROVIDER_KVV, PROVIDER_HVV, PROVIDER_BVG, PROVIDER_TRAFIKLAB_SE, PROVIDER_NTA_IE]
 
 # Transportation types mapping
 TRANSPORTATION_TYPES = {"bus": "Bus", "tram": "Tram", "subway": "U-Bahn", "train": "S-Bahn/Train"}
@@ -84,6 +85,7 @@ PROVIDER_ICONS = {
     "vrr": "mdi:bus-clock",
     "kvv": "mdi:tram",
     "hvv": "mdi:ferry",
+    "bvg": "mdi:subway-variant",
     "trafiklab_se": "mdi:train",
     "nta_ie": "mdi:bus-multiple",
 }
@@ -95,6 +97,7 @@ PROVIDER_ENTITY_PICTURES = {
     "vrr": "https://www.vrr.de/favicon.ico",
     "kvv": "https://www.kvv.de/favicon.ico",
     "hvv": "https://www.hvv.de/favicon.ico",
+    "bvg": "https://www.bvg.de/favicon.ico",
     "trafiklab_se": "https://www.trafiklab.se/favicon.ico",
     "nta_ie": "https://www.transportforireland.ie/favicon.ico",
 }

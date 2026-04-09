@@ -16,7 +16,9 @@ CONF_NTA_API_KEY_SECONDARY = "nta_api_key_secondary"  # For NTA Ireland API (Sec
 CONF_USE_PROVIDER_LOGO = "use_provider_logo"  # Show provider logo instead of transport icon
 CONF_DELAY_THRESHOLD = "delay_threshold"  # Minutes threshold for delay binary sensor
 CONF_LINE_FILTER = "line_filter"  # Comma-separated line numbers to show
+CONF_WALKING_TIME = "walking_time"  # Minutes to walk to the stop
 DEFAULT_DELAY_THRESHOLD = 5
+DEFAULT_WALKING_TIME = 0
 
 # Provider
 PROVIDER_VRR = "vrr"

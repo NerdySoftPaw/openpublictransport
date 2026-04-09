@@ -25,10 +25,12 @@ from .const import (
     CONF_TRAFIKLAB_API_KEY,
     CONF_TRANSPORTATION_TYPES,
     CONF_USE_PROVIDER_LOGO,
+    CONF_WALKING_TIME,
     DEFAULT_DEPARTURES,
     DEFAULT_NAME,
     DEFAULT_PLACE,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_WALKING_TIME,
     DOMAIN,
     PROVIDER_ENTITY_PICTURES,
     PROVIDER_NTA_IE,
@@ -323,6 +325,11 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
             {line.strip().lower() for line in line_filter_str.split(",") if line.strip()} if line_filter_str else set()
         )
 
+        # Get walking time from options/data
+        self._walking_time = config_entry.options.get(
+            CONF_WALKING_TIME, config_entry.data.get(CONF_WALKING_TIME, DEFAULT_WALKING_TIME)
+        )
+
         # Get option for provider logo display
         self._use_provider_logo = config_entry.options.get(
             CONF_USE_PROVIDER_LOGO, config_entry.data.get(CONF_USE_PROVIDER_LOGO, False)
@@ -424,6 +431,12 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
             config_entry.data.get(CONF_USE_PROVIDER_LOGO, False),
         )
 
+        # Update walking time
+        self._walking_time = config_entry.options.get(
+            CONF_WALKING_TIME,
+            config_entry.data.get(CONF_WALKING_TIME, DEFAULT_WALKING_TIME),
+        )
+
         # Update coordinator settings
         departures = config_entry.options.get(
             CONF_DEPARTURES, config_entry.data.get(CONF_DEPARTURES, DEFAULT_DEPARTURES)
@@ -499,6 +512,10 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
 
         # Sort by departure time
         departures.sort(key=lambda x: x.departure_time_obj)
+
+        # Filter out departures that can't be reached (walking time)
+        if self._walking_time > 0:
+            departures = [d for d in departures if d.minutes_until_departure >= self._walking_time]
 
         # Limit to requested number
         departures_limit = self.coordinator.departures_limit

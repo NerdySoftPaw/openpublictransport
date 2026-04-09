@@ -51,7 +51,8 @@
           "scan_interval": "Update-Intervall (Sekunden)",
           "use_provider_logo": "Anbieter-Logo anzeigen",
           "delay_threshold": "Verspätungs-Schwellwert (Minuten)",
-          "line_filter": "Linien-Filter"
+          "line_filter": "Linien-Filter",
+          "walking_time": "Fußweg (Minuten)"
         },
         "data_description": {
           "departures": "Wie viele Abfahrten sollen angezeigt werden? (1-20)",
@@ -59,7 +60,8 @@
           "scan_interval": "Wie oft sollen die Daten aktualisiert werden? (10-3600 Sekunden)",
           "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
           "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)",
-          "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien"
+          "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien",
+          "walking_time": "Fußweg zur Haltestelle in Minuten (0 = deaktiviert). Abfahrten die nicht mehr erreichbar sind werden ausgeblendet"
         }
       },
       "trip_search": {
@@ -104,12 +106,14 @@
           "scan_interval": "Update-Intervall (Sekunden)",
           "use_provider_logo": "Anbieter-Logo anzeigen",
           "delay_threshold": "Verspätungs-Schwellwert (Minuten)",
-          "line_filter": "Linien-Filter"
+          "line_filter": "Linien-Filter",
+          "walking_time": "Fußweg (Minuten)"
         },
         "data_description": {
           "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
           "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)",
-          "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien"
+          "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien",
+          "walking_time": "Fußweg zur Haltestelle in Minuten (0 = deaktiviert). Abfahrten die nicht mehr erreichbar sind werden ausgeblendet"
         }
       }
     }

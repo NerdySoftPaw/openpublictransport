@@ -51,7 +51,8 @@
           "scan_interval": "Update interval (seconds)",
           "use_provider_logo": "Show provider logo",
           "delay_threshold": "Delay threshold (minutes)",
-          "line_filter": "Line filter"
+          "line_filter": "Line filter",
+          "walking_time": "Walking time (minutes)"
         },
         "data_description": {
           "departures": "How many departures should be displayed? (1-20)",
@@ -59,7 +60,8 @@
           "scan_interval": "How often should data be updated? (10-3600 seconds)",
           "use_provider_logo": "Show the provider logo instead of the transport type icon",
           "delay_threshold": "Minimum delay in minutes to trigger the delay sensor (1-30)",
-          "line_filter": "Only show specific lines, comma-separated (e.g. U79, RE5, Bus 42). Empty = all lines"
+          "line_filter": "Only show specific lines, comma-separated (e.g. U79, RE5, Bus 42). Empty = all lines",
+          "walking_time": "Walking time to stop in minutes (0 = disabled). Departures that can no longer be reached are hidden"
         }
       },
       "trip_search": {
@@ -104,12 +106,14 @@
           "scan_interval": "Update interval (seconds)",
           "use_provider_logo": "Show provider logo",
           "delay_threshold": "Delay threshold (minutes)",
-          "line_filter": "Line filter"
+          "line_filter": "Line filter",
+          "walking_time": "Walking time (minutes)"
         },
         "data_description": {
           "use_provider_logo": "Show the provider logo instead of the transport type icon",
           "delay_threshold": "Minimum delay in minutes to trigger the delay sensor (1-30)",
-          "line_filter": "Only show specific lines, comma-separated (e.g. U79, RE5, Bus 42). Empty = all lines"
+          "line_filter": "Only show specific lines, comma-separated (e.g. U79, RE5, Bus 42). Empty = all lines",
+          "walking_time": "Walking time to stop in minutes (0 = disabled). Departures that can no longer be reached are hidden"
         }
       }
     }

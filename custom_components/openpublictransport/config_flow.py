@@ -29,6 +29,7 @@ from .const import (
     CONF_TRAFIKLAB_API_KEY,
     CONF_TRANSPORTATION_TYPES,
     CONF_USE_PROVIDER_LOGO,
+    CONF_WALKING_TIME,
     DEFAULT_DELAY_THRESHOLD,
     DEFAULT_DEPARTURES,
     DEFAULT_SCAN_INTERVAL,
@@ -336,6 +337,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     int, vol.Range(min=1, max=30)
                 ),
                 vol.Optional(CONF_LINE_FILTER, default=""): str,
+                vol.Optional(CONF_WALKING_TIME, default=0): vol.All(int, vol.Range(min=0, max=30)),
             }
         )
 
@@ -1247,6 +1249,10 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
             CONF_LINE_FILTER,
             self.config_entry.data.get(CONF_LINE_FILTER, ""),
         )
+        current_walking_time = self.config_entry.options.get(
+            CONF_WALKING_TIME,
+            self.config_entry.data.get(CONF_WALKING_TIME, 0),
+        )
 
         schema = vol.Schema(
             {
@@ -1262,6 +1268,7 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
                     int, vol.Range(min=1, max=30)
                 ),
                 vol.Optional(CONF_LINE_FILTER, default=current_line_filter): str,
+                vol.Optional(CONF_WALKING_TIME, default=current_walking_time): vol.All(int, vol.Range(min=0, max=30)),
             }
         )
 

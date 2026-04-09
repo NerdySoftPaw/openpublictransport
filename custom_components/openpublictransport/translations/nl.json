@@ -1,0 +1,144 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Kies een OV-aanbieder",
+        "description": "Kies uw openbaarvervoersaanbieder",
+        "data": {
+          "provider": "Aanbieder",
+          "entry_type": "Type"
+        },
+        "data_description": {
+          "provider": "VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, RMV, SBB, ÖBB, Transitous, Trafiklab of NTA"
+        }
+      },
+      "stop_search": {
+        "title": "Halte/station zoeken",
+        "description": "Voer de naam van uw halte in.\nGebruik voor betere resultaten het formaat: **Halte, Stad**\n\nVoorbeeld: Holthausen, Düsseldorf",
+        "data": {
+          "stop_search": "Halte, Stad"
+        }
+      },
+      "stop_select": {
+        "title": "Halte selecteren",
+        "description": "{count} resultaten gevonden voor \"{search_term}\". Selecteer uw halte of start een nieuwe zoekopdracht:",
+        "data": {
+          "stop": "Halte"
+        }
+      },
+      "api_key": {
+        "title": "API Key invoeren",
+        "description": "{info}",
+        "data": {
+          "trafiklab_api_key": "Trafiklab API Key",
+          "nta_api_key": "NTA primaire API Key",
+          "nta_api_key_secondary": "NTA secundaire API Key (optioneel)",
+          "rmv_api_key": "RMV API Key"
+        },
+        "data_description": {
+          "trafiklab_api_key": "Trafiklab API Key (beschikbaar op trafiklab.se)",
+          "nta_api_key": "NTA primaire API Key (vereist, beschikbaar op developer.nationaltransport.ie)",
+          "nta_api_key_secondary": "NTA secundaire API Key (optioneel, gebruikt als terugval)",
+          "rmv_api_key": "RMV API Key (aan te vragen op opendata.rmv.de)"
+        }
+      },
+      "settings": {
+        "title": "Instellingen",
+        "description": "Instellingen configureren voor {stop}",
+        "data": {
+          "departures": "Aantal vertrekken",
+          "transportation_types": "Vervoerstypes",
+          "scan_interval": "Bijwerkinterval (seconden)",
+          "use_provider_logo": "Logo van aanbieder tonen",
+          "delay_threshold": "Vertragingsdrempel (minuten)",
+          "line_filter": "Lijnfilter",
+          "walking_time": "Looptijd (minuten)",
+          "favorite_lines": "Favoriete lijnen"
+        },
+        "data_description": {
+          "departures": "Hoeveel vertrekken moeten worden weergegeven? (1-20)",
+          "transportation_types": "Welke vervoerstypes moeten worden weergegeven?",
+          "scan_interval": "Hoe vaak moeten de gegevens worden bijgewerkt? (10-3600 seconden)",
+          "use_provider_logo": "Toon het logo van de aanbieder in plaats van het vervoerstypepictogram",
+          "delay_threshold": "Minimale vertraging in minuten om de vertragingssensor te activeren (1-30)",
+          "line_filter": "Toon alleen specifieke lijnen, gescheiden door komma's (bijv. U79, RE5, Bus 42). Leeg = alle lijnen",
+          "walking_time": "Looptijd naar de halte in minuten (0 = uitgeschakeld). Vertrekken die niet meer gehaald kunnen worden, worden verborgen",
+          "favorite_lines": "Lijnen die als eerste worden getoond, gescheiden door komma's (bijv. U79, RE5). Leeg = geen favorieten"
+        }
+      },
+      "trip_search": {
+        "title": "{title}",
+        "description": "{desc}",
+        "data": {
+          "stop_search": "Halte, Stad"
+        }
+      },
+      "trip_select": {
+        "title": "{phase} selecteren",
+        "description": "{count} resultaten voor \"{search_term}\"",
+        "data": {
+          "stop": "Halte"
+        }
+      },
+      "multi_stop": {
+        "title": "Multi-halte configureren",
+        "description": "Combineer vertrekken van meerdere haltes.\nVoer entiteits-ID's in, gescheiden door komma's.\nVoorbeeld: {hint}",
+        "data": {
+          "name": "Naam",
+          "entities": "Entiteits-ID's (gescheiden door komma's)"
+        }
+      },
+      "trip_settings": {
+        "title": "Reisinstellingen",
+        "description": "Route: {origin} → {destination}",
+        "data": {
+          "scan_interval": "Bijwerkinterval (seconden)"
+        }
+      }
+    },
+    "error": {
+      "missing_location": "Geef een station-ID of locatie en haltenaam op",
+      "empty_search": "Voer een zoekterm in",
+      "no_results": "Geen resultaten gevonden. Probeer een andere zoekterm.",
+      "api_key_required": "API Key is vereist",
+      "trafiklab_api_key_required": "Trafiklab API Key is vereist",
+      "nta_api_key_required": "NTA API Key is vereist",
+      "rmv_api_key_required": "RMV API Key is vereist",
+      "min_two_entities": "Geef ten minste 2 entiteits-ID's op"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opties voor OV-vertrekken",
+        "data": {
+          "departures": "Aantal vertrekken",
+          "transportation_types": "Vervoerstypes",
+          "scan_interval": "Bijwerkinterval (seconden)",
+          "use_provider_logo": "Logo van aanbieder tonen",
+          "delay_threshold": "Vertragingsdrempel (minuten)",
+          "line_filter": "Lijnfilter",
+          "walking_time": "Looptijd (minuten)",
+          "favorite_lines": "Favoriete lijnen"
+        },
+        "data_description": {
+          "use_provider_logo": "Toon het logo van de aanbieder in plaats van het vervoerstypepictogram",
+          "delay_threshold": "Minimale vertraging in minuten om de vertragingssensor te activeren (1-30)",
+          "line_filter": "Toon alleen specifieke lijnen, gescheiden door komma's (bijv. U79, RE5, Bus 42). Leeg = alle lijnen",
+          "walking_time": "Looptijd naar de halte in minuten (0 = uitgeschakeld). Vertrekken die niet meer gehaald kunnen worden, worden verborgen",
+          "favorite_lines": "Lijnen die als eerste worden getoond, gescheiden door komma's (bijv. U79, RE5). Leeg = geen favorieten"
+        }
+      }
+    }
+  },
+  "issues": {
+    "rate_limit_reached": {
+      "title": "API-limiet bereikt",
+      "description": "De dagelijkse API-limiet van {limit} verzoeken voor {provider} is bereikt. De integratie wordt morgen automatisch hervat. Overweeg het bijwerkinterval te verhogen."
+    },
+    "api_error": {
+      "title": "API-fout",
+      "description": "Er is een fout opgetreden bij het ophalen van gegevens van {provider}. Controleer uw station-ID of halte-informatie in de instellingen."
+    }
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Seleziona fornitore di trasporto pubblico",
+        "description": "Scegli il tuo fornitore di trasporto pubblico",
+        "data": {
+          "provider": "Fornitore",
+          "entry_type": "Tipo"
+        },
+        "data_description": {
+          "provider": "VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, RMV, SBB, ÖBB, Transitous, Trafiklab o NTA"
+        }
+      },
+      "stop_search": {
+        "title": "Cerca fermata/stazione",
+        "description": "Inserisci il nome della tua fermata.\nPer risultati migliori usa il formato: **Fermata, Città**\n\nEsempio: Holthausen, Düsseldorf",
+        "data": {
+          "stop_search": "Fermata, Città"
+        }
+      },
+      "stop_select": {
+        "title": "Seleziona fermata",
+        "description": "Trovati {count} risultati per \"{search_term}\". Seleziona la tua fermata o avvia una nuova ricerca:",
+        "data": {
+          "stop": "Fermata"
+        }
+      },
+      "api_key": {
+        "title": "Inserisci API Key",
+        "description": "{info}",
+        "data": {
+          "trafiklab_api_key": "API Key Trafiklab",
+          "nta_api_key": "API Key primaria NTA",
+          "nta_api_key_secondary": "API Key secondaria NTA (facoltativa)",
+          "rmv_api_key": "API Key RMV"
+        },
+        "data_description": {
+          "trafiklab_api_key": "API Key Trafiklab (disponibile su trafiklab.se)",
+          "nta_api_key": "API Key primaria NTA (obbligatoria, disponibile su developer.nationaltransport.ie)",
+          "nta_api_key_secondary": "API Key secondaria NTA (facoltativa, usata come riserva)",
+          "rmv_api_key": "API Key RMV (da richiedere su opendata.rmv.de)"
+        }
+      },
+      "settings": {
+        "title": "Impostazioni",
+        "description": "Configura le impostazioni per {stop}",
+        "data": {
+          "departures": "Numero di partenze",
+          "transportation_types": "Tipi di trasporto",
+          "scan_interval": "Intervallo di aggiornamento (secondi)",
+          "use_provider_logo": "Mostra il logo del fornitore",
+          "delay_threshold": "Soglia di ritardo (minuti)",
+          "line_filter": "Filtro linee",
+          "walking_time": "Tempo a piedi (minuti)",
+          "favorite_lines": "Linee preferite"
+        },
+        "data_description": {
+          "departures": "Quante partenze devono essere visualizzate? (1-20)",
+          "transportation_types": "Quali tipi di trasporto devono essere visualizzati?",
+          "scan_interval": "Con quale frequenza devono essere aggiornati i dati? (10-3600 secondi)",
+          "use_provider_logo": "Mostra il logo del fornitore al posto dell'icona del tipo di trasporto",
+          "delay_threshold": "Ritardo minimo in minuti per attivare il sensore di ritardo (1-30)",
+          "line_filter": "Mostra solo linee specifiche, separate da virgole (es. U79, RE5, Bus 42). Vuoto = tutte le linee",
+          "walking_time": "Tempo a piedi fino alla fermata in minuti (0 = disattivato). Le partenze non più raggiungibili vengono nascoste",
+          "favorite_lines": "Linee da mostrare per prime, separate da virgole (es. U79, RE5). Vuoto = nessun preferito"
+        }
+      },
+      "trip_search": {
+        "title": "{title}",
+        "description": "{desc}",
+        "data": {
+          "stop_search": "Fermata, Città"
+        }
+      },
+      "trip_select": {
+        "title": "Seleziona {phase}",
+        "description": "{count} risultati per \"{search_term}\"",
+        "data": {
+          "stop": "Fermata"
+        }
+      },
+      "multi_stop": {
+        "title": "Configura multi-fermata",
+        "description": "Combina le partenze da più fermate.\nInserisci gli ID entità separati da virgole.\nEsempio: {hint}",
+        "data": {
+          "name": "Nome",
+          "entities": "ID entità (separati da virgole)"
+        }
+      },
+      "trip_settings": {
+        "title": "Impostazioni viaggio",
+        "description": "Percorso: {origin} → {destination}",
+        "data": {
+          "scan_interval": "Intervallo di aggiornamento (secondi)"
+        }
+      }
+    },
+    "error": {
+      "missing_location": "Fornisci un ID stazione oppure una posizione e un nome di fermata",
+      "empty_search": "Inserisci un termine di ricerca",
+      "no_results": "Nessun risultato trovato. Prova con un altro termine di ricerca.",
+      "api_key_required": "L'API Key è obbligatoria",
+      "trafiklab_api_key_required": "L'API Key Trafiklab è obbligatoria",
+      "nta_api_key_required": "L'API Key NTA è obbligatoria",
+      "rmv_api_key_required": "L'API Key RMV è obbligatoria",
+      "min_two_entities": "Fornisci almeno 2 ID entità"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opzioni partenze trasporto pubblico",
+        "data": {
+          "departures": "Numero di partenze",
+          "transportation_types": "Tipi di trasporto",
+          "scan_interval": "Intervallo di aggiornamento (secondi)",
+          "use_provider_logo": "Mostra il logo del fornitore",
+          "delay_threshold": "Soglia di ritardo (minuti)",
+          "line_filter": "Filtro linee",
+          "walking_time": "Tempo a piedi (minuti)",
+          "favorite_lines": "Linee preferite"
+        },
+        "data_description": {
+          "use_provider_logo": "Mostra il logo del fornitore al posto dell'icona del tipo di trasporto",
+          "delay_threshold": "Ritardo minimo in minuti per attivare il sensore di ritardo (1-30)",
+          "line_filter": "Mostra solo linee specifiche, separate da virgole (es. U79, RE5, Bus 42). Vuoto = tutte le linee",
+          "walking_time": "Tempo a piedi fino alla fermata in minuti (0 = disattivato). Le partenze non più raggiungibili vengono nascoste",
+          "favorite_lines": "Linee da mostrare per prime, separate da virgole (es. U79, RE5). Vuoto = nessun preferito"
+        }
+      }
+    }
+  },
+  "issues": {
+    "rate_limit_reached": {
+      "title": "Limite API raggiunto",
+      "description": "Il limite giornaliero di {limit} richieste per {provider} è stato raggiunto. L'integrazione riprenderà automaticamente domani. Considera di aumentare l'intervallo di aggiornamento."
+    },
+    "api_error": {
+      "title": "Errore API",
+      "description": "Si è verificato un errore durante il recupero dei dati da {provider}. Verifica l'ID stazione o le informazioni sulla fermata nelle impostazioni."
+    }
+  }
+}

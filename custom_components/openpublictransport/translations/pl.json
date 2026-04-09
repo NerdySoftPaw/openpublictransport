@@ -1,0 +1,144 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Wybierz dostawcę transportu publicznego",
+        "description": "Wybierz swojego dostawcę transportu publicznego",
+        "data": {
+          "provider": "Dostawca",
+          "entry_type": "Typ"
+        },
+        "data_description": {
+          "provider": "VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, RMV, SBB, ÖBB, Transitous, Trafiklab lub NTA"
+        }
+      },
+      "stop_search": {
+        "title": "Szukaj przystanku/stacji",
+        "description": "Wprowadź nazwę przystanku.\nDla lepszych wyników użyj formatu: **Przystanek, Miasto**\n\nPrzykład: Holthausen, Düsseldorf",
+        "data": {
+          "stop_search": "Przystanek, Miasto"
+        }
+      },
+      "stop_select": {
+        "title": "Wybierz przystanek",
+        "description": "Znaleziono {count} wyników dla \"{search_term}\". Wybierz przystanek lub rozpocznij nowe wyszukiwanie:",
+        "data": {
+          "stop": "Przystanek"
+        }
+      },
+      "api_key": {
+        "title": "Wprowadź klucz API",
+        "description": "{info}",
+        "data": {
+          "trafiklab_api_key": "Klucz API Trafiklab",
+          "nta_api_key": "Podstawowy klucz API NTA",
+          "nta_api_key_secondary": "Dodatkowy klucz API NTA (opcjonalnie)",
+          "rmv_api_key": "Klucz API RMV"
+        },
+        "data_description": {
+          "trafiklab_api_key": "Klucz API Trafiklab (dostępny na trafiklab.se)",
+          "nta_api_key": "Podstawowy klucz API NTA (wymagany, dostępny na developer.nationaltransport.ie)",
+          "nta_api_key_secondary": "Dodatkowy klucz API NTA (opcjonalnie, używany jako zapasowy)",
+          "rmv_api_key": "Klucz API RMV (do uzyskania na opendata.rmv.de)"
+        }
+      },
+      "settings": {
+        "title": "Ustawienia",
+        "description": "Konfiguracja ustawień dla {stop}",
+        "data": {
+          "departures": "Liczba odjazdów",
+          "transportation_types": "Rodzaje transportu",
+          "scan_interval": "Częstotliwość aktualizacji (sekundy)",
+          "use_provider_logo": "Pokaż logo dostawcy",
+          "delay_threshold": "Próg opóźnienia (minuty)",
+          "line_filter": "Filtr linii",
+          "walking_time": "Czas dojścia (minuty)",
+          "favorite_lines": "Ulubione linie"
+        },
+        "data_description": {
+          "departures": "Ile odjazdów powinno być wyświetlanych? (1-20)",
+          "transportation_types": "Jakie rodzaje transportu powinny być wyświetlane?",
+          "scan_interval": "Jak często dane powinny być aktualizowane? (10-3600 sekund)",
+          "use_provider_logo": "Pokaż logo dostawcy zamiast ikony rodzaju transportu",
+          "delay_threshold": "Minimalne opóźnienie w minutach, aby uruchomić czujnik opóźnień (1-30)",
+          "line_filter": "Pokaż tylko określone linie, oddzielone przecinkami (np. U79, RE5, Bus 42). Puste = wszystkie linie",
+          "walking_time": "Czas dojścia do przystanku w minutach (0 = wyłączone). Odjazdy, na które nie można już zdążyć, są ukrywane",
+          "favorite_lines": "Linie wyświetlane na początku, oddzielone przecinkami (np. U79, RE5). Puste = brak ulubionych"
+        }
+      },
+      "trip_search": {
+        "title": "{title}",
+        "description": "{desc}",
+        "data": {
+          "stop_search": "Przystanek, Miasto"
+        }
+      },
+      "trip_select": {
+        "title": "Wybierz {phase}",
+        "description": "{count} wyników dla \"{search_term}\"",
+        "data": {
+          "stop": "Przystanek"
+        }
+      },
+      "multi_stop": {
+        "title": "Konfiguracja wielu przystanków",
+        "description": "Połącz odjazdy z wielu przystanków.\nWprowadź identyfikatory encji oddzielone przecinkami.\nPrzykład: {hint}",
+        "data": {
+          "name": "Nazwa",
+          "entities": "Identyfikatory encji (oddzielone przecinkami)"
+        }
+      },
+      "trip_settings": {
+        "title": "Ustawienia trasy",
+        "description": "Trasa: {origin} → {destination}",
+        "data": {
+          "scan_interval": "Częstotliwość aktualizacji (sekundy)"
+        }
+      }
+    },
+    "error": {
+      "missing_location": "Podaj identyfikator stacji lub lokalizację i nazwę przystanku",
+      "empty_search": "Wprowadź frazę wyszukiwania",
+      "no_results": "Nie znaleziono wyników. Spróbuj innej frazy wyszukiwania.",
+      "api_key_required": "Klucz API jest wymagany",
+      "trafiklab_api_key_required": "Klucz API Trafiklab jest wymagany",
+      "nta_api_key_required": "Klucz API NTA jest wymagany",
+      "rmv_api_key_required": "Klucz API RMV jest wymagany",
+      "min_two_entities": "Podaj co najmniej 2 identyfikatory encji"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opcje odjazdów transportu publicznego",
+        "data": {
+          "departures": "Liczba odjazdów",
+          "transportation_types": "Rodzaje transportu",
+          "scan_interval": "Częstotliwość aktualizacji (sekundy)",
+          "use_provider_logo": "Pokaż logo dostawcy",
+          "delay_threshold": "Próg opóźnienia (minuty)",
+          "line_filter": "Filtr linii",
+          "walking_time": "Czas dojścia (minuty)",
+          "favorite_lines": "Ulubione linie"
+        },
+        "data_description": {
+          "use_provider_logo": "Pokaż logo dostawcy zamiast ikony rodzaju transportu",
+          "delay_threshold": "Minimalne opóźnienie w minutach, aby uruchomić czujnik opóźnień (1-30)",
+          "line_filter": "Pokaż tylko określone linie, oddzielone przecinkami (np. U79, RE5, Bus 42). Puste = wszystkie linie",
+          "walking_time": "Czas dojścia do przystanku w minutach (0 = wyłączone). Odjazdy, na które nie można już zdążyć, są ukrywane",
+          "favorite_lines": "Linie wyświetlane na początku, oddzielone przecinkami (np. U79, RE5). Puste = brak ulubionych"
+        }
+      }
+    }
+  },
+  "issues": {
+    "rate_limit_reached": {
+      "title": "Osiągnięto limit API",
+      "description": "Dzienny limit API wynoszący {limit} zapytań dla {provider} został osiągnięty. Integracja zostanie automatycznie wznowiona jutro. Rozważ zwiększenie częstotliwości aktualizacji."
+    },
+    "api_error": {
+      "title": "Błąd API",
+      "description": "Wystąpił błąd podczas pobierania danych z {provider}. Sprawdź identyfikator stacji lub informacje o przystanku w ustawieniach."
+    }
+  }
+}

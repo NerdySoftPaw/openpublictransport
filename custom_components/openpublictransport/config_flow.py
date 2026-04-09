@@ -86,6 +86,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             "ding": "DING — Ulm / Donau-Iller",
             "avv_augsburg": "AVV — Augsburg",
             "rvv": "RVV — Regensburg",
+            "bsvg": "BSVG — Braunschweig",
+            "nwl": "NWL — Westfalen-Lippe",
+            "nvbw": "NVBW — Baden-Württemberg",
+            "beg": "BEG — Bayern",
         }
         return vol.Schema(
             {

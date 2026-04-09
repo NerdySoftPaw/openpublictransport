@@ -6,12 +6,16 @@ from homeassistant.core import HomeAssistant
 
 from ..const import (
     PROVIDER_AVV_AUGSBURG,
+    PROVIDER_BEG,
+    PROVIDER_BSVG,
     PROVIDER_BVG,
     PROVIDER_DING,
     PROVIDER_HVV,
     PROVIDER_KVV,
     PROVIDER_MVV,
     PROVIDER_NTA_IE,
+    PROVIDER_NVBW,
+    PROVIDER_NWL,
     PROVIDER_RMV,
     PROVIDER_RVV,
     PROVIDER_TRAFIKLAB_SE,
@@ -24,12 +28,16 @@ from ..const import (
 )
 from .avv import AVVProvider
 from .base import BaseProvider
+from .beg import BEGProvider
+from .bsvg import BSVGProvider
 from .bvg import BVGProvider
 from .ding import DINGProvider
 from .hvv import HVVProvider
 from .kvv import KVVProvider
 from .mvv import MVVProvider
 from .nta import NTAProvider
+from .nvbw import NVBWProvider
+from .nwl import NWLProvider
 from .rmv import RMVProvider
 from .rvv import RVVProvider
 from .trafiklab import TrafiklabProvider
@@ -85,3 +93,7 @@ register_provider(PROVIDER_VVO, VVOProvider)
 register_provider(PROVIDER_DING, DINGProvider)
 register_provider(PROVIDER_AVV_AUGSBURG, AVVProvider)
 register_provider(PROVIDER_RVV, RVVProvider)
+register_provider(PROVIDER_BSVG, BSVGProvider)
+register_provider(PROVIDER_NWL, NWLProvider)
+register_provider(PROVIDER_NVBW, NVBWProvider)
+register_provider(PROVIDER_BEG, BEGProvider)

@@ -36,6 +36,10 @@ PROVIDER_VVO = "vvo"
 PROVIDER_DING = "ding"
 PROVIDER_AVV_AUGSBURG = "avv_augsburg"
 PROVIDER_RVV = "rvv"
+PROVIDER_BSVG = "bsvg"
+PROVIDER_NWL = "nwl"
+PROVIDER_NVBW = "nvbw"
+PROVIDER_BEG = "beg"
 PROVIDERS = [
     PROVIDER_VRR,
     PROVIDER_KVV,
@@ -53,6 +57,10 @@ PROVIDERS = [
     PROVIDER_DING,
     PROVIDER_AVV_AUGSBURG,
     PROVIDER_RVV,
+    PROVIDER_BSVG,
+    PROVIDER_NWL,
+    PROVIDER_NVBW,
+    PROVIDER_BEG,
 ]
 
 # Transportation types mapping
@@ -126,6 +134,10 @@ PROVIDER_ICONS = {
     "ding": "mdi:bus",
     "avv_augsburg": "mdi:tram",
     "rvv": "mdi:bus",
+    "bsvg": "mdi:bus",
+    "nwl": "mdi:train",
+    "nvbw": "mdi:train",
+    "beg": "mdi:train",
 }
 
 # Provider-specific entity pictures (logos)
@@ -148,4 +160,8 @@ PROVIDER_ENTITY_PICTURES = {
     "ding": "https://www.ding.eu/favicon.ico",
     "avv_augsburg": "https://www.avv-augsburg.de/favicon.ico",
     "rvv": "https://www.rvv.de/favicon.ico",
+    "bsvg": "https://www.bsvg.net/favicon.ico",
+    "nwl": "https://www.westfalenfahrplan.de/favicon.ico",
+    "nvbw": "https://www.efa-bw.de/favicon.ico",
+    "beg": "https://www.bahnland-bayern.de/favicon.ico",
 }

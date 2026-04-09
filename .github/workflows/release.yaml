@@ -15,20 +15,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get version from manifest
-        id: version
+      - name: Set version from tag
         run: |
-          VERSION=$(cat custom_components/openpublictransport/manifest.json | jq -r '.version')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Validate version matches tag
-        run: |
-          TAG_VERSION=${GITHUB_REF#refs/tags/}
-          MANIFEST_VERSION=${{ steps.version.outputs.version }}
-          if [ "$TAG_VERSION" != "v$MANIFEST_VERSION" ]; then
-            echo "Tag version ($TAG_VERSION) does not match manifest version (v$MANIFEST_VERSION)"
-            exit 1
-          fi
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          echo "Setting version to $TAG_VERSION"
+          jq --arg v "$TAG_VERSION" '.version = $v' custom_components/openpublictransport/manifest.json > tmp.json
+          mv tmp.json custom_components/openpublictransport/manifest.json
 
       - name: Create zip file
         run: |

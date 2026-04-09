@@ -1,8 +1,12 @@
 import asyncio
+import json
 import logging
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 from zoneinfo import ZoneInfo
+
+INTEGRATION_VERSION = json.loads((Path(__file__).parent / "manifest.json").read_text()).get("version", "unknown")
 
 import aiohttp
 from aiohttp import ClientConnectorError
@@ -830,7 +834,7 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
             name=f"{place_dm} - {name_dm}",
             manufacturer=f"{provider.upper()} Public Transport",
             model="Departure Monitor",
-            sw_version="2026.01.24",
+            sw_version=INTEGRATION_VERSION,
             configuration_url="https://github.com/NerdySoftPaw/openpublictransport",
             suggested_area=place_dm,
         )

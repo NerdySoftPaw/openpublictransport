@@ -13,9 +13,9 @@
       },
       "stop_search": {
         "title": "Search Stop/Station",
-        "description": "Search for a stop or station.\nExample: Hauptbahnhof, Marktplatz, Alexanderplatz...",
+        "description": "Enter the name of your stop.\nFor better results use the format: **Stop, City**\n\nExample: Holthausen, Düsseldorf",
         "data": {
-          "stop_search": "Stop / Location"
+          "stop_search": "Stop, City"
         }
       },
       "stop_select": {

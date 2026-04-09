@@ -52,7 +52,7 @@
           "use_provider_logo": "Show provider logo",
           "delay_threshold": "Delay threshold (minutes)",
           "line_filter": "Line filter",
-          "walking_time": "Walking time (minutes)"
+          "walking_time": "Walking time (minutes)", "favorite_lines": "Favorite lines"
         },
         "data_description": {
           "departures": "How many departures should be displayed? (1-20)",
@@ -107,7 +107,7 @@
           "use_provider_logo": "Show provider logo",
           "delay_threshold": "Delay threshold (minutes)",
           "line_filter": "Line filter",
-          "walking_time": "Walking time (minutes)"
+          "walking_time": "Walking time (minutes)", "favorite_lines": "Favorite lines"
         },
         "data_description": {
           "use_provider_logo": "Show the provider logo instead of the transport type icon",

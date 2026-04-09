@@ -19,6 +19,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const import (
     CONF_DELAY_THRESHOLD,
     CONF_DEPARTURES,
+    CONF_FAVORITE_LINES,
     CONF_LINE_FILTER,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
@@ -337,6 +338,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     int, vol.Range(min=1, max=30)
                 ),
                 vol.Optional(CONF_LINE_FILTER, default=""): str,
+                vol.Optional(CONF_FAVORITE_LINES, default=""): str,
                 vol.Optional(CONF_WALKING_TIME, default=0): vol.All(int, vol.Range(min=0, max=30)),
             }
         )
@@ -1268,6 +1270,12 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
                     int, vol.Range(min=1, max=30)
                 ),
                 vol.Optional(CONF_LINE_FILTER, default=current_line_filter): str,
+                vol.Optional(
+                    CONF_FAVORITE_LINES,
+                    default=self.config_entry.options.get(
+                        CONF_FAVORITE_LINES, self.config_entry.data.get(CONF_FAVORITE_LINES, "")
+                    ),
+                ): str,
                 vol.Optional(CONF_WALKING_TIME, default=current_walking_time): vol.All(int, vol.Range(min=0, max=30)),
             }
         )

@@ -17,6 +17,7 @@ CONF_USE_PROVIDER_LOGO = "use_provider_logo"  # Show provider logo instead of tr
 CONF_DELAY_THRESHOLD = "delay_threshold"  # Minutes threshold for delay binary sensor
 CONF_LINE_FILTER = "line_filter"  # Comma-separated line numbers to show
 CONF_WALKING_TIME = "walking_time"  # Minutes to walk to the stop
+CONF_FAVORITE_LINES = "favorite_lines"  # Comma-separated favorite lines (shown first)
 DEFAULT_DELAY_THRESHOLD = 5
 DEFAULT_WALKING_TIME = 0
 

@@ -52,7 +52,7 @@
           "use_provider_logo": "Anbieter-Logo anzeigen",
           "delay_threshold": "Verspätungs-Schwellwert (Minuten)",
           "line_filter": "Linien-Filter",
-          "walking_time": "Fußweg (Minuten)"
+          "walking_time": "Fußweg (Minuten)", "favorite_lines": "Favoriten-Linien"
         },
         "data_description": {
           "departures": "Wie viele Abfahrten sollen angezeigt werden? (1-20)",
@@ -107,7 +107,7 @@
           "use_provider_logo": "Anbieter-Logo anzeigen",
           "delay_threshold": "Verspätungs-Schwellwert (Minuten)",
           "line_filter": "Linien-Filter",
-          "walking_time": "Fußweg (Minuten)"
+          "walking_time": "Fußweg (Minuten)", "favorite_lines": "Favoriten-Linien"
         },
         "data_description": {
           "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",

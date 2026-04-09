@@ -16,6 +16,7 @@ from homeassistant.util import dt as dt_util
 from .const import (
     API_RATE_LIMIT_PER_DAY,
     CONF_DEPARTURES,
+    CONF_FAVORITE_LINES,
     CONF_LINE_FILTER,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
@@ -331,6 +332,12 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
             {line.strip().lower() for line in line_filter_str.split(",") if line.strip()} if line_filter_str else set()
         )
 
+        # Get favorite lines from options/data
+        fav_str = config_entry.options.get(CONF_FAVORITE_LINES, config_entry.data.get(CONF_FAVORITE_LINES, ""))
+        self._favorite_lines: set[str] = (
+            {line.strip().lower() for line in fav_str.split(",") if line.strip()} if fav_str else set()
+        )
+
         # Get walking time from options/data
         self._walking_time = config_entry.options.get(
             CONF_WALKING_TIME, config_entry.data.get(CONF_WALKING_TIME, DEFAULT_WALKING_TIME)
@@ -443,6 +450,12 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
             config_entry.data.get(CONF_WALKING_TIME, DEFAULT_WALKING_TIME),
         )
 
+        # Update favorite lines
+        fav_str = config_entry.options.get(CONF_FAVORITE_LINES, config_entry.data.get(CONF_FAVORITE_LINES, ""))
+        self._favorite_lines = (
+            {line.strip().lower() for line in fav_str.split(",") if line.strip()} if fav_str else set()
+        )
+
         # Update coordinator settings
         departures = config_entry.options.get(
             CONF_DEPARTURES, config_entry.data.get(CONF_DEPARTURES, DEFAULT_DEPARTURES)
@@ -516,8 +529,11 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
                 if not self._line_filter or dep.line.lower() in self._line_filter:
                     departures.append(dep)
 
-        # Sort by departure time
-        departures.sort(key=lambda x: x.departure_time_obj)
+        # Sort: favorites first (by time), then rest (by time)
+        if self._favorite_lines:
+            departures.sort(key=lambda x: (0 if x.line.lower() in self._favorite_lines else 1, x.departure_time_obj))
+        else:
+            departures.sort(key=lambda x: x.departure_time_obj)
 
         # Filter out departures that can't be reached (walking time)
         if self._walking_time > 0:
@@ -558,7 +574,10 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
                 on_time_count += 1
 
             # Convert UnifiedDeparture to dict for attributes
-            clean_departures.append(dep.to_dict())
+            dep_dict = dep.to_dict()
+            if self._favorite_lines and dep.line.lower() in self._favorite_lines:
+                dep_dict["is_favorite"] = True
+            clean_departures.append(dep_dict)
 
         # Next 3 departures (simplified)
         next_3_departures = clean_departures[:3]

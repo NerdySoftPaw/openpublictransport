@@ -279,12 +279,10 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
         self._attributes: dict[str, Any] = {}
 
         # Get line filter from options/data
-        line_filter_str = config_entry.options.get(
-            CONF_LINE_FILTER, config_entry.data.get(CONF_LINE_FILTER, "")
+        line_filter_str = config_entry.options.get(CONF_LINE_FILTER, config_entry.data.get(CONF_LINE_FILTER, ""))
+        self._line_filter: set[str] = (
+            {line.strip().lower() for line in line_filter_str.split(",") if line.strip()} if line_filter_str else set()
         )
-        self._line_filter: set[str] = {
-            line.strip().lower() for line in line_filter_str.split(",") if line.strip()
-        } if line_filter_str else set()
 
         # Get option for provider logo display
         self._use_provider_logo = config_entry.options.get(
@@ -527,4 +525,3 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
             "earliest_departure": earliest_departure,
             "latest_departure": latest_departure,
         }
-

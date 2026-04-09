@@ -6,7 +6,13 @@ import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
-from custom_components.openpublictransport.const import PROVIDER_HVV, PROVIDER_KVV, PROVIDER_NTA_IE, PROVIDER_TRAFIKLAB_SE, PROVIDER_VRR
+from custom_components.openpublictransport.const import (
+    PROVIDER_HVV,
+    PROVIDER_KVV,
+    PROVIDER_NTA_IE,
+    PROVIDER_TRAFIKLAB_SE,
+    PROVIDER_VRR,
+)
 from custom_components.openpublictransport.providers import get_provider
 from custom_components.openpublictransport.providers.hvv import HVVProvider
 from custom_components.openpublictransport.providers.kvv import KVVProvider

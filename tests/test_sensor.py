@@ -8,7 +8,11 @@ from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util import dt as dt_util
 
 from custom_components.openpublictransport.const import API_RATE_LIMIT_PER_DAY, DOMAIN, PROVIDER_VRR
-from custom_components.openpublictransport.sensor import MultiProviderSensor, PublicTransportDataUpdateCoordinator, async_setup_entry
+from custom_components.openpublictransport.sensor import (
+    MultiProviderSensor,
+    PublicTransportDataUpdateCoordinator,
+    async_setup_entry,
+)
 
 
 async def test_coordinator_update(hass: HomeAssistant, mock_api_response):

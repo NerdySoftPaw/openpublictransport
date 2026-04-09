@@ -36,9 +36,12 @@ async def async_plan_trip(
     dest_name: str,
     dest_place: str,
     departure_time: Optional[datetime] = None,
+    origin_id: Optional[str] = None,
+    dest_id: Optional[str] = None,
 ) -> Optional[List[Dict[str, Any]]]:
     """Plan a trip from origin to destination using EFA API.
 
+    Uses stop IDs when available (more reliable), falls back to name+place search.
     Returns a list of journey options, each with legs and transfer info.
     """
     base_url = EFA_TRIP_ENDPOINTS.get(provider)
@@ -50,15 +53,25 @@ async def async_plan_trip(
     date_str = now.strftime("%Y%m%d")
     time_str = now.strftime("%H%M")
 
-    params = (
-        f"outputFormat=RapidJSON"
-        f"&type_origin=any&name_origin={quote(origin_name, safe='')}"
-        f"&place_origin={quote(origin_place, safe='')}"
-        f"&type_destination=any&name_destination={quote(dest_name, safe='')}"
-        f"&place_destination={quote(dest_place, safe='')}"
-        f"&itdDate={date_str}&itdTime={time_str}"
-        f"&useRealtime=1"
-    )
+    # Use stop IDs if available (much more reliable than name search)
+    if origin_id and dest_id:
+        params = (
+            f"outputFormat=RapidJSON"
+            f"&type_origin=stop&name_origin={quote(origin_id, safe='')}"
+            f"&type_destination=stop&name_destination={quote(dest_id, safe='')}"
+            f"&itdDate={date_str}&itdTime={time_str}"
+            f"&useRealtime=1"
+        )
+    else:
+        params = (
+            f"outputFormat=RapidJSON"
+            f"&type_origin=any&name_origin={quote(origin_name, safe='')}"
+            f"&place_origin={quote(origin_place, safe='')}"
+            f"&type_destination=any&name_destination={quote(dest_name, safe='')}"
+            f"&place_destination={quote(dest_place, safe='')}"
+            f"&itdDate={date_str}&itdTime={time_str}"
+            f"&useRealtime=1"
+        )
 
     url = f"{base_url}?{params}"
     session = async_get_clientsession(hass)

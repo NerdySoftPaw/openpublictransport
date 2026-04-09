@@ -1159,8 +1159,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 CONF_TRIP_PROVIDER: self._provider,
                 CONF_TRIP_ORIGIN: origin.get("name", ""),
                 CONF_TRIP_ORIGIN_CITY: origin.get("place", ""),
+                "trip_origin_id": origin.get("id", ""),
                 CONF_TRIP_DESTINATION: dest.get("name", ""),
                 CONF_TRIP_DESTINATION_CITY: dest.get("place", ""),
+                "trip_destination_id": dest.get("id", ""),
                 CONF_SCAN_INTERVAL: user_input.get(CONF_SCAN_INTERVAL, 120),
             }
 

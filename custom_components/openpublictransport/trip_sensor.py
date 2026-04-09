@@ -40,6 +40,8 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         destination: str,
         destination_city: str,
         scan_interval: int = 120,
+        origin_id: Optional[str] = None,
+        dest_id: Optional[str] = None,
     ):
         """Initialize."""
         super().__init__(
@@ -53,6 +55,8 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         self.origin_city = origin_city
         self.destination = destination
         self.destination_city = destination_city
+        self.origin_id = origin_id
+        self.dest_id = dest_id
 
     async def _async_update_data(self) -> Optional[List[Dict[str, Any]]]:
         """Fetch trip data."""
@@ -63,6 +67,8 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
             self.origin_city,
             self.destination,
             self.destination_city,
+            origin_id=self.origin_id,
+            dest_id=self.dest_id,
         )
 
 
@@ -76,10 +82,20 @@ async def async_setup_trip_entry(
     origin_city = config_entry.data[CONF_TRIP_ORIGIN_CITY]
     destination = config_entry.data[CONF_TRIP_DESTINATION]
     destination_city = config_entry.data[CONF_TRIP_DESTINATION_CITY]
+    origin_id = config_entry.data.get("trip_origin_id")
+    dest_id = config_entry.data.get("trip_destination_id")
     scan_interval = config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
 
     coordinator = TripDataUpdateCoordinator(
-        hass, provider, origin, origin_city, destination, destination_city, scan_interval
+        hass,
+        provider,
+        origin,
+        origin_city,
+        destination,
+        destination_city,
+        scan_interval,
+        origin_id=origin_id,
+        dest_id=dest_id,
     )
 
     coordinator_key = f"{config_entry.entry_id}_trip_coordinator"

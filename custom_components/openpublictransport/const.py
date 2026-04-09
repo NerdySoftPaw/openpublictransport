@@ -45,6 +45,7 @@ PROVIDER_NVBW = "nvbw"
 PROVIDER_BEG = "beg"
 PROVIDER_SBB = "sbb"
 PROVIDER_OEBB = "oebb"
+PROVIDER_TRANSITOUS = "transitous"
 PROVIDERS = [
     PROVIDER_VRR,
     PROVIDER_KVV,
@@ -68,6 +69,7 @@ PROVIDERS = [
     PROVIDER_BEG,
     PROVIDER_SBB,
     PROVIDER_OEBB,
+    PROVIDER_TRANSITOUS,
 ]
 
 # Transportation types mapping
@@ -138,6 +140,7 @@ PROVIDER_ICONS = {
     "nta_ie": "mdi:bus-multiple",
     "sbb": "mdi:train",
     "oebb": "mdi:train",
+    "transitous": "mdi:earth",
     "vrn": "mdi:train",
     "vvo": "mdi:tram",
     "ding": "mdi:bus",
@@ -166,6 +169,7 @@ PROVIDER_ENTITY_PICTURES = {
     "nta_ie": "https://www.transportforireland.ie/favicon.ico",
     "sbb": "https://www.sbb.ch/favicon.ico",
     "oebb": "https://www.oebb.at/favicon.ico",
+    "transitous": "https://transitous.org/favicon.ico",
     "vrn": "https://www.vrn.de/favicon.ico",
     "vvo": "https://www.vvo-online.de/favicon.ico",
     "ding": "https://www.ding.eu/favicon.ico",

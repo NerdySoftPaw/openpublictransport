@@ -8,7 +8,7 @@
           "provider": "Provider"
         },
         "data_description": {
-          "provider": "VRR (NRW), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (Munich), VVS (Stuttgart), VGN (Nuremberg), VAG (Freiburg), Trafiklab (Sweden) or NTA (Ireland)"
+          "provider": "VRR (NRW), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (Munich), VVS (Stuttgart), VGN (Nuremberg), VAG (Freiburg), RMV (Frankfurt), Trafiklab (Sweden) or NTA (Ireland)"
         }
       },
       "location": {
@@ -45,12 +45,14 @@
         "data": {
           "trafiklab_api_key": "Trafiklab API Key",
           "nta_api_key": "NTA Primary API Key",
-          "nta_api_key_secondary": "NTA Secondary API Key (optional)"
+          "nta_api_key_secondary": "NTA Secondary API Key (optional)",
+          "rmv_api_key": "RMV API Key"
         },
         "data_description": {
           "trafiklab_api_key": "Trafiklab API key (available at trafiklab.se)",
           "nta_api_key": "NTA Primary API key (required, available at developer.nationaltransport.ie)",
-          "nta_api_key_secondary": "NTA Secondary API key (optional, used as fallback)"
+          "nta_api_key_secondary": "NTA Secondary API key (optional, used as fallback)",
+          "rmv_api_key": "RMV API key (request at opendata.rmv.de)"
         }
       },
       "settings": {
@@ -80,7 +82,8 @@
       "no_results": "No results found. Please try a different search term.",
       "api_key_required": "API key is required",
       "trafiklab_api_key_required": "Trafiklab API key is required",
-      "nta_api_key_required": "NTA API key is required"
+      "nta_api_key_required": "NTA API key is required",
+      "rmv_api_key_required": "RMV API key is required"
     }
   },
   "options": {

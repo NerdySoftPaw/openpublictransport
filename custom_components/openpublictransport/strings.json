@@ -2,9 +2,10 @@
   "config": {
     "step": {
       "user": {
-        "title": "ÖPNV Anbieter wählen",
-        "description": "Wähle deinen ÖPNV-Anbieter aus",
+        "title": "ÖPNV Konfiguration",
+        "description": "Wähle den Typ und deinen ÖPNV-Anbieter",
         "data": {
+          "entry_type": "Typ",
           "provider": "Anbieter"
         },
         "data_description": {
@@ -59,6 +60,27 @@
           "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
           "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)",
           "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien"
+        }
+      },
+      "trip_search": {
+        "title": "{title}",
+        "description": "{desc}",
+        "data": {
+          "stop_search": "Haltestelle, Ort"
+        }
+      },
+      "trip_select": {
+        "title": "{phase} wählen",
+        "description": "{count} Ergebnisse für \"{search_term}\"",
+        "data": {
+          "stop": "Haltestelle"
+        }
+      },
+      "trip_settings": {
+        "title": "Verbindungseinstellungen",
+        "description": "Route: {origin} → {destination}",
+        "data": {
+          "scan_interval": "Update-Intervall (Sekunden)"
         }
       }
     },

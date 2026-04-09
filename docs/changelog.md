@@ -23,6 +23,9 @@
 
 ### New Features
 
+- **Trip Planner** - Plan routes from A to B via service call or dedicated trip sensor
+- **Trip Sensor** - Persistent sensor showing next best connection with transfer risk assessment
+- **Connection Monitoring** - Built into trip planner: shows `connection_feasible`, `transfer_risk` (low/medium/high/missed)
 - **Configurable delay threshold** (1-30 min, was hardcoded at 5 min)
 - **Line filter** - comma-separated filter for specific lines (e.g., `U79, RE5`)
 - **Richer departure data** - disruption notices, platform change detection

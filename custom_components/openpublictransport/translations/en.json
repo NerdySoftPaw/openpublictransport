@@ -5,7 +5,8 @@
         "title": "Select Public Transport Provider",
         "description": "Choose your public transport provider",
         "data": {
-          "provider": "Provider"
+          "provider": "Provider",
+          "entry_type": "Type"
         },
         "data_description": {
           "provider": "VRR (NRW), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (Munich), VVS (Stuttgart), VAG (Freiburg), RMV (Frankfurt), Trafiklab (Sweden) or NTA (Ireland)"
@@ -59,6 +60,27 @@
           "use_provider_logo": "Show the provider logo instead of the transport type icon",
           "delay_threshold": "Minimum delay in minutes to trigger the delay sensor (1-30)",
           "line_filter": "Only show specific lines, comma-separated (e.g. U79, RE5, Bus 42). Empty = all lines"
+        }
+      },
+      "trip_search": {
+        "title": "{title}",
+        "description": "{desc}",
+        "data": {
+          "stop_search": "Stop, City"
+        }
+      },
+      "trip_select": {
+        "title": "Select {phase}",
+        "description": "{count} results for \"{search_term}\"",
+        "data": {
+          "stop": "Stop"
+        }
+      },
+      "trip_settings": {
+        "title": "Trip Settings",
+        "description": "Route: {origin} → {destination}",
+        "data": {
+          "scan_interval": "Update interval (seconds)"
         }
       }
     },

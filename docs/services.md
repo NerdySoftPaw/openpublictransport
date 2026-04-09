@@ -132,3 +132,104 @@ script:
 2. **Use in specific scenarios** - Arriving home, before leaving, etc.
 3. **Combine with normal updates** - Don't rely solely on manual refreshes
 4. **Monitor API usage** - Check the diagnostics for call counts
+
+---
+
+## openpublictransport.plan_trip
+
+Plan a route from origin to destination, returning connections with transfers and real-time delay information.
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `provider` | Yes | Provider ID (e.g. `vrr`, `kvv`, `mvv`, `vvs`, `vagfr`, `hvv`) |
+| `origin` | Yes | Origin stop name (e.g. `Holthausen`) |
+| `origin_city` | No | City of origin stop for more precise results |
+| `destination` | Yes | Destination stop name (e.g. `Hauptbahnhof`) |
+| `destination_city` | No | City of destination stop for more precise results |
+
+### Examples
+
+#### Basic Trip Query
+
+```yaml
+service: openpublictransport.plan_trip
+data:
+  provider: vrr
+  origin: Holthausen
+  origin_city: Düsseldorf
+  destination: Hauptbahnhof
+  destination_city: Düsseldorf
+```
+
+#### Cross-City Trip
+
+```yaml
+service: openpublictransport.plan_trip
+data:
+  provider: vrr
+  origin: Hauptbahnhof
+  origin_city: Düsseldorf
+  destination: Hauptbahnhof
+  destination_city: Essen
+```
+
+### Example Response
+
+The service returns trip data via a `openpublictransport_trip_result` event:
+
+```json
+{
+  "origin": "Holthausen, Düsseldorf",
+  "destination": "Hauptbahnhof, Düsseldorf",
+  "departure_time": "2026-04-09T08:15:00+02:00",
+  "arrival_time": "2026-04-09T08:42:00+02:00",
+  "duration_minutes": 27,
+  "transfers": 1,
+  "legs": [
+    {
+      "line": "U79",
+      "direction": "Duisburg Meiderich",
+      "departure_stop": "Holthausen",
+      "departure_time": "08:15",
+      "arrival_stop": "Düsseldorf Hbf",
+      "arrival_time": "08:35",
+      "delay": 2,
+      "platform": "1"
+    },
+    {
+      "line": "RE5",
+      "direction": "Koblenz Hbf",
+      "departure_stop": "Düsseldorf Hbf",
+      "departure_time": "08:40",
+      "arrival_stop": "Düsseldorf Hbf",
+      "arrival_time": "08:42",
+      "delay": 0,
+      "platform": "3"
+    }
+  ],
+  "connection_feasible": true,
+  "transfer_risk": "low"
+}
+```
+
+### Use in Automation
+
+```yaml
+automation:
+  - alias: "Plan morning commute"
+    trigger:
+      - platform: time
+        at: "07:00:00"
+    action:
+      - service: openpublictransport.plan_trip
+        data:
+          provider: vrr
+          origin: Holthausen
+          origin_city: Düsseldorf
+          destination: Hauptbahnhof
+          destination_city: Düsseldorf
+```
+
+For full details see the [Trip Planner guide](trip-planner.md).

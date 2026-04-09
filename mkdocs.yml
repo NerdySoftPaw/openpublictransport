@@ -67,6 +67,7 @@ nav:
       - NTA (Ireland): providers/nta.md
   - Sensors & Attributes: sensors.md
   - Services: services.md
+  - Trip Planner: trip-planner.md
   - Dashboard Examples: dashboard.md
   - Automations: automations.md
   - Changelog: changelog.md

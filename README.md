@@ -33,6 +33,7 @@ A Home Assistant integration for 10 public transport networks: VRR (Rhein-Ruhr),
 - **Rate Limiting**: Intelligent API rate limiting to prevent overload (60,000 calls/day)
 - **Error Handling**: Robust error handling with exponential backoff strategy
 - **Timezone Support**: Proper handling of provider-specific timezones (Europe/Berlin for German providers, Europe/Stockholm for Trafiklab, Europe/Dublin for NTA)
+- **Trip Planner**: Plan routes from A to B with connections, transfers, and delay tracking
 
 ### Intelligence & Performance Features (v4.2.0)
 - **Fuzzy Matching with Typo Tolerance**: Intelligently finds stops even with typos
@@ -353,6 +354,22 @@ automation:
           entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
 ```
 
+### Plan Trip
+
+Plan a route from A to B with connections, transfers, and delay tracking.
+
+```yaml
+service: openpublictransport.plan_trip
+data:
+  provider: vrr
+  origin: Holthausen
+  origin_city: Düsseldorf
+  destination: Hauptbahnhof
+  destination_city: Düsseldorf
+```
+
+See [Trip Planner documentation](docs/trip-planner.md) for full details, sensor setup, and example automations.
+
 ## API Limits and Rate Limiting
 
 The integration implements intelligent rate limiting:
@@ -601,6 +618,9 @@ NTA (National Transport Authority, Ireland) is one of the supported providers.
 - **RMV (Frankfurt)**: Rhine-Main area via HAFAS REST API (API key required)
 
 #### New Features
+- **Trip Planner**: Plan routes from A to B via service call or dedicated trip sensor
+- **Trip Sensor**: Persistent sensor showing next best connection with transfer risk assessment
+- **Connection Monitoring**: Built into trip planner — shows connection_feasible, transfer_risk (low/medium/high/missed)
 - **Configurable delay threshold**: 1-30 minutes (was hardcoded 5min)
 - **Line filter**: Show only specific lines (e.g. "U79, RE5")
 - **Richer departure data**: Disruption notices and platform change detection

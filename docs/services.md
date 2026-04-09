@@ -233,3 +233,114 @@ automation:
 ```
 
 For full details see the [Trip Planner guide](trip-planner.md).
+
+---
+
+## openpublictransport.check_delays
+
+Check for delayed departures and fire an `openpublictransport_delay_alert` event.
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `entity_id` | Yes | Sensor entity to check |
+| `delay_threshold` | No | Minimum delay in minutes to count as delayed (default: 5) |
+| `line` | No | Filter to a specific line (e.g. `U79`) |
+
+### Example Call
+
+```yaml
+service: openpublictransport.check_delays
+data:
+  entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
+  delay_threshold: 5
+  line: "U79"
+```
+
+### Response
+
+Returns a list of delayed departures. Additionally fires an `openpublictransport_delay_alert` event with:
+
+| Field | Description |
+|-------|-------------|
+| `entity_id` | The checked entity |
+| `delayed_count` | Number of delayed departures |
+| `max_delay` | Highest delay in minutes |
+| `lines` | List of affected lines |
+| `departures` | Full list of delayed departure objects |
+
+### Example Automation
+
+```yaml
+automation:
+  - alias: "Notify on checked delays"
+    trigger:
+      - platform: event
+        event_type: openpublictransport_delay_alert
+    condition:
+      - condition: template
+        value_template: "{{ trigger.event.data.delayed_count > 0 }}"
+    action:
+      - service: notify.mobile_app
+        data:
+          title: "Delay Alert"
+          message: >
+            {{ trigger.event.data.delayed_count }} delayed departure(s).
+            Max delay: {{ trigger.event.data.max_delay }} min.
+            Lines: {{ trigger.event.data.lines | join(', ') }}
+```
+
+---
+
+## openpublictransport.announce_departure
+
+Get a spoken-language departure announcement for use with any TTS service.
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `entity_id` | Yes | Sensor entity to announce from |
+| `index` | No | Departure index (default: 0 = next departure) |
+
+### Example Call
+
+```yaml
+service: openpublictransport.announce_departure
+data:
+  entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
+  index: 0
+```
+
+### Response
+
+```json
+{
+  "text": "U79 Richtung Wittlaer fährt in 3 Minuten von Gleis 2. Verspätung: 3 Minuten."
+}
+```
+
+### TTS Automation Example
+
+```yaml
+automation:
+  - alias: "Morning TTS departure announcement"
+    trigger:
+      - platform: time
+        at: "07:30:00"
+    condition:
+      - condition: time
+        weekday: [mon, tue, wed, thu, fri]
+    action:
+      - service: openpublictransport.announce_departure
+        data:
+          entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
+          index: 0
+        response_variable: result
+      - service: tts.speak
+        target:
+          entity_id: tts.google_translate
+        data:
+          message: "{{ result.text }}"
+```

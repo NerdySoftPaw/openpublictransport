@@ -35,6 +35,10 @@ A Home Assistant integration for 20 public transport networks: VRR (Rhein-Ruhr),
 - **Error Handling**: Robust error handling with exponential backoff strategy
 - **Timezone Support**: Proper handling of provider-specific timezones (Europe/Berlin for German providers, Europe/Stockholm for Trafiklab, Europe/Dublin for NTA)
 - **Trip Planner**: Plan routes from A to B with connections, transfers, and delay tracking
+- **Walking Time**: Configure walking time to stop (0-30 min) -- departures you can't reach are automatically hidden
+- **Statistics Sensor**: Per-stop punctuality tracking with per-line breakdown
+- **Delay Check Service**: `check_delays` service with event firing for automation-friendly delay monitoring
+- **TTS Departure Announcements**: `announce_departure` service returns spoken-language text for any TTS integration
 
 ### Intelligence & Performance Features (v4.2.0)
 - **Fuzzy Matching with Typo Tolerance**: Intelligently finds stops even with typos
@@ -390,6 +394,56 @@ data:
 
 See [Trip Planner documentation](docs/trip-planner.md) for full details, sensor setup, and example automations.
 
+### Check Delays
+
+Check for delayed departures and fire an event for use in automations.
+
+```yaml
+service: openpublictransport.check_delays
+data:
+  entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
+  delay_threshold: 5
+  line: "U79"  # optional filter
+```
+
+Fires an `openpublictransport_delay_alert` event with `entity_id`, `delayed_count`, `max_delay`, `lines`, and `departures`.
+
+### Announce Departure (TTS)
+
+Get a spoken-language departure announcement for use with any TTS service.
+
+```yaml
+service: openpublictransport.announce_departure
+data:
+  entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
+  index: 0  # 0 = next departure
+```
+
+Returns: `{ text: "U79 Richtung Wittlaer faehrt in 3 Minuten von Gleis 2. Verspaetung: 3 Minuten." }`
+
+Use in an automation:
+
+```yaml
+automation:
+  - alias: "Announce next departure via TTS"
+    trigger:
+      - platform: time
+        at: "07:30:00"
+    action:
+      - service: openpublictransport.announce_departure
+        data:
+          entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
+          index: 0
+        response_variable: result
+      - service: tts.speak
+        target:
+          entity_id: tts.google_translate
+        data:
+          message: "{{ result.text }}"
+```
+
+See [Services documentation](docs/services.md) for full details.
+
 ## API Limits and Rate Limiting
 
 The integration implements intelligent rate limiting:
@@ -627,6 +681,14 @@ NTA (National Transport Authority, Ireland) is one of the supported providers.
 ```
 
 ## Changelog
+
+### Version 2026.04.12 - Walking Time, Services & Statistics
+#### New Features
+- **Walking Time**: Configure 0-30 min walking time to stop; unreachable departures are hidden automatically
+- **`check_delays` Service**: Query delayed departures with configurable threshold and optional line filter; fires `openpublictransport_delay_alert` event
+- **`announce_departure` Service**: Returns spoken-language departure text for use with any TTS integration
+- **Statistics Sensor**: New `sensor.*_statistics` entity per stop showing overall punctuality (%) with per-line breakdown
+- **VGN (Nuremberg) re-enabled**: VGN provider is available again
 
 ### Version 2026.04.11 - Batch 1+2 Provider Expansion
 #### New Providers

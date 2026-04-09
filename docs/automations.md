@@ -97,6 +97,73 @@ automation:
             Your train may be delayed. Check before leaving!
 ```
 
+## Delay Check Service Automation
+
+### Periodic Delay Check with Notification
+
+Use the `check_delays` service to periodically scan for delays and get notified via the fired event.
+
+```yaml
+automation:
+  - alias: "Check delays every 10 minutes"
+    trigger:
+      - platform: time_pattern
+        minutes: "/10"
+    condition:
+      - condition: time
+        after: "06:00:00"
+        before: "22:00:00"
+    action:
+      - service: openpublictransport.check_delays
+        data:
+          entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
+          delay_threshold: 5
+
+  - alias: "Notify on delay alert event"
+    trigger:
+      - platform: event
+        event_type: openpublictransport_delay_alert
+    condition:
+      - condition: template
+        value_template: "{{ trigger.event.data.delayed_count > 0 }}"
+    action:
+      - service: notify.mobile_app
+        data:
+          title: "Delay Alert"
+          message: >
+            {{ trigger.event.data.delayed_count }} delayed departure(s) at your stop.
+            Max delay: {{ trigger.event.data.max_delay }} min.
+            Affected lines: {{ trigger.event.data.lines | join(', ') }}
+```
+
+## TTS Departure Announcement
+
+### Morning TTS Announcement via announce_departure
+
+Use the `announce_departure` service to get a ready-made spoken text and pass it to any TTS engine.
+
+```yaml
+automation:
+  - alias: "TTS departure announcement"
+    trigger:
+      - platform: time
+        at: "07:30:00"
+    condition:
+      - condition: time
+        weekday: [mon, tue, wed, thu, fri]
+    action:
+      - service: openpublictransport.announce_departure
+        data:
+          entity_id: sensor.openpublictransport_dusseldorf_hauptbahnhof
+          index: 0
+        response_variable: result
+      - service: tts.speak
+        target:
+          entity_id: tts.google_translate
+        data:
+          message: "{{ result.text }}"
+```
+
 ## Departure Reminders
 
 ### Remind to Leave

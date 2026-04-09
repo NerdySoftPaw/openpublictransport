@@ -1,5 +1,20 @@
 # Changelog
 
+## v2026.04.12 - Walking Time, Services & Statistics
+
+### New Features
+
+- **Walking Time** - Configure 0-30 min walking time to your stop; departures that can't be reached in time are hidden automatically. Available in both initial setup and options flow.
+- **`check_delays` Service** - Query delayed departures with a configurable `delay_threshold` (default 5 min) and optional `line` filter. Fires an `openpublictransport_delay_alert` event with `entity_id`, `delayed_count`, `max_delay`, `lines`, and `departures`.
+- **`announce_departure` Service** - Returns a spoken-language departure string for use with any TTS integration. Accepts `entity_id` and optional `index` (default 0 = next departure).
+- **Statistics Sensor** - New `sensor.*_statistics` entity per stop. State is overall punctuality (%). Attributes include per-line stats: `total`, `on_time`, `punctuality`, `average_delay`. Delays <= 2 min count as on-time.
+- **VGN re-enabled** - The VGN (Nuremberg) provider is available again.
+
+!!! info "Total providers: 20"
+    With VGN re-enabled, the integration now supports 20 transit networks.
+
+---
+
 ## v2026.04.11 - Batch 1+2 Provider Expansion
 
 ### New Providers

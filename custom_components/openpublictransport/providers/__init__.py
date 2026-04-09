@@ -16,8 +16,10 @@ from ..const import (
     PROVIDER_NTA_IE,
     PROVIDER_NVBW,
     PROVIDER_NWL,
+    PROVIDER_OEBB,
     PROVIDER_RMV,
     PROVIDER_RVV,
+    PROVIDER_SBB,
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_VAGFR,
     PROVIDER_VGN,
@@ -38,8 +40,10 @@ from .mvv import MVVProvider
 from .nta import NTAProvider
 from .nvbw import NVBWProvider
 from .nwl import NWLProvider
+from .oebb import OeBBProvider
 from .rmv import RMVProvider
 from .rvv import RVVProvider
+from .sbb import SBBProvider
 from .trafiklab import TrafiklabProvider
 from .vagfr import VAGFRProvider
 from .vgn import VGNProvider
@@ -97,3 +101,5 @@ register_provider(PROVIDER_BSVG, BSVGProvider)
 register_provider(PROVIDER_NWL, NWLProvider)
 register_provider(PROVIDER_NVBW, NVBWProvider)
 register_provider(PROVIDER_BEG, BEGProvider)
+register_provider(PROVIDER_SBB, SBBProvider)
+register_provider(PROVIDER_OEBB, OeBBProvider)

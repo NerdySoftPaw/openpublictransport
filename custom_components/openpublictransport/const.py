@@ -43,6 +43,8 @@ PROVIDER_BSVG = "bsvg"
 PROVIDER_NWL = "nwl"
 PROVIDER_NVBW = "nvbw"
 PROVIDER_BEG = "beg"
+PROVIDER_SBB = "sbb"
+PROVIDER_OEBB = "oebb"
 PROVIDERS = [
     PROVIDER_VRR,
     PROVIDER_KVV,
@@ -64,6 +66,8 @@ PROVIDERS = [
     PROVIDER_NWL,
     PROVIDER_NVBW,
     PROVIDER_BEG,
+    PROVIDER_SBB,
+    PROVIDER_OEBB,
 ]
 
 # Transportation types mapping
@@ -132,6 +136,8 @@ PROVIDER_ICONS = {
     "rmv": "mdi:train",
     "trafiklab_se": "mdi:train",
     "nta_ie": "mdi:bus-multiple",
+    "sbb": "mdi:train",
+    "oebb": "mdi:train",
     "vrn": "mdi:train",
     "vvo": "mdi:tram",
     "ding": "mdi:bus",
@@ -158,6 +164,8 @@ PROVIDER_ENTITY_PICTURES = {
     "rmv": "https://www.rmv.de/favicon.ico",
     "trafiklab_se": "https://www.trafiklab.se/favicon.ico",
     "nta_ie": "https://www.transportforireland.ie/favicon.ico",
+    "sbb": "https://www.sbb.ch/favicon.ico",
+    "oebb": "https://www.oebb.at/favicon.ico",
     "vrn": "https://www.vrn.de/favicon.ico",
     "vvo": "https://www.vvo-online.de/favicon.ico",
     "ding": "https://www.ding.eu/favicon.ico",

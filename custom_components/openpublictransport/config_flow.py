@@ -83,6 +83,8 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             "rmv": "RMV — Frankfurt / Rhein-Main (API Key)",
             "trafiklab_se": "Trafiklab — Schweden (API Key)",
             "nta_ie": "NTA — Irland (API Key)",
+            "sbb": "SBB — Schweiz",
+            "oebb": "ÖBB — Österreich",
             "vrn": "VRN — Rhein-Neckar",
             "vvo": "VVO — Dresden",
             "ding": "DING — Ulm / Donau-Iller",

@@ -84,7 +84,7 @@ check_delays:
 
 announce_departure:
   name: Announce Departure
-  description: Generate a TTS-ready departure announcement text
+  description: Generate and optionally speak a station-style departure announcement
   fields:
     entity_id:
       name: Entity
@@ -103,3 +103,28 @@ announce_departure:
         number:
           min: 0
           max: 10
+    tts_service:
+      name: TTS Service
+      description: "TTS service to use for speaking (e.g. tts.google_translate_say, tts.cloud_say)"
+      required: false
+      example: "tts.google_translate_say"
+      selector:
+        text:
+    media_player:
+      name: Media Player
+      description: "Media player entity to speak on (e.g. media_player.living_room)"
+      required: false
+      example: "media_player.living_room"
+      selector:
+        entity:
+          domain: media_player
+    language:
+      name: Language
+      description: "Announcement language (de = German station style, en = English)"
+      required: false
+      default: "de"
+      selector:
+        select:
+          options:
+            - "de"
+            - "en"

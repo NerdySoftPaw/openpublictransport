@@ -33,6 +33,7 @@
 
 ### Improvements
 
+- **Smart Polling** - automatically reduces polling at night (1:00-4:30) and when no departures are available, saves ~30% API calls
 - **EFA Base Provider extracted** - new EFA-based providers need ~50 lines of code instead of ~200
 - **sensor.py legacy code cleanup** - reduced from 1371 to 530 lines, test coverage improved from 32% to 82%
 

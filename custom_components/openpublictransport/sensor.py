@@ -71,6 +71,8 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
         # Note: config_entry parameter was added in HA 2024.11+
         # We store it ourselves for compatibility with older versions
         self._config_entry = config_entry
+        self._base_scan_interval = scan_interval
+        self._empty_result_count = 0
 
         # Initialize provider instance
         self.provider_instance = get_provider(
@@ -140,6 +142,35 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
             return False
         return True
 
+    def _adjust_polling_interval(self, has_departures: bool) -> None:
+        """Adjust polling interval based on time of day and results.
+
+        - Night (1:00-4:30): poll every 10 minutes
+        - Empty results: gradually increase interval (up to 5x base)
+        - Normal: use configured base interval
+        """
+        now = dt_util.now()
+        hour = now.hour
+
+        # Night mode: 1:00 - 4:30 → very slow polling
+        if 1 <= hour < 5 or (hour == 0 and now.minute >= 30):
+            new_interval = max(self._base_scan_interval * 10, 600)
+            self._empty_result_count = 0
+        elif not has_departures:
+            # No departures: gradually increase interval
+            self._empty_result_count += 1
+            multiplier = min(self._empty_result_count, 5)
+            new_interval = self._base_scan_interval * multiplier
+        else:
+            # Normal: back to base interval
+            self._empty_result_count = 0
+            new_interval = self._base_scan_interval
+
+        new_td = timedelta(seconds=new_interval)
+        if self.update_interval != new_td:
+            self.update_interval = new_td
+            _LOGGER.debug("Adjusted polling interval to %ss for %s", new_interval, self.provider)
+
     async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch data from API."""
         if not self._check_rate_limit():
@@ -154,6 +185,9 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
                 self._api_calls_today += 1
                 # Clear API error repair issue on successful fetch
                 ir.async_delete_issue(self.hass, DOMAIN, f"api_error_{self.provider}")
+                # Adjust polling interval based on results
+                has_departures = bool(data.get("stopEvents"))
+                self._adjust_polling_interval(has_departures)
                 return data
             else:
                 # Create repair issue for invalid API response

@@ -31,6 +31,7 @@ A Home Assistant integration for 10 public transport networks: VRR (Rhein-Ruhr),
 - **Device Support**: Entities are grouped together with suggested areas
 - **Repair Issues Integration**: Automatic notifications for API errors or rate limits
 - **Rate Limiting**: Intelligent API rate limiting to prevent overload (60,000 calls/day)
+- **Smart Polling**: Automatically reduces polling at night and when no departures available
 - **Error Handling**: Robust error handling with exponential backoff strategy
 - **Timezone Support**: Proper handling of provider-specific timezones (Europe/Berlin for German providers, Europe/Stockholm for Trafiklab, Europe/Dublin for NTA)
 - **Trip Planner**: Plan routes from A to B with connections, transfers, and delay tracking

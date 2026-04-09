@@ -161,16 +161,32 @@ class EFABaseProvider(BaseProvider):
         )
 
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
-        """Search for stops using EFA Stopfinder API."""
-        encoded_search = quote(search_term, safe="")
+        """Search for stops using EFA Stopfinder API.
 
-        params = (
-            f"outputFormat=RapidJSON&"
-            f"locationServerActive=1&"
-            f"type_sf=stop&"
-            f"name_sf={encoded_search}&"
-            f"SpEncId=0"
-        )
+        Supports "stop, city" format — if a comma is present, the part before
+        is used as stop name and the part after as place filter for better results.
+        """
+        # Split "Holthausen, Düsseldorf" into name + place
+        if "," in search_term:
+            parts = search_term.split(",", 1)
+            stop_name = parts[0].strip()
+            place_name = parts[1].strip()
+            params = (
+                f"outputFormat=RapidJSON&"
+                f"locationServerActive=1&"
+                f"type_sf=any&"
+                f"name_sf={quote(stop_name, safe='')}&"
+                f"place_sf={quote(place_name, safe='')}&"
+                f"SpEncId=0"
+            )
+        else:
+            params = (
+                f"outputFormat=RapidJSON&"
+                f"locationServerActive=1&"
+                f"type_sf=stop&"
+                f"name_sf={quote(search_term, safe='')}&"
+                f"SpEncId=0"
+            )
 
         url = f"{self.sf_base_url}?{params}"
         session = async_get_clientsession(self.hass)

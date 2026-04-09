@@ -4,15 +4,15 @@ The Public Transport Integration supports multiple transit providers across Euro
 
 ## Provider Comparison
 
-| Feature | VRR | KVV | HVV | MVV | VVS | VGN | VAG Freiburg | BVG | RMV | Trafiklab | NTA |
-|---------|-----|-----|-----|-----|-----|-----|--------------|-----|-----|-----------|-----|
-| **Region** | NRW, Germany | Karlsruhe, Germany | Hamburg, Germany | Munich, Germany | Stuttgart, Germany | Nuremberg, Germany | Freiburg, Germany | Berlin, Germany | Frankfurt, Germany | Sweden | Ireland |
-| **API Type** | EFA | EFA | EFA | EFA | EFA | EFA | EFA | FPTF REST | HAFAS REST | REST | GTFS-RT |
-| **API Key** | No | No | No | No | No | No | No | No | Yes (free) | Yes (free) | Yes (free) |
-| **Real-time Data** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
-| **Delay Information** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
-| **Platform Info** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Limited |
-| **Stop Search** | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Stop ID |
+| Feature | VRR | KVV | HVV | MVV | VVS | VGN | VAG Freiburg | BVG | RMV | VRN | VVO | DING | AVV | RVV | BSVG | NWL | NVBW | BEG | Trafiklab | NTA |
+|---------|-----|-----|-----|-----|-----|-----|--------------|-----|-----|-----|-----|------|-----|-----|------|-----|------|-----|-----------|-----|
+| **Region** | NRW | Karlsruhe | Hamburg | Munich | Stuttgart | Nuremberg | Freiburg | Berlin | Frankfurt | Rhein-Neckar | Dresden | Ulm | Augsburg | Regensburg | Braunschweig | Westfalen-Lippe | Baden-Württemberg | Bayern | Sweden | Ireland |
+| **API Type** | EFA | EFA | EFA | EFA | EFA | EFA | EFA | FPTF REST | HAFAS REST | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | REST | GTFS-RT |
+| **API Key** | No | No | No | No | No | No | No | No | Yes (free) | No | No | No | No | No | No | No | No | No | Yes (free) | Yes (free) |
+| **Real-time Data** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
+| **Delay Information** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
+| **Platform Info** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Limited |
+| **Stop Search** | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Stop ID |
 
 ## Timezone Handling
 
@@ -29,6 +29,15 @@ Each provider uses its local timezone for departure times:
 | VAG Freiburg | Europe/Berlin |
 | BVG | Europe/Berlin |
 | RMV | Europe/Berlin |
+| VRN | Europe/Berlin |
+| VVO | Europe/Berlin |
+| DING | Europe/Berlin |
+| AVV | Europe/Berlin |
+| RVV | Europe/Berlin |
+| BSVG | Europe/Berlin |
+| NWL | Europe/Berlin |
+| NVBW | Europe/Berlin |
+| BEG | Europe/Berlin |
 | Trafiklab | Europe/Stockholm |
 | NTA | Europe/Dublin |
 

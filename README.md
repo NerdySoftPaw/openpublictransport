@@ -18,7 +18,7 @@
 > 
 > 📖 **Full Documentation**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
-A Home Assistant integration for 10 public transport networks: VRR (Rhein-Ruhr), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (München), VVS (Stuttgart), VAG (Freiburg), RMV (Frankfurt), Trafiklab (Sweden), and NTA (Ireland). This integration provides real-time departure information for public transport across Germany, Sweden, and Ireland.
+A Home Assistant integration for 19 public transport networks: VRR (Rhein-Ruhr), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (München), VVS (Stuttgart), VAG (Freiburg), RMV (Frankfurt), VRN (Rhein-Neckar), VVO (Dresden), DING (Ulm), AVV (Augsburg), RVV (Regensburg), BSVG (Braunschweig), NWL (Westfalen-Lippe), NVBW (Baden-Württemberg), BEG (Bayern), Trafiklab (Sweden), and NTA (Ireland). This integration provides real-time departure information for public transport across Germany, Sweden, and Ireland.
 
 ## Features
 
@@ -77,8 +77,8 @@ The integration uses an **intuitive multi-step setup wizard** with autocomplete 
 ### Setup Wizard
 
 1. **Select Provider**
-   - Choose from 11 providers in a descriptive dropdown (e.g. "VRR — Rhein-Ruhr (NRW)" instead of just "vrr"):
-     - **German EFA providers**: VRR (NRW), KVV (Karlsruhe), MVV (München), VVS (Stuttgart), VAG (Freiburg)
+   - Choose from 20 providers in a descriptive dropdown (e.g. "VRR — Rhein-Ruhr (NRW)" instead of just "vrr"):
+     - **German EFA providers**: VRR (NRW), KVV (Karlsruhe), MVV (München), VVS (Stuttgart), VAG (Freiburg), VRN (Rhein-Neckar), VVO (Dresden), DING (Ulm), AVV (Augsburg), RVV (Regensburg), BSVG (Braunschweig), NWL (Westfalen-Lippe), NVBW (Baden-Württemberg), BEG (Bayern)
      - **German REST providers**: HVV (Hamburg), BVG (Berlin)
      - **German HAFAS providers**: RMV (Frankfurt) - API key required
      - **International**: Trafiklab (Sweden), NTA (Ireland) - API keys required
@@ -117,7 +117,7 @@ For the Trafiklab provider (Sweden), you need a free API key:
 4. Copy the API key
 5. Enter it in the integration's Config Flow
 
-**Note:** API keys are required for Trafiklab, NTA, and RMV. No API key is required for VRR, KVV, HVV, BVG, MVV, VVS, or VAG.
+**Note:** API keys are required for Trafiklab, NTA, and RMV. No API key is required for VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, BSVG, NWL, NVBW, or BEG.
 
 ### NTA Ireland API Key
 
@@ -627,6 +627,22 @@ NTA (National Transport Authority, Ireland) is one of the supported providers.
 ```
 
 ## Changelog
+
+### Version 2026.04.11 - Batch 1+2 Provider Expansion
+#### New Providers
+- **VRN (Rhein-Neckar)**: Mannheim, Heidelberg area via EFA
+- **VVO (Oberelbe)**: Dresden area via EFA
+- **DING (Donau-Iller)**: Ulm area via EFA
+- **AVV (Augsburg)**: Augsburg area via EFA (provider ID: `avv_augsburg`)
+- **RVV (Regensburg)**: Regensburg area via EFA
+- **BSVG (Braunschweig)**: Braunschweig area via EFA
+- **NWL (Westfalen-Lippe)**: Dortmund, Münster, Bielefeld area via EFA
+- **NVBW (Baden-Württemberg)**: Statewide Baden-Württemberg via EFA
+- **BEG (Bayern)**: Statewide Bavaria via EFA
+
+The integration now supports **19 providers** across Germany, Sweden, and Ireland.
+
+---
 
 ### Version 2026.04.09 - Provider Expansion
 #### New Providers

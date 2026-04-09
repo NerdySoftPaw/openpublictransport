@@ -1,5 +1,24 @@
 # Changelog
 
+## v2026.04.11 - Batch 1+2 Provider Expansion
+
+### New Providers
+
+- **VRN** - Rhein-Neckar / Mannheim, Heidelberg (EFA)
+- **VVO** - Oberelbe / Dresden (EFA)
+- **DING** - Donau-Iller / Ulm (EFA)
+- **AVV** - Augsburg (EFA, provider ID: `avv_augsburg`)
+- **RVV** - Regensburg (EFA)
+- **BSVG** - Braunschweig (EFA)
+- **NWL** - Westfalen-Lippe / Dortmund, Münster, Bielefeld (EFA)
+- **NVBW** - Baden-Württemberg statewide (EFA)
+- **BEG** - Bayern statewide (EFA)
+
+!!! info "Total providers: 19"
+    The integration now supports 19 transit networks across Germany, Sweden, and Ireland. All new providers use the EFA API and require no API key.
+
+---
+
 ## v2026.04.10 - Custom Lovelace Card
 
 ### New
@@ -26,8 +45,8 @@
 - **VAG** - Freiburg im Breisgau (EFA)
 - **RMV** - Frankfurt/Rhine-Main area (HAFAS REST API)
 
-!!! info "Total providers: 11"
-    The integration now supports VRR, KVV, HVV, MVV, VVS, VGN, VAG Freiburg, BVG, RMV, Trafiklab (Sweden), and NTA (Ireland).
+!!! info "Providers at v2026.04.09: 11"
+    VRR, KVV, HVV, MVV, VVS, VGN, VAG Freiburg, BVG, RMV, Trafiklab (Sweden), and NTA (Ireland).
 
 ### New Features
 

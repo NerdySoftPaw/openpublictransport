@@ -99,6 +99,26 @@ def parse_departure_generic(
         # Determine if real-time data is available using provider-specific function
         is_realtime = get_realtime_fn(stop, estimated_time_str, planned_time_str)
 
+        # Extract notices/disruption messages from infos and hints
+        notices = []
+        for info in stop.get("infos", []):
+            if isinstance(info, dict):
+                text = info.get("subtitle") or info.get("title") or info.get("content", "")
+                if text and isinstance(text, str):
+                    notices.append(text.strip())
+        for hint in stop.get("hints", []):
+            if isinstance(hint, dict):
+                text = hint.get("content") or hint.get("text", "")
+                if text and isinstance(text, str):
+                    notices.append(text.strip())
+
+        # Detect platform changes (planned vs actual)
+        planned_platform = stop.get("plannedPlatformName") or stop.get("platform", {}).get("plannedName")
+        actual_platform = platform
+        platform_changed = bool(
+            planned_platform and actual_platform and str(planned_platform).strip() != str(actual_platform).strip()
+        )
+
         return UnifiedDeparture(
             line=line_number,
             destination=destination,
@@ -112,6 +132,9 @@ def parse_departure_generic(
             departure_time_obj=estimated_local,
             description=description if description else None,
             agency=agency if agency else None,
+            notices=notices if notices else None,
+            planned_platform=str(planned_platform).strip() if planned_platform and platform_changed else None,
+            platform_changed=platform_changed,
         )
 
     except Exception as e:

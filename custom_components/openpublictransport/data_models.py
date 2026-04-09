@@ -43,6 +43,9 @@ class UnifiedDeparture:
     departure_time_obj: datetime  # For internal sorting
     description: Optional[str] = None  # Optional line description
     agency: Optional[str] = None  # Optional agency/operator name (for GTFS)
+    notices: Optional[list[str]] = None  # Disruption/info messages
+    planned_platform: Optional[str] = None  # Original platform before changes
+    platform_changed: bool = False  # True if platform differs from planned
 
     def to_dict(self) -> dict:
         """Convert to dictionary for Home Assistant attributes."""
@@ -61,6 +64,11 @@ class UnifiedDeparture:
             result["description"] = self.description
         if self.agency:
             result["agency"] = self.agency
+        if self.notices:
+            result["notices"] = self.notices
+        if self.platform_changed:
+            result["planned_platform"] = self.planned_platform
+            result["platform_changed"] = True
         return result
 
 

@@ -6,8 +6,6 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 from zoneinfo import ZoneInfo
 
-INTEGRATION_VERSION = json.loads((Path(__file__).parent / "manifest.json").read_text()).get("version", "unknown")
-
 import aiohttp
 from aiohttp import ClientConnectorError
 from homeassistant.components.sensor import SensorEntity
@@ -58,6 +56,7 @@ from .parsers import parse_departure_generic
 from .providers import get_provider
 
 _LOGGER = logging.getLogger(__name__)
+INTEGRATION_VERSION = json.loads((Path(__file__).parent / "manifest.json").read_text()).get("version", "unknown")
 
 
 class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):

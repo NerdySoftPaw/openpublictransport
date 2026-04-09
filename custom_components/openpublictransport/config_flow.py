@@ -19,6 +19,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const import (
     CONF_DELAY_THRESHOLD,
     CONF_DEPARTURES,
+    CONF_LINE_FILTER,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
     CONF_PROVIDER,
@@ -264,6 +265,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 vol.Optional(CONF_DELAY_THRESHOLD, default=DEFAULT_DELAY_THRESHOLD): vol.All(
                     int, vol.Range(min=1, max=30)
                 ),
+                vol.Optional(CONF_LINE_FILTER, default=""): str,
             }
         )
 
@@ -1024,6 +1026,10 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
             CONF_DELAY_THRESHOLD,
             self.config_entry.data.get(CONF_DELAY_THRESHOLD, DEFAULT_DELAY_THRESHOLD),
         )
+        current_line_filter = self.config_entry.options.get(
+            CONF_LINE_FILTER,
+            self.config_entry.data.get(CONF_LINE_FILTER, ""),
+        )
 
         schema = vol.Schema(
             {
@@ -1038,6 +1044,7 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(CONF_DELAY_THRESHOLD, default=current_delay_threshold): vol.All(
                     int, vol.Range(min=1, max=30)
                 ),
+                vol.Optional(CONF_LINE_FILTER, default=current_line_filter): str,
             }
         )
 

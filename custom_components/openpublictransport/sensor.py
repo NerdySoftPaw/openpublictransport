@@ -26,6 +26,7 @@ from .const import (
     API_BASE_URL_VRR,
     API_RATE_LIMIT_PER_DAY,
     CONF_DEPARTURES,
+    CONF_LINE_FILTER,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
     CONF_PROVIDER,
@@ -811,6 +812,14 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
         self._state: str | None = None
         self._attributes: dict[str, Any] = {}
 
+        # Get line filter from options/data
+        line_filter_str = config_entry.options.get(
+            CONF_LINE_FILTER, config_entry.data.get(CONF_LINE_FILTER, "")
+        )
+        self._line_filter: set[str] = {
+            line.strip().lower() for line in line_filter_str.split(",") if line.strip()
+        } if line_filter_str else set()
+
         # Get option for provider logo display
         self._use_provider_logo = config_entry.options.get(
             CONF_USE_PROVIDER_LOGO, config_entry.data.get(CONF_USE_PROVIDER_LOGO, False)
@@ -1018,9 +1027,10 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
         if parse_fn is not None:
             for stop in stop_events:
                 dep = parse_fn(stop, tz, now)
-                # Filter by configured transportation types (set lookup is faster)
+                # Filter by configured transportation types and line filter
                 if dep and dep.transportation_type in transport_types_set:
-                    departures.append(dep)
+                    if not self._line_filter or dep.line.lower() in self._line_filter:
+                        departures.append(dep)
 
         # Sort by departure time
         departures.sort(key=lambda x: x.departure_time_obj)

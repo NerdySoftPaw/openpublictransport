@@ -61,14 +61,16 @@
           "transportation_types": "Verkehrsmittel",
           "scan_interval": "Update-Intervall (Sekunden)",
           "use_provider_logo": "Anbieter-Logo anzeigen",
-          "delay_threshold": "Verspätungs-Schwellwert (Minuten)"
+          "delay_threshold": "Verspätungs-Schwellwert (Minuten)",
+          "line_filter": "Linien-Filter"
         },
         "data_description": {
           "departures": "Wie viele Abfahrten sollen angezeigt werden? (1-20)",
           "transportation_types": "Welche Verkehrsmittel sollen angezeigt werden?",
           "scan_interval": "Wie oft sollen die Daten aktualisiert werden? (10-3600 Sekunden)",
           "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
-          "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)"
+          "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)",
+          "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien"
         }
       }
     },
@@ -90,11 +92,13 @@
           "transportation_types": "Verkehrsmittel",
           "scan_interval": "Update-Intervall (Sekunden)",
           "use_provider_logo": "Anbieter-Logo anzeigen",
-          "delay_threshold": "Verspätungs-Schwellwert (Minuten)"
+          "delay_threshold": "Verspätungs-Schwellwert (Minuten)",
+          "line_filter": "Linien-Filter"
         },
         "data_description": {
           "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
-          "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)"
+          "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)",
+          "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien"
         }
       }
     }

@@ -15,6 +15,7 @@ CONF_NTA_API_KEY = "nta_api_key"  # For NTA Ireland API (Primary Key)
 CONF_NTA_API_KEY_SECONDARY = "nta_api_key_secondary"  # For NTA Ireland API (Secondary Key, optional)
 CONF_USE_PROVIDER_LOGO = "use_provider_logo"  # Show provider logo instead of transport icon
 CONF_DELAY_THRESHOLD = "delay_threshold"  # Minutes threshold for delay binary sensor
+CONF_LINE_FILTER = "line_filter"  # Comma-separated line numbers to show
 DEFAULT_DELAY_THRESHOLD = 5
 
 # Provider

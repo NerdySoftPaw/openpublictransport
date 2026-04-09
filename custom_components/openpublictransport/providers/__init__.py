@@ -11,7 +11,10 @@ from ..const import (
     PROVIDER_MVV,
     PROVIDER_NTA_IE,
     PROVIDER_TRAFIKLAB_SE,
+    PROVIDER_VAGFR,
+    PROVIDER_VGN,
     PROVIDER_VRR,
+    PROVIDER_VVS,
 )
 from .base import BaseProvider
 from .bvg import BVGProvider
@@ -20,7 +23,10 @@ from .kvv import KVVProvider
 from .mvv import MVVProvider
 from .nta import NTAProvider
 from .trafiklab import TrafiklabProvider
+from .vagfr import VAGFRProvider
+from .vgn import VGNProvider
 from .vrr import VRRProvider
+from .vvs import VVSProvider
 
 _PROVIDER_REGISTRY: Dict[str, Type[BaseProvider]] = {}
 
@@ -56,5 +62,8 @@ register_provider(PROVIDER_KVV, KVVProvider)
 register_provider(PROVIDER_HVV, HVVProvider)
 register_provider(PROVIDER_BVG, BVGProvider)
 register_provider(PROVIDER_MVV, MVVProvider)
+register_provider(PROVIDER_VVS, VVSProvider)
+register_provider(PROVIDER_VGN, VGNProvider)
+register_provider(PROVIDER_VAGFR, VAGFRProvider)
 register_provider(PROVIDER_TRAFIKLAB_SE, TrafiklabProvider)
 register_provider(PROVIDER_NTA_IE, NTAProvider)

@@ -24,6 +24,9 @@ PROVIDER_KVV = "kvv"
 PROVIDER_HVV = "hvv"
 PROVIDER_BVG = "bvg"
 PROVIDER_MVV = "mvv"
+PROVIDER_VVS = "vvs"
+PROVIDER_VGN = "vgn"
+PROVIDER_VAGFR = "vagfr"
 PROVIDER_TRAFIKLAB_SE = "trafiklab_se"
 PROVIDER_NTA_IE = "nta_ie"
 PROVIDERS = [
@@ -32,6 +35,9 @@ PROVIDERS = [
     PROVIDER_HVV,
     PROVIDER_BVG,
     PROVIDER_MVV,
+    PROVIDER_VVS,
+    PROVIDER_VGN,
+    PROVIDER_VAGFR,
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_NTA_IE,
 ]
@@ -96,6 +102,9 @@ PROVIDER_ICONS = {
     "hvv": "mdi:ferry",
     "bvg": "mdi:subway-variant",
     "mvv": "mdi:tram",
+    "vvs": "mdi:train",
+    "vgn": "mdi:subway-variant",
+    "vagfr": "mdi:tram",
     "trafiklab_se": "mdi:train",
     "nta_ie": "mdi:bus-multiple",
 }
@@ -109,6 +118,9 @@ PROVIDER_ENTITY_PICTURES = {
     "hvv": "https://www.hvv.de/favicon.ico",
     "bvg": "https://www.bvg.de/favicon.ico",
     "mvv": "https://www.mvv-muenchen.de/favicon.ico",
+    "vvs": "https://www.vvs.de/favicon.ico",
+    "vgn": "https://www.vgn.de/favicon.ico",
+    "vagfr": "https://www.vagfr.de/favicon.ico",
     "trafiklab_se": "https://www.trafiklab.se/favicon.ico",
     "nta_ie": "https://www.transportforireland.ie/favicon.ico",
 }

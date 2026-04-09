@@ -1,12 +1,18 @@
 {
-    "domain": "openpublictransport",
-    "name": "Public Transport Departures",
-    "codeowners": ["@NerdySoftPaw"],
-    "config_flow": true,
-    "dependencies": [],
-    "documentation": "https://docs.openpublictransport.net/",
-    "iot_class": "cloud_polling",
-    "issue_tracker": "https://github.com/NerdySoftPaw/openpublictransport/issues",
-    "requirements": ["pytz", "aiofiles", "gtfs-realtime-bindings>=1.0.0"],
-    "version": "0.0.0"
+  "domain": "openpublictransport",
+  "name": "Public Transport Departures",
+  "codeowners": [
+    "@NerdySoftPaw"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://docs.openpublictransport.net/",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/NerdySoftPaw/openpublictransport/issues",
+  "requirements": [
+    "pytz",
+    "aiofiles",
+    "gtfs-realtime-bindings>=1.0.0"
+  ],
+  "version": "2026.04.09-beta.1"
 }

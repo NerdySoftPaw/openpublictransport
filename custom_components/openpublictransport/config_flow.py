@@ -152,8 +152,12 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         )
 
     async def async_step_stop_search(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
-        """Handle stop/station search step."""
-        # Validate that Trafiklab or NTA has API key configured
+        """Handle combined stop search and selection step.
+
+        Shows a search field. After searching, shows the results as a dropdown
+        together with the search field so the user can refine or select.
+        """
+        # Validate API key for providers that need it
         if self._provider in (PROVIDER_TRAFIKLAB_SE, PROVIDER_RMV) and not self._api_key:
             return await self.async_step_api_key()
         if self._provider == PROVIDER_NTA_IE and not self._api_key:
@@ -170,18 +174,23 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         errors = {}
 
         if user_input is not None:
-            search_term = user_input.get("stop_search", "").strip()
+            # User selected a stop from dropdown
+            selected_id = user_input.get("stop")
+            if selected_id:
+                for stop in self.hass.data.get(f"{DOMAIN}_temp_stops", []):
+                    if isinstance(stop, dict) and stop.get("id") == selected_id:
+                        self._selected_stop = stop
+                        return await self.async_step_settings()
 
+            # User entered a search term
+            search_term = user_input.get("stop_search", "").strip()
             if not search_term:
                 errors["stop_search"] = "empty_search"
             else:
-                # Search for stops directly
                 stops = await self._search_stops(search_term)
 
-                # Validate that stops is a list
                 if not isinstance(stops, list):
-                    _LOGGER.error("Search returned invalid type %s, expected list. Data: %s", type(stops), stops)
-                    # Clear any invalid cached data
+                    _LOGGER.error("Search returned invalid type: %s", type(stops))
                     cache_key = self._get_cache_key(self._provider, search_term, "stop")
                     self._search_cache.pop(cache_key, None)
                     self.hass.data.pop(f"{DOMAIN}_temp_stops", None)
@@ -189,18 +198,13 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 elif not stops:
                     errors["stop_search"] = "no_results"
                 elif len(stops) == 1:
-                    # Only one result, select it automatically
                     self._selected_stop = stops[0]
                     return await self.async_step_settings()
                 else:
-                    # Multiple results, let user choose
-                    # Store stops in temp storage before calling stop_select
-                    if isinstance(stops, list):
-                        self.hass.data[f"{DOMAIN}_temp_stops"] = stops
-                        return await self.async_step_stop_select()
-                    else:
-                        _LOGGER.error("Stops is not a list before passing to stop_select: %s", type(stops))
-                        errors["stop_search"] = "api_error"
+                    # Store results and show selection step
+                    self.hass.data[f"{DOMAIN}_temp_stops"] = stops
+                    self._last_search_term = search_term
+                    return await self.async_step_stop_select()
 
         schema = vol.Schema(
             {
@@ -218,40 +222,40 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         )
 
     async def async_step_stop_select(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
-        """Let user select from multiple stop results."""
+        """Let user select from search results or refine the search."""
         if user_input is not None:
-            # Find selected stop
+            # User selected a stop
             selected_id = user_input.get("stop")
+            if selected_id == "__search_again__":
+                # User wants to search again
+                self.hass.data.pop(f"{DOMAIN}_temp_stops", None)
+                return await self.async_step_stop_search()
+
             if selected_id:
                 for stop in self.hass.data.get(f"{DOMAIN}_temp_stops", []):
                     if isinstance(stop, dict) and stop.get("id") == selected_id:
                         self._selected_stop = stop
-                        break
+                        return await self.async_step_settings()
 
             return await self.async_step_settings()
 
         # Load stops from temporary storage
         stops = self.hass.data.get(f"{DOMAIN}_temp_stops", [])
 
-        # Validate stops is a list
-        if not isinstance(stops, list):
-            _LOGGER.error("Invalid stops data: expected list, got %s. Data: %s", type(stops), stops)
-            # Clear invalid data
+        if not isinstance(stops, list) or not stops:
             self.hass.data.pop(f"{DOMAIN}_temp_stops", None)
-            return await self.async_step_stop_search(user_input=None)
+            return await self.async_step_stop_search()
 
-        if not stops:
-            _LOGGER.warning("No stops found in temp storage")
-            return await self.async_step_stop_search(user_input=None)
-
-        # Create options dict for dropdown - filter out invalid entries
-        stop_options = {}
+        # Build dropdown: "Haltestellenname, Ort" format
+        stop_options = {"__search_again__": "🔍 Neue Suche / New search..."}
         for stop in stops:
             if isinstance(stop, dict) and "id" in stop and "name" in stop:
-                place_suffix = f" ({stop['place']})" if stop.get("place") else ""
-                stop_options[stop["id"]] = f"{stop['name']}{place_suffix}"
-            else:
-                _LOGGER.warning("Skipping invalid stop entry: %s", stop)
+                name = stop["name"]
+                place = stop.get("place", "")
+                if place and place not in name:
+                    stop_options[stop["id"]] = f"{name}, {place}"
+                else:
+                    stop_options[stop["id"]] = name
 
         schema = vol.Schema(
             {
@@ -259,10 +263,14 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             }
         )
 
+        search_term = getattr(self, "_last_search_term", "")
         return self.async_show_form(
             step_id="stop_select",
             data_schema=schema,
-            description_placeholders={"count": str(len(stops))},
+            description_placeholders={
+                "count": str(len(stops)),
+                "search_term": search_term,
+            },
         )
 
     async def async_step_settings(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:

@@ -11,30 +11,16 @@
           "provider": "VRR (NRW), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), MVV (München), VVS (Stuttgart), VGN (Nürnberg), VAG (Freiburg), RMV (Frankfurt), Trafiklab (Schweden) oder NTA (Irland)"
         }
       },
-      "location": {
-        "title": "Stadt/Ort suchen",
-        "description": "Suche nach deiner Stadt oder deinem Ort.\nBeispiel: Düsseldorf, Köln, Hamburg...",
-        "data": {
-          "location_search": "Stadt/Ort"
-        }
-      },
-      "location_select": {
-        "title": "Ort auswählen",
-        "description": "{count} Ergebnisse gefunden. Bitte wähle deinen Ort aus:",
-        "data": {
-          "location": "Ort"
-        }
-      },
-      "stop": {
+      "stop_search": {
         "title": "Haltestelle suchen",
-        "description": "Suche nach deiner Haltestelle in {location}.\nBeispiel: Hauptbahnhof, Marktplatz...",
+        "description": "Suche nach einer Haltestelle.\nBeispiel: Hauptbahnhof, Marktplatz, Alexanderplatz...",
         "data": {
-          "stop_search": "Haltestelle"
+          "stop_search": "Haltestelle / Ort"
         }
       },
       "stop_select": {
         "title": "Haltestelle auswählen",
-        "description": "{count} Haltestellen gefunden. Bitte wähle deine Haltestelle aus:",
+        "description": "{count} Ergebnisse für \"{search_term}\". Wähle deine Haltestelle oder starte eine neue Suche:",
         "data": {
           "stop": "Haltestelle"
         }

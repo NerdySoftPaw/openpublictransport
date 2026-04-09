@@ -6,7 +6,7 @@ The integration uses an intuitive multi-step setup wizard with autocomplete func
 
 ### Step 1: Select Provider
 
-Choose your transit provider:
+Choose your transit provider from the descriptive dropdown. Each entry shows the provider's full name and region (e.g. "VRR — Rhein-Ruhr (NRW)" instead of just "vrr"):
 
 - **VRR** - Verkehrsverbund Rhein-Ruhr (NRW, Germany)
 - **KVV** - Karlsruher Verkehrsverbund (Germany)
@@ -32,7 +32,8 @@ Enter your stop/station name. The integration will search and suggest matching s
 
 **Tips for better search results:**
 
-- Enter the city name along with the stop name (e.g., "Düsseldorf Hauptbahnhof")
+- Use the "Stop, City" format for precise results (e.g. "Holthausen, Düsseldorf") — the integration splits this into a stop name and city filter automatically
+- You can also enter the city name along with the stop name (e.g., "Düsseldorf Hauptbahnhof")
 - The search handles typos and umlaut variations automatically
 - For Swedish/Irish stops, use local naming conventions
 

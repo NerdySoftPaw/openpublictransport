@@ -14,7 +14,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    CONF_DELAY_THRESHOLD,
     CONF_TRANSPORTATION_TYPES,
+    DEFAULT_DELAY_THRESHOLD,
     DOMAIN,
     PROVIDER_HVV,
     PROVIDER_KVV,
@@ -221,8 +223,11 @@ class PublicTransportDelayBinarySensor(CoordinatorEntity, BinarySensorEntity):
         total_departures = delayed_count + on_time_count
         average_delay = total_delay / delayed_count if delayed_count > 0 else 0
 
-        # Set binary sensor state (on if any delays > 5 minutes)
-        self._attr_is_on = max_delay > 5
+        # Set binary sensor state based on configurable threshold
+        threshold = self._config_entry.options.get(
+            CONF_DELAY_THRESHOLD, self._config_entry.data.get(CONF_DELAY_THRESHOLD, DEFAULT_DELAY_THRESHOLD)
+        )
+        self._attr_is_on = max_delay > threshold
 
         self._attributes = {
             "delayed_departures": delayed_count,
@@ -230,6 +235,6 @@ class PublicTransportDelayBinarySensor(CoordinatorEntity, BinarySensorEntity):
             "average_delay": round(average_delay, 1),
             "max_delay": max_delay,
             "total_departures": total_departures,
-            "delays_list": delays[:10] if delays else [],  # First 10 delays
-            "delay_threshold": 5,  # Minutes threshold for triggering
+            "delays_list": delays[:10] if delays else [],
+            "delay_threshold": threshold,
         }

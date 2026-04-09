@@ -60,13 +60,15 @@
           "departures": "Number of departures",
           "transportation_types": "Transport types",
           "scan_interval": "Update interval (seconds)",
-          "use_provider_logo": "Show provider logo"
+          "use_provider_logo": "Show provider logo",
+          "delay_threshold": "Delay threshold (minutes)"
         },
         "data_description": {
           "departures": "How many departures should be displayed? (1-20)",
           "transportation_types": "Which transport types should be displayed?",
           "scan_interval": "How often should data be updated? (10-3600 seconds)",
-          "use_provider_logo": "Show the provider logo instead of the transport type icon"
+          "use_provider_logo": "Show the provider logo instead of the transport type icon",
+          "delay_threshold": "Minimum delay in minutes to trigger the delay sensor (1-30)"
         }
       }
     },
@@ -87,10 +89,12 @@
           "departures": "Number of departures",
           "transportation_types": "Transport types",
           "scan_interval": "Update interval (seconds)",
-          "use_provider_logo": "Show provider logo"
+          "use_provider_logo": "Show provider logo",
+          "delay_threshold": "Delay threshold (minutes)"
         },
         "data_description": {
-          "use_provider_logo": "Show the provider logo instead of the transport type icon"
+          "use_provider_logo": "Show the provider logo instead of the transport type icon",
+          "delay_threshold": "Minimum delay in minutes to trigger the delay sensor (1-30)"
         }
       }
     }

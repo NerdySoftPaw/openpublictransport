@@ -60,13 +60,15 @@
           "departures": "Anzahl Abfahrten",
           "transportation_types": "Verkehrsmittel",
           "scan_interval": "Update-Intervall (Sekunden)",
-          "use_provider_logo": "Anbieter-Logo anzeigen"
+          "use_provider_logo": "Anbieter-Logo anzeigen",
+          "delay_threshold": "Verspätungs-Schwellwert (Minuten)"
         },
         "data_description": {
           "departures": "Wie viele Abfahrten sollen angezeigt werden? (1-20)",
           "transportation_types": "Welche Verkehrsmittel sollen angezeigt werden?",
           "scan_interval": "Wie oft sollen die Daten aktualisiert werden? (10-3600 Sekunden)",
-          "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons"
+          "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
+          "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)"
         }
       }
     },
@@ -87,10 +89,12 @@
           "departures": "Anzahl Abfahrten",
           "transportation_types": "Verkehrsmittel",
           "scan_interval": "Update-Intervall (Sekunden)",
-          "use_provider_logo": "Anbieter-Logo anzeigen"
+          "use_provider_logo": "Anbieter-Logo anzeigen",
+          "delay_threshold": "Verspätungs-Schwellwert (Minuten)"
         },
         "data_description": {
-          "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons"
+          "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
+          "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)"
         }
       }
     }

@@ -17,6 +17,7 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
+    CONF_DELAY_THRESHOLD,
     CONF_DEPARTURES,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
@@ -26,6 +27,7 @@ from .const import (
     CONF_TRAFIKLAB_API_KEY,
     CONF_TRANSPORTATION_TYPES,
     CONF_USE_PROVIDER_LOGO,
+    DEFAULT_DELAY_THRESHOLD,
     DEFAULT_DEPARTURES,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -259,6 +261,9 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     int, vol.Range(min=10, max=3600)
                 ),
                 vol.Optional(CONF_USE_PROVIDER_LOGO, default=False): bool,
+                vol.Optional(CONF_DELAY_THRESHOLD, default=DEFAULT_DELAY_THRESHOLD): vol.All(
+                    int, vol.Range(min=1, max=30)
+                ),
             }
         )
 
@@ -973,10 +978,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
     @callback
     def async_get_options_flow(config_entry):
         """Get the options flow for this handler."""
-        return VRROptionsFlowHandler(config_entry)
+        return OpenPublicTransportOptionsFlowHandler(config_entry)
 
 
-class VRROptionsFlowHandler(config_entries.OptionsFlow):
+class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle VRR options."""
 
     def __init__(self, config_entry=None):
@@ -1015,6 +1020,10 @@ class VRROptionsFlowHandler(config_entries.OptionsFlow):
             CONF_USE_PROVIDER_LOGO,
             self.config_entry.data.get(CONF_USE_PROVIDER_LOGO, False),
         )
+        current_delay_threshold = self.config_entry.options.get(
+            CONF_DELAY_THRESHOLD,
+            self.config_entry.data.get(CONF_DELAY_THRESHOLD, DEFAULT_DELAY_THRESHOLD),
+        )
 
         schema = vol.Schema(
             {
@@ -1026,6 +1035,9 @@ class VRROptionsFlowHandler(config_entries.OptionsFlow):
                     TRANSPORTATION_TYPES
                 ),
                 vol.Optional(CONF_USE_PROVIDER_LOGO, default=current_use_logo): bool,
+                vol.Optional(CONF_DELAY_THRESHOLD, default=current_delay_threshold): vol.All(
+                    int, vol.Range(min=1, max=30)
+                ),
             }
         )
 

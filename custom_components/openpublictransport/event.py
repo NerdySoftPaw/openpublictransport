@@ -7,7 +7,7 @@ automations like notifications when a line is disrupted.
 import logging
 from typing import Any
 
-from homeassistant.components.event import EventDeviceClass, EventEntity
+from homeassistant.components.event import EventEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
@@ -39,7 +39,6 @@ async def async_setup_entry(
 class DisruptionEventEntity(CoordinatorEntity, EventEntity):
     """Event entity that fires when new disruption notices appear."""
 
-    _attr_device_class = EventDeviceClass.BUTTON
     _attr_event_types = ["disruption", "platform_change", "info"]
 
     def __init__(

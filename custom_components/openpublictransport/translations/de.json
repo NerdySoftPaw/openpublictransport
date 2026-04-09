@@ -8,7 +8,7 @@
           "provider": "Anbieter"
         },
         "data_description": {
-          "provider": "VRR (NRW), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), DB (Deutschland), Trafiklab (Schweden) oder NTA (Irland)"
+          "provider": "VRR (NRW), KVV (Karlsruhe), HVV (Hamburg), BVG (Berlin), Trafiklab (Schweden) oder NTA (Irland)"
         }
       },
       "location": {

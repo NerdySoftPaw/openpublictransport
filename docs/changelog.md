@@ -1,5 +1,36 @@
 # Changelog
 
+## v2026.4.16 - Deutsche Bahn, TRIAS Protocol, New Logo & Website
+
+### New Provider
+
+- **DB (Deutsche Bahn)** - All of DB's long-distance and regional network (ICE, IC, RE, RB, S-Bahn) via community REST API. No API key required. Note: this API is community-maintained and may experience occasional downtime.
+
+### New Architecture
+
+- **FPTF Base Provider** (`fptf_base.py`) - Shared base class for transport.rest APIs. BVG refactored from 194 to 33 lines. Any future FPTF provider only needs API_BASE + PRODUCT_MAPPING.
+- **TRIAS Base Provider** (`trias_base.py`) - Full implementation of the VDV 431-2 TRIAS XML protocol for stop search and departure boards. Ready for agencies offering TRIAS endpoints (VBN, NVBW-TRIAS, SBB-TRIAS, etc.).
+
+### Website & Branding
+
+- New logo: train + departure board + transit map design
+- Landing page live at [openpublictransport.net](https://openpublictransport.net)
+- 18 real screenshots in documentation (config flow + dashboard layouts)
+- Documentation restyled with gold brand colors
+- Vercel deploy hook: website auto-rebuilds on new release
+
+### Documentation
+
+- README completely rewritten (940 → 140 lines)
+- Migration guide: clear separation of both migrations (VRRAPI→hacs-publictransport vs hacs-publictransport→openpublictransport)
+- All provider lists updated to 24 providers
+- Sensors page updated to 7 entity types
+
+!!! info "Total providers: 24"
+    DB Deutsche Bahn joins as the 24th provider. TRIAS base class ready for more.
+
+---
+
 ## v2026.04.12 - Transitous, SBB, ÖBB, Multi-Stop & More
 
 ### New Providers

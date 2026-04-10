@@ -938,4 +938,4 @@ for dep in departures:
 [maintenance-shield]: https://img.shields.io/badge/maintainer-NerdySoftPaw-blue.svg?style=for-the-badge
 [hacsbadge]: https://img.shields.io/badge/HACS-Default-blue.svg?style=for-the-badge
 [hacs]: https://github.com/hacs/integration
-[logo]: https://brands.home-assistant.io/openpublictransport/icon.png
+[logo]: img/logo.png

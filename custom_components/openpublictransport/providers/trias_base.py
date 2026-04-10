@@ -13,7 +13,6 @@ Subclasses only need to define:
 import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
-from urllib.parse import quote
 from xml.etree import ElementTree as ET
 from zoneinfo import ZoneInfo
 
@@ -153,9 +152,7 @@ class TRIASBaseProvider(BaseProvider):
                     text = await response.text()
                     return ET.fromstring(text)
                 else:
-                    _LOGGER.warning(
-                        "%s TRIAS API returned status %s", self.provider_name, response.status
-                    )
+                    _LOGGER.warning("%s TRIAS API returned status %s", self.provider_name, response.status)
         except aiohttp.ClientError as e:
             _LOGGER.warning("%s TRIAS API request failed: %s", self.provider_name, e)
         except ET.ParseError as e:
@@ -183,9 +180,7 @@ class TRIASBaseProvider(BaseProvider):
             return None
 
         # Extract StopEventResult elements
-        results = root.findall(
-            ".//trias:StopEventResult", NS
-        )
+        results = root.findall(".//trias:StopEventResult", NS)
 
         if not results:
             # Try alternative path (some TRIAS implementations nest differently)
@@ -226,10 +221,12 @@ class TRIASBaseProvider(BaseProvider):
         # Line info
         line_name = _text(service, "trias:PublishedLineName/trias:Text")
         mode = _text(service, "trias:Mode/trias:PtMode")
-        submode = _text(service, "trias:Mode/trias:RailSubmode") or \
-                  _text(service, "trias:Mode/trias:BusSubmode") or \
-                  _text(service, "trias:Mode/trias:TramSubmode") or \
-                  _text(service, "trias:Mode/trias:MetroSubmode")
+        submode = (
+            _text(service, "trias:Mode/trias:RailSubmode")
+            or _text(service, "trias:Mode/trias:BusSubmode")
+            or _text(service, "trias:Mode/trias:TramSubmode")
+            or _text(service, "trias:Mode/trias:MetroSubmode")
+        )
 
         # Destination
         destination = _text(service, "trias:DestinationText/trias:Text")
@@ -323,9 +320,7 @@ class TRIASBaseProvider(BaseProvider):
 
         results = root.findall(".//trias:LocationResult", NS)
         if not results:
-            results = root.findall(
-                ".//trias:LocationInformationResponse/trias:LocationResult", NS
-            )
+            results = root.findall(".//trias:LocationInformationResponse/trias:LocationResult", NS)
 
         stops = []
         for result in results:

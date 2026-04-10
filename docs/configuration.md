@@ -4,9 +4,17 @@ The integration uses an intuitive multi-step setup wizard with autocomplete func
 
 ## Setup Wizard
 
+When you add the integration, you'll first see a confirmation dialog:
+
+![Confirm setup](assets/screenshots/config-flow/01-confirm-dialog.png)
+
+Click **OK** to start the setup wizard.
+
 ### Step 1: Select Provider
 
-Choose your transit provider from the descriptive dropdown. Each entry shows the provider's full name and region (e.g. "VRR — Rhein-Ruhr (NRW)" instead of just "vrr"):
+Choose your transit provider from the descriptive dropdown. Each entry shows the provider's full name and region (e.g. "VRR — Rhein-Ruhr (NRW)" instead of just "vrr"). You can also select the entry type: **Departure Monitor**, **Trip Planner**, or **Multi-Stop**.
+
+![Provider selection](assets/screenshots/config-flow/02-provider-selection.png)
 
 - **VRR** - Verkehrsverbund Rhein-Ruhr (NRW, Germany)
 - **KVV** - Karlsruher Verkehrsverbund (Germany)
@@ -30,6 +38,8 @@ See the provider-specific documentation for instructions:
 
 Enter your stop/station name. The integration will search and suggest matching stops.
 
+![Stop search](assets/screenshots/config-flow/04-stop-search-filled.png)
+
 **Tips for better search results:**
 
 - Use the "Stop, City" format for precise results (e.g. "Holthausen, Düsseldorf") — the integration splits this into a stop name and city filter automatically
@@ -46,12 +56,22 @@ If multiple stops match your search, you'll be presented with a list to choose f
 
 ### Step 5: Configure Settings
 
+![Settings](assets/screenshots/config-flow/05-settings.png)
+
 | Setting | Default | Range | Description |
 |---------|---------|-------|-------------|
 | **Number of departures** | 10 | 1-20 | How many departures to fetch |
 | **Transportation types** | All | Multi-select | Filter by transport type |
 | **Scan interval** | 60 | 10-3600 seconds | How often to update |
 | **Use provider logo** | Off | On/Off | Show provider logo instead of transport icon |
+
+After completing the settings, the integration will create a device with all entities:
+
+![Success](assets/screenshots/config-flow/06-success.png)
+
+The integration will now appear on your Integrations page:
+
+![Integrations page](assets/screenshots/config-flow/13-integrations-configured.png)
 
 ## Adding Multiple Stops
 

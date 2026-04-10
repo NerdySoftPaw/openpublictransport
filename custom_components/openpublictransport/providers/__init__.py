@@ -21,6 +21,7 @@ from ..const import (
     PROVIDER_RVV,
     PROVIDER_SBB,
     PROVIDER_TRAFIKLAB_SE,
+    PROVIDER_DB,
     PROVIDER_TRANSITOUS,
     PROVIDER_VAGFR,
     PROVIDER_VGN,
@@ -34,6 +35,7 @@ from .base import BaseProvider
 from .beg import BEGProvider
 from .bsvg import BSVGProvider
 from .bvg import BVGProvider
+from .db import DBProvider
 from .ding import DINGProvider
 from .hvv import HVVProvider
 from .kvv import KVVProvider
@@ -106,3 +108,4 @@ register_provider(PROVIDER_BEG, BEGProvider)
 register_provider(PROVIDER_SBB, SBBProvider)
 register_provider(PROVIDER_OEBB, OeBBProvider)
 register_provider(PROVIDER_TRANSITOUS, TransitousProvider)
+register_provider(PROVIDER_DB, DBProvider)

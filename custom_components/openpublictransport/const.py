@@ -46,6 +46,7 @@ PROVIDER_BEG = "beg"
 PROVIDER_SBB = "sbb"
 PROVIDER_OEBB = "oebb"
 PROVIDER_TRANSITOUS = "transitous"
+PROVIDER_DB = "db"
 PROVIDERS = [
     PROVIDER_VRR,
     PROVIDER_KVV,
@@ -70,6 +71,7 @@ PROVIDERS = [
     PROVIDER_SBB,
     PROVIDER_OEBB,
     PROVIDER_TRANSITOUS,
+    PROVIDER_DB,
 ]
 
 # Transportation types mapping
@@ -141,6 +143,7 @@ PROVIDER_ICONS = {
     "sbb": "mdi:train",
     "oebb": "mdi:train",
     "transitous": "mdi:earth",
+    "db": "mdi:train",
     "vrn": "mdi:train",
     "vvo": "mdi:tram",
     "ding": "mdi:bus",
@@ -179,4 +182,5 @@ PROVIDER_ENTITY_PICTURES = {
     "nwl": "https://www.westfalenfahrplan.de/favicon.ico",
     "nvbw": "https://www.efa-bw.de/favicon.ico",
     "beg": "https://www.bahnland-bayern.de/favicon.ico",
+    "db": "https://www.bahn.de/favicon.ico",
 }

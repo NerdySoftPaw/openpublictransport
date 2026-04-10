@@ -86,6 +86,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             "sbb": "SBB — Schweiz",
             "oebb": "ÖBB — Österreich",
             "transitous": "Transitous — Weltweit (Community, Beta)",
+            "db": "DB — Deutsche Bahn (Community API)",
             "vrn": "VRN — Rhein-Neckar",
             "vvo": "VVO — Dresden",
             "ding": "DING — Ulm / Donau-Iller",

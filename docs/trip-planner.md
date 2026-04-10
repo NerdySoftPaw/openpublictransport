@@ -33,11 +33,16 @@ A trip sensor gives you a persistent entity that always shows the next best conn
 1. Go to **Settings** > **Devices & Services**
 2. Click **+ Add Integration**
 3. Search for "Public Transport Departures"
-4. Select your provider
-5. Choose **"Trip Planner"** as the sensor type
-6. Enter origin stop and city
-7. Enter destination stop and city
-8. Configure update interval
+4. Select your provider and choose **"Verbindungssuche / Trip Planner"** as the entry type:
+
+    ![Trip mode selection](assets/screenshots/config-flow/07-trip-provider-select.png)
+
+5. Enter origin stop name:
+
+    ![Origin search](assets/screenshots/config-flow/09-trip-origin-search.png)
+
+6. Enter destination stop name
+7. Configure update interval
 
 The sensor will appear as `sensor.openpublictransport_trip_<origin>_to_<destination>`.
 

@@ -24,6 +24,8 @@ The card supports three layouts: **table**, **compact**, and **trip**.
 
 Station-style departure board with dark or light theme.
 
+![Table layout](assets/screenshots/dashboard/table-light.png)
+
 ```yaml
 type: custom:openpublictransport-card
 entity: sensor.openpublictransport_dusseldorf_hauptbahnhof
@@ -35,6 +37,8 @@ theme: dark
 
 Horizontal chips for small dashboards and sidebar panels.
 
+![Compact layout](assets/screenshots/dashboard/compact-light.png)
+
 ```yaml
 type: custom:openpublictransport-card
 entity: sensor.openpublictransport_dusseldorf_hauptbahnhof
@@ -45,11 +49,19 @@ layout: compact
 
 Route display A -> B with transfer risk indicator.
 
+![Trip layout](assets/screenshots/dashboard/trip-light.png)
+
 ```yaml
 type: custom:openpublictransport-card
 entity: sensor.openpublictransport_trip_dusseldorf_koeln
 layout: trip
 ```
+
+#### Camera Board
+
+The camera entity renders a classic station departure board (yellow on black):
+
+![Camera board](assets/screenshots/dashboard/camera-light.png)
 
 ---
 

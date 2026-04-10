@@ -1,6 +1,16 @@
 # Sensors & Attributes
 
-The integration creates two entity types for each configured stop: a **Sensor** for departure information and a **Binary Sensor** for delay detection.
+The integration creates up to **7 entity types** for each configured stop:
+
+| Entity Type | Description |
+|-------------|-------------|
+| **Sensor** | Next departure time with full departure list |
+| **Binary Sensor** | Delay detection (configurable threshold) |
+| **Calendar** | Each departure as a calendar event |
+| **Event** | Fires on disruption notices |
+| **Camera** | Rendered departure board image (yellow-on-black) |
+| **Trip Sensor** | Route A→B with transfers and delays |
+| **Statistics** | Per-line punctuality tracking |
 
 ## Sensor Entity
 

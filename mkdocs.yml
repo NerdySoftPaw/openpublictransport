@@ -1,20 +1,23 @@
-site_name: Public Transport Integration
+site_name: openpublictransport
 site_description: Multi-Provider Public Transport Home Assistant Integration for 23 transit networks across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide
+site_url: https://docs.openpublictransport.net
 repo_url: https://github.com/NerdySoftPaw/openpublictransport
 repo_name: NerdySoftPaw/openpublictransport
 
 theme:
   name: material
+  logo: assets/logo.png
+  favicon: assets/logo.png
   palette:
     - scheme: default
-      primary: blue
-      accent: light blue
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - scheme: slate
-      primary: blue
-      accent: light blue
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -89,3 +92,7 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/NerdySoftPaw/openpublictransport
+  homepage: https://openpublictransport.net
+
+extra_css:
+  - stylesheets/custom.css

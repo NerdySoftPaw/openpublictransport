@@ -16,14 +16,10 @@ Choose your transit provider from the descriptive dropdown. Each entry shows the
 
 ![Provider selection](assets/screenshots/config-flow/02-provider-selection.png)
 
-- **VRR** - Verkehrsverbund Rhein-Ruhr (NRW, Germany)
-- **KVV** - Karlsruher Verkehrsverbund (Germany)
-- **HVV** - Hamburger Verkehrsverbund (Hamburg, Germany)
-- **Trafiklab** - Sweden (nationwide)
-- **NTA** - National Transport Authority (Ireland)
+All 23 providers are available — see the [full provider list](providers/index.md) for details.
 
 !!! note
-    Trafiklab and NTA require a free API key. You'll be prompted to enter it in the next step.
+    Most providers require no API key. Trafiklab (Sweden), NTA (Ireland), and RMV (Frankfurt) require a free API key — you'll be prompted to enter it in the next step.
 
 ### Step 2: API Key (if required)
 

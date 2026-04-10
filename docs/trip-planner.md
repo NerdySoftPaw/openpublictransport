@@ -20,9 +20,22 @@ The Trip Planner works with all EFA-based providers:
 | VRR | Rhein-Ruhr (NRW) |
 | KVV | Karlsruhe |
 | HVV | Hamburg |
+| BVG | Berlin |
 | MVV | Munich |
 | VVS | Stuttgart |
+| VGN | Nuremberg |
 | VAG | Freiburg |
+| VRN | Rhein-Neckar |
+| VVO | Dresden |
+| DING | Ulm |
+| AVV | Augsburg |
+| RVV | Regensburg |
+| BSVG | Braunschweig |
+| NWL | Westfalen-Lippe |
+| NVBW | Baden-Württemberg |
+| BEG | Bavaria |
+| SBB | Switzerland |
+| ÖBB | Austria |
 
 ## Setting Up a Trip Sensor
 

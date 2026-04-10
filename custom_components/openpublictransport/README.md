@@ -1,87 +1,34 @@
-# Multi-Provider Public Transport Home Assistant Integration
+# openpublictransport
 
-This integration displays departures for various public transport providers in Home Assistant.
+Real-time public transport departures for Home Assistant — 23 providers across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide.
+
+**Website**: [openpublictransport.net](https://openpublictransport.net) | **Docs**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
 ## Setup
 
-- Install via HACS or add as custom_component
-- Add integration "Public Transport Departures"
-- Select provider: `vrr`, `kvv`, `hvv`, `trafiklab_se` or `nta_ie`
-- Enter city and stop name (e.g. Düsseldorf, Elbruchstrasse or Karlsruhe, Essenweinstraße)
-- **For Trafiklab (Sweden):** API key from [trafiklab.se](https://www.trafiklab.se) required
-- Optional: station_id, number of departures, transport types
+1. Install via HACS or copy `custom_components/openpublictransport/` manually
+2. Restart Home Assistant
+3. Go to **Settings** > **Devices & Services** > **Add Integration**
+4. Search for "Public Transport Departures"
+5. Pick your provider, search for your stop, configure settings
 
-## Supported Providers
-- **vrr**: Verkehrsverbund Rhein-Ruhr (NRW) - Default
-- **kvv**: Karlsruher Verkehrsverbund
-- **hvv**: Hamburger Verkehrsverbund
-- **trafiklab_se**: Trafiklab Realtime API (Sweden) - **API key required**
-- **nta_ie**: National Transport Authority (Ireland) - **API key required**
+No YAML needed. Setup takes under 2 minutes.
 
-### Trafiklab API Key
+## Supported Providers (23)
 
-To use the Trafiklab provider (Sweden), you need a free API key:
+**Germany (18):** VRR, KVV, HVV, BVG, MVV, VVS, VGN, VAG, RMV*, VRN, VVO, DING, AVV, RVV, BSVG, NWL, NVBW, BEG
+**Switzerland:** SBB | **Austria:** ÖBB | **Sweden:** Trafiklab* | **Ireland:** NTA* | **Worldwide:** Transitous
 
-1. Register at [trafiklab.se](https://www.trafiklab.se)
-2. Create a new project
-3. Select the "Realtime API"
-4. Copy the API key
-5. Enter it in the integration's Config Flow
+*API key required (free)
 
-The API key is only required for Trafiklab and NTA sensors. No API key is required for VRR, KVV and HVV.
+## Features
 
-## Supported Transport Types
-- bus
-- tram
-- subway
-- train
+- 7 entity types: sensor, binary sensor, calendar, event, camera, trip sensor, statistics
+- 4 services: refresh_departures, plan_trip, check_delays, announce_departure
+- Walking time, line filtering, favorites, fuzzy stop search, TTS announcements
+- Custom Lovelace card with table, compact, and trip layouts
+- 7 languages: DE, EN, FR, NL, PL, IT, SV
 
-## Examples
+## Documentation
 
-### KVV (Karlsruhe)
-```
-sensor:
-  - platform: openpublictransport
-    provider: kvv
-    place_dm: Karlsruhe
-    name_dm: Essenweinstraße
-    departures: 5
-    transportation_types:
-      - tram
-      - train
-```
-
-### HVV (Hamburg)
-```
-sensor:
-  - platform: openpublictransport
-    provider: hvv
-    place_dm: Hamburg
-    name_dm: Hauptbahnhof
-    departures: 10
-    transportation_types:
-      - bus
-      - subway
-```
-
-### Trafiklab (Sweden)
-```
-sensor:
-  - platform: openpublictransport
-    provider: trafiklab_se
-    station_id: "740000001"  # Stop ID from Trafiklab
-    departures: 10
-    transportation_types:
-      - bus
-      - train
-      - tram
-```
-
-**Note:** For Trafiklab, you must enter the API key in the Config Flow. You can find the stop ID via the search in the Config Flow.
-
-## Notes
-- The integration uses the public APIs of the respective transport associations
-- **No API key** is required for VRR, KVV and HVV
-- For Trafiklab (Sweden), a **free API key** from [trafiklab.se](https://www.trafiklab.se) is required
-- Fields are automatically parsed from the API
-- Real-time data is displayed when available
+See [docs.openpublictransport.net](https://docs.openpublictransport.net/) for full documentation.

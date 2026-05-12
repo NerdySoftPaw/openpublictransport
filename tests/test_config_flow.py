@@ -10,9 +10,11 @@ from homeassistant.data_entry_flow import FlowResultType
 from custom_components.openpublictransport.const import (
     CONF_DEPARTURES,
     CONF_PROVIDER,
+    CONF_RMV_API_KEY,
     CONF_SCAN_INTERVAL,
     CONF_TRANSPORTATION_TYPES,
     DOMAIN,
+    PROVIDER_RMV,
     PROVIDER_VRR,
 )
 
@@ -208,6 +210,52 @@ async def test_options_flow(hass: HomeAssistant, mock_config_entry):
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result["data"][CONF_DEPARTURES] == 15
     assert result["data"][CONF_SCAN_INTERVAL] == 120
+
+
+async def test_api_key_provider_trip_routes_to_trip_search(hass: HomeAssistant):
+    """After entering an API key with entry_type=trip, flow must go to trip_search (origin phase)."""
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+
+    # Select Trip Planner + RMV
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={"entry_type": "trip", CONF_PROVIDER: PROVIDER_RMV},
+    )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "api_key"
+
+    # Submit a valid RMV API key
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_RMV_API_KEY: "test-api-key-123"},
+    )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "trip_search"
+
+
+async def test_api_key_provider_departures_routes_to_stop_search(hass: HomeAssistant):
+    """After entering an API key with entry_type=departures, flow must still go to stop_search."""
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+
+    # Select Departure Monitor + RMV
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={"entry_type": "departures", CONF_PROVIDER: PROVIDER_RMV},
+    )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "api_key"
+
+    # Submit a valid RMV API key
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={CONF_RMV_API_KEY: "test-api-key-123"},
+    )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "stop_search"
 
 
 def test_parse_stopfinder_response():

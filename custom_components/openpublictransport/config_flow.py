@@ -30,6 +30,7 @@ from .const import (
     CONF_TRAFIKLAB_API_KEY,
     CONF_TRANSPORTATION_TYPES,
     CONF_USE_PROVIDER_LOGO,
+    CONF_VBN_API_KEY,
     CONF_WALKING_TIME,
     DEFAULT_DELAY_THRESHOLD,
     DEFAULT_DEPARTURES,
@@ -40,6 +41,7 @@ from .const import (
     PROVIDER_NTA_IE,
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
+    PROVIDER_VBN,
     PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
@@ -175,6 +177,13 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 else:
                     self._api_key = api_key
                     return await self.async_step_stop_search()
+            elif self._provider == PROVIDER_VBN:
+                api_key = user_input.get(CONF_VBN_API_KEY, "").strip()
+                if not api_key:
+                    errors[CONF_VBN_API_KEY] = "vbn_api_key_required"
+                else:
+                    self._api_key = api_key
+                    return await self.async_step_stop_search()
 
         # Show appropriate schema based on provider
         provider_instance = get_provider(self._provider, self.hass)
@@ -192,6 +201,13 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 }
             )
             description = "RMV API key is required. Request one at opendata.rmv.de"
+        elif self._provider == PROVIDER_VBN:
+            schema = vol.Schema(
+                {
+                    vol.Required(CONF_VBN_API_KEY): str,
+                }
+            )
+            description = "VBN API key is required. Request a free key at api@vbn.de"
         else:  # NTA
             schema = vol.Schema(
                 {
@@ -215,7 +231,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         together with the search field so the user can refine or select.
         """
         # Validate API key for providers that need it
-        if self._provider in (PROVIDER_TRAFIKLAB_SE, PROVIDER_RMV) and not self._api_key:
+        if self._provider in (PROVIDER_TRAFIKLAB_SE, PROVIDER_RMV, PROVIDER_VBN) and not self._api_key:
             return await self.async_step_api_key()
         if self._provider == PROVIDER_NTA_IE and not self._api_key:
             return self.async_show_form(
@@ -397,6 +413,14 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                         errors={"base": "rmv_api_key_required"},
                     )
                 data[CONF_RMV_API_KEY] = self._api_key
+            elif self._provider == PROVIDER_VBN:
+                if not self._api_key:
+                    return self.async_show_form(
+                        step_id="settings",
+                        data_schema=schema,
+                        errors={"base": "vbn_api_key_required"},
+                    )
+                data[CONF_VBN_API_KEY] = self._api_key
 
             # Create unique ID (self._selected_stop validated above)
             unique_id = f"{self._provider}_{self._selected_stop['id']}"

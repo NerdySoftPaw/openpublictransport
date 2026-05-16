@@ -13,7 +13,7 @@
 [![Code Quality](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml)
 [![Tests](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml)
 
-Real-time public transport departures for Home Assistant — 24 providers across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide.
+Real-time public transport departures for Home Assistant — 25 providers across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide.
 
 **Website**: [openpublictransport.net](https://openpublictransport.net) | **Docs**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
@@ -21,39 +21,40 @@ Real-time public transport departures for Home Assistant — 24 providers across
 > The domain changed from `vrr` to `openpublictransport` — entity IDs and services have new names.
 > See the [Migration Guide](https://docs.openpublictransport.net/migration/) for step-by-step instructions.
 
-## Supported Providers (24)
+## Supported Providers (25)
 
 | Provider | Region | API Key |
 |----------|--------|---------|
-| **VRR** | Rhein-Ruhr (NRW) | No |
-| **KVV** | Karlsruhe | No |
-| **HVV** | Hamburg | No |
-| **BVG** | Berlin / Brandenburg | No |
-| **MVV** | Munich | No |
-| **VVS** | Stuttgart | No |
-| **VGN** | Nuremberg | No |
-| **VAG** | Freiburg | No |
-| **RMV** | Frankfurt | Yes (free) |
-| **VBN** | Bremen / Niedersachsen | Yes (free) |
-| **VRN** | Rhein-Neckar | No |
-| **VVO** | Dresden | No |
-| **DING** | Ulm | No |
 | **AVV** | Augsburg | No |
-| **RVV** | Regensburg | No |
-| **BSVG** | Braunschweig | No |
-| **NWL** | Westfalen-Lippe | No |
-| **NVBW** | Baden-Württemberg | No |
 | **BEG** | Bavaria | No |
-| **SBB** | Switzerland (nationwide) | No |
-| **ÖBB** | Austria (nationwide) | No |
-| **Trafiklab** | Sweden (nationwide) | Yes (free) |
+| **BSVG** | Braunschweig | No |
+| **BVG** | Berlin / Brandenburg | No |
+| **DB** | Germany (nationwide, community API) | No |
+| **DING** | Ulm | No |
+| **HVV** | Hamburg | No |
+| **KVV** | Karlsruhe | No |
+| **MVV** | Munich | No |
 | **NTA** | Ireland (nationwide) | Yes (free) |
+| **NVBW** | Baden-Württemberg | No |
+| **NWL** | Westfalen-Lippe | No |
+| **ÖBB** | Austria (nationwide) | No |
+| **RMV** | Frankfurt / Rhein-Main | Yes (free) |
+| **RVV** | Regensburg | No |
+| **SBB** | Switzerland (nationwide) | No |
+| **Trafiklab** | Sweden (nationwide) | Yes (free) |
 | **Transitous** | Worldwide (community) | No |
+| **VAG** | Freiburg | No |
+| **VBN** | Bremen / Niedersachsen | Yes (free) |
+| **VGN** | Nuremberg | No |
+| **VRN** | Rhein-Neckar | No |
+| **VRR** | Rhein-Ruhr (NRW) | No |
+| **VVO** | Dresden | No |
+| **VVS** | Stuttgart | No |
 
 ## Features
 
 - **Real-time departures** with delay tracking, platform changes, and disruption notices
-- **24 transit providers** — most require no API key
+- **25 transit providers** — most require no API key
 - **Trip planner** — A-to-B routes with transfer risk assessment
 - **7 entity types** — sensor, binary sensor, calendar, event, camera, trip sensor, statistics
 - **4 services** — refresh_departures, plan_trip, check_delays, announce_departure (TTS)

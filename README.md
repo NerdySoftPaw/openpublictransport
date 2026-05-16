@@ -13,7 +13,7 @@
 [![Code Quality](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml)
 [![Tests](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml)
 
-Real-time public transport departures for Home Assistant — 23 providers across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide.
+Real-time public transport departures for Home Assistant — 24 providers across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide.
 
 **Website**: [openpublictransport.net](https://openpublictransport.net) | **Docs**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
@@ -21,7 +21,7 @@ Real-time public transport departures for Home Assistant — 23 providers across
 > The domain changed from `vrr` to `openpublictransport` — entity IDs and services have new names.
 > See the [Migration Guide](https://docs.openpublictransport.net/migration/) for step-by-step instructions.
 
-## Supported Providers (23)
+## Supported Providers (24)
 
 | Provider | Region | API Key |
 |----------|--------|---------|
@@ -34,6 +34,7 @@ Real-time public transport departures for Home Assistant — 23 providers across
 | **VGN** | Nuremberg | No |
 | **VAG** | Freiburg | No |
 | **RMV** | Frankfurt | Yes (free) |
+| **VBN** | Bremen / Niedersachsen | Yes (free) |
 | **VRN** | Rhein-Neckar | No |
 | **VVO** | Dresden | No |
 | **DING** | Ulm | No |
@@ -52,7 +53,7 @@ Real-time public transport departures for Home Assistant — 23 providers across
 ## Features
 
 - **Real-time departures** with delay tracking, platform changes, and disruption notices
-- **23 transit providers** — most require no API key
+- **24 transit providers** — most require no API key
 - **Trip planner** — A-to-B routes with transfer risk assessment
 - **7 entity types** — sensor, binary sensor, calendar, event, camera, trip sensor, statistics
 - **4 services** — refresh_departures, plan_trip, check_delays, announce_departure (TTS)

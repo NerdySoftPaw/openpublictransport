@@ -60,6 +60,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         """Initialize the config flow."""
         self._entry_type: str = "departures"  # "departures" or "trip"
         self._provider: Optional[str] = None
+        self._provider_search: str = ""
         self._selected_stop: Optional[Dict[str, Any]] = None
         self._api_key: Optional[str] = None  # For Trafiklab or NTA (Primary)
         self._api_key_secondary: Optional[str] = None  # For NTA (Secondary, optional)
@@ -73,9 +74,9 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         self._cache_ttl: int = 300  # Cache TTL in seconds (5 minutes)
 
     @staticmethod
-    def _provider_selector() -> SelectSelector:
-        """Return a searchable, alphabetically sorted provider dropdown."""
-        options = [
+    def _all_provider_options() -> List[Dict[str, str]]:
+        """Return all providers alphabetically sorted."""
+        return [
             {"value": "avv_augsburg", "label": "AVV — Augsburg"},
             {"value": "beg",          "label": "BEG — Bayern"},
             {"value": "bsvg",         "label": "BSVG — Braunschweig"},
@@ -102,28 +103,32 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             {"value": "vvo",          "label": "VVO — Dresden"},
             {"value": "vvs",          "label": "VVS — Stuttgart"},
         ]
+
+    @staticmethod
+    def _filter_providers(search: str) -> List[Dict[str, str]]:
+        """Filter provider list by search term (matches value and label)."""
+        if not search:
+            return PublicTransportConfigFlow._all_provider_options()
+        term = search.lower()
+        return [
+            opt for opt in PublicTransportConfigFlow._all_provider_options()
+            if term in opt["value"].lower() or term in opt["label"].lower()
+        ]
+
+    @staticmethod
+    def _make_provider_selector(options: List[Dict[str, str]]) -> SelectSelector:
         return SelectSelector(SelectSelectorConfig(options=options, mode=SelectSelectorMode.DROPDOWN))
 
     async def async_step_user(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
-        """Handle the initial step - select entry type and provider."""
+        """Handle the initial step — entry type + provider search text."""
         if user_input is not None:
             self._entry_type = user_input.get("entry_type", "departures")
 
             if self._entry_type == "multi_stop":
                 return await self.async_step_multi_stop()
 
-            self._provider = user_input[CONF_PROVIDER]
-
-            # Check if provider requires API key
-            provider_instance = get_provider(self._provider, self.hass)
-            if provider_instance and provider_instance.requires_api_key:
-                return await self.async_step_api_key()
-
-            if self._entry_type == "trip":
-                self._trip_search_phase = "origin"
-                return await self.async_step_trip_search()
-
-            return await self.async_step_stop_search()
+            self._provider_search = user_input.get("provider_search", "").strip()
+            return await self.async_step_provider_select()
 
         entry_type_options = {
             "departures": "Abfahrtsanzeige / Departure Monitor",
@@ -134,11 +139,51 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         schema = vol.Schema(
             {
                 vol.Required("entry_type", default="departures"): vol.In(entry_type_options),
-                vol.Required(CONF_PROVIDER, default=PROVIDER_VRR): self._provider_selector(),
+                vol.Optional("provider_search"): str,
             }
         )
 
         return self.async_show_form(step_id="user", data_schema=schema)
+
+    async def async_step_provider_select(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+        """Show filtered provider list and let user pick one."""
+        if user_input is not None:
+            self._provider = user_input[CONF_PROVIDER]
+
+            provider_instance = get_provider(self._provider, self.hass)
+            if provider_instance and provider_instance.requires_api_key:
+                return await self.async_step_api_key()
+
+            if self._entry_type == "trip":
+                self._trip_search_phase = "origin"
+                return await self.async_step_trip_search()
+
+            return await self.async_step_stop_search()
+
+        filtered = self._filter_providers(self._provider_search)
+        errors = {}
+
+        if not filtered:
+            errors["base"] = "no_providers_found"
+            filtered = self._all_provider_options()
+
+        default = filtered[0]["value"] if len(filtered) == 1 else PROVIDER_VRR
+
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_PROVIDER, default=default): self._make_provider_selector(filtered),
+            }
+        )
+
+        count = len(filtered)
+        search_display = self._provider_search or "–"
+
+        return self.async_show_form(
+            step_id="provider_select",
+            data_schema=schema,
+            errors=errors,
+            description_placeholders={"count": str(count), "search": search_display},
+        )
 
     async def async_step_api_key(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Handle API key input for providers that require it."""

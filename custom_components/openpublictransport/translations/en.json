@@ -3,13 +3,20 @@
     "step": {
       "user": {
         "title": "Select Public Transport Provider",
-        "description": "Choose your public transport provider",
+        "description": "Choose your entry type and search for a provider.",
         "data": {
-          "provider": "Provider",
-          "entry_type": "Type"
+          "entry_type": "Type",
+          "provider_search": "Provider search"
         },
         "data_description": {
-          "provider": "VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, RMV, VBN, SBB, ÖBB, Transitous, Trafiklab or NTA"
+          "provider_search": "Type a region or provider name to filter — e.g. \"Hamburg\", \"VBN\", \"Bremen\""
+        }
+      },
+      "provider_select": {
+        "title": "Select Provider",
+        "description": "{count} result(s) for \"{search}\" — select your provider:",
+        "data": {
+          "provider": "Provider"
         }
       },
       "stop_search": {
@@ -102,6 +109,7 @@
       "missing_location": "Please provide either a station ID or location and stop name",
       "empty_search": "Please enter a search term",
       "no_results": "No results found. Please try a different search term.",
+      "no_providers_found": "No providers found for this search term. Showing all providers.",
       "api_key_required": "API key is required",
       "trafiklab_api_key_required": "Trafiklab API key is required",
       "nta_api_key_required": "NTA API key is required",

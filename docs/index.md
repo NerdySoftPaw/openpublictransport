@@ -1,39 +1,41 @@
 # openpublictransport
 
-Real-time public transport departures for Home Assistant — 23 providers across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide.
+Real-time public transport departures for Home Assistant — 25 providers across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide.
 
 !!! tip "Coming from VRRAPI-HACS or hacs-publictransport?"
     This is the new official repository! The domain changed from `vrr` to `openpublictransport` — entity IDs and services have new names.
     
     **[→ Migration Guide](migration.md)** — Step-by-step instructions for both migrations.
 
-## Supported Providers (23)
+## Supported Providers (25)
 
 | Provider | Region | API Type | API Key |
 |----------|--------|----------|---------|
-| **VRR** | Rhein-Ruhr (NRW) | EFA | No |
-| **KVV** | Karlsruhe | EFA | No |
-| **HVV** | Hamburg | REST | No |
-| **BVG** | Berlin / Brandenburg | REST | No |
-| **MVV** | Munich | EFA | No |
-| **VVS** | Stuttgart | EFA | No |
-| **VGN** | Nuremberg | EFA | No |
-| **VAG** | Freiburg | EFA | No |
-| **RMV** | Frankfurt / Rhein-Main | HAFAS | Yes (free) |
-| **VRN** | Rhein-Neckar | EFA | No |
-| **VVO** | Dresden | EFA | No |
-| **DING** | Ulm / Donau-Iller | EFA | No |
 | **AVV** | Augsburg | EFA | No |
-| **RVV** | Regensburg | EFA | No |
-| **BSVG** | Braunschweig | EFA | No |
-| **NWL** | Westfalen-Lippe | EFA | No |
-| **NVBW** | Baden-Württemberg | EFA | No |
 | **BEG** | Bavaria | EFA | No |
-| **SBB** | Switzerland (nationwide) | EFA | No |
-| **ÖBB** | Austria (nationwide) | EFA | No |
-| **Trafiklab** | Sweden (nationwide) | REST | Yes (free) |
+| **BSVG** | Braunschweig | EFA | No |
+| **BVG** | Berlin / Brandenburg | FPTF REST | No |
+| **DB** | Germany (nationwide, community API) | FPTF REST | No |
+| **DING** | Ulm / Donau-Iller | EFA | No |
+| **HVV** | Hamburg | EFA | No |
+| **KVV** | Karlsruhe | EFA | No |
+| **MVV** | Munich | EFA | No |
 | **NTA** | Ireland (nationwide) | GTFS-RT | Yes (free) |
+| **NVBW** | Baden-Württemberg | EFA | No |
+| **NWL** | Westfalen-Lippe | EFA | No |
+| **ÖBB** | Austria (nationwide) | FPTF REST | No |
+| **RMV** | Frankfurt / Rhein-Main | HAFAS | Yes (free) |
+| **RVV** | Regensburg | EFA | No |
+| **SBB** | Switzerland (nationwide) | REST | No |
+| **Trafiklab** | Sweden (nationwide) | REST | Yes (free) |
 | **Transitous** | Worldwide (community) | MOTIS2 | No |
+| **VAG** | Freiburg | EFA | No |
+| **VBN** | Bremen / Niedersachsen | TRIAS | Yes (free) |
+| **VGN** | Nuremberg | EFA | No |
+| **VRN** | Rhein-Neckar | EFA | No |
+| **VRR** | Rhein-Ruhr (NRW) | EFA | No |
+| **VVO** | Dresden | EFA | No |
+| **VVS** | Stuttgart | EFA | No |
 
 ## Features
 

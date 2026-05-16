@@ -1,5 +1,26 @@
 # Changelog
 
+## v2026.5.2 - VBN Provider & Searchable Provider Dropdown
+
+### New Provider
+
+- **VBN (Verkehrsverbund Bremen/Niedersachsen)** - Bremen, Bremerhaven, and surrounding Lower Saxony counties via TRIAS (VDV 431-2) XML API. API key required (free, request at api@vbn.de, 3,000 transactions/day for hobbyists).
+
+### Improvements
+
+- **Searchable provider dropdown** - The provider selector is now a native HA searchable dropdown (`SelectSelector`). Type to filter — no more scrolling through 25 entries.
+- **Alphabetical provider order** - All 25 providers sorted A–Z in both the dropdown and documentation.
+
+### Documentation
+
+- Provider docs: new page `docs/providers/vbn.md` with API key instructions, quota info, and troubleshooting.
+- All provider counts updated to 25 across README and docs.
+
+!!! info "Total providers: 25"
+    VBN joins as the 25th provider via the existing TRIAS base class — zero new parsing code required.
+
+---
+
 ## v2026.4.16 - Deutsche Bahn, TRIAS Protocol, New Logo & Website
 
 ### New Provider

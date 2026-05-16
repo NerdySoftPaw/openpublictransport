@@ -3,20 +3,10 @@
     "step": {
       "user": {
         "title": "ÖPNV Anbieter wählen",
-        "description": "Wähle den Eintragstyp und suche nach deinem Anbieter.",
+        "description": "Wähle deinen ÖPNV-Anbieter aus",
         "data": {
-          "entry_type": "Typ",
-          "provider_search": "Anbietersuche"
-        },
-        "data_description": {
-          "provider_search": "Region oder Anbieterkürzel eingeben, um zu filtern — z.B. \"Hamburg\", \"VBN\", \"Bremen\""
-        }
-      },
-      "provider_select": {
-        "title": "Anbieter auswählen",
-        "description": "{count} Ergebnis(se) für \"{search}\" — Anbieter auswählen:",
-        "data": {
-          "provider": "Anbieter"
+          "provider": "Anbieter",
+          "entry_type": "Typ"
         }
       },
       "stop_search": {
@@ -109,7 +99,6 @@
       "missing_location": "Bitte geben Sie entweder eine Stations-ID oder Ort und Haltestelle an",
       "empty_search": "Bitte geben Sie einen Suchbegriff ein",
       "no_results": "Keine Ergebnisse gefunden. Bitte versuchen Sie einen anderen Suchbegriff.",
-      "no_providers_found": "Kein Anbieter für diesen Suchbegriff gefunden. Alle Anbieter werden angezeigt.",
       "api_key_required": "API-Schlüssel ist erforderlich",
       "trafiklab_api_key_required": "Trafiklab API-Schlüssel ist erforderlich",
       "nta_api_key_required": "NTA API-Schlüssel ist erforderlich",

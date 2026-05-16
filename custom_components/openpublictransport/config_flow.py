@@ -98,6 +98,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             "nwl": "NWL — Westfalen-Lippe",
             "nvbw": "NVBW — Baden-Württemberg",
             "beg": "BEG — Bayern",
+            "vbn": "VBN — Bremen / Niedersachsen (API Key)",
         }
         return vol.Schema(
             {

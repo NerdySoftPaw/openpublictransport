@@ -75,9 +75,9 @@ class VBNProvider(TRIASBaseProvider):
     # ── Auth ────────────────────────────────────────────────────────────────
 
     def _extra_headers(self) -> Dict[str, str]:
-        """Add Bearer token to all TRIAS requests."""
+        """Add API key to all TRIAS requests. VBN uses plain Authorization (no Bearer)."""
         if self.api_key:
-            return {"Authorization": f"Bearer {self.api_key}"}
+            return {"Authorization": self.api_key}
         return {}
 
     def get_mode_mapping(self) -> Dict[str, str]:
@@ -101,7 +101,7 @@ class VBNProvider(TRIASBaseProvider):
     def _otp_headers(self) -> Dict[str, str]:
         h = {"Accept": "application/json"}
         if self.api_key:
-            h["Authorization"] = f"Bearer {self.api_key}"
+            h["Authorization"] = self.api_key
         return h
 
     async def _otp_get(

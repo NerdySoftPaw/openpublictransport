@@ -4,8 +4,9 @@ Provides both a service (on-demand) and a sensor (polling) for
 route planning from A to B with connections and transfers.
 """
 
+import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
 
@@ -27,6 +28,20 @@ EFA_TRIP_ENDPOINTS = {
     "vagfr": "https://efa.vagfr.de/vagfr3/XML_TRIP_REQUEST2",
 }
 
+# OTP GTFS mode → unified product name
+_OTP_MODE_TO_PRODUCT = {
+    "BUS": "bus",
+    "COACH": "bus",
+    "RAIL": "train",
+    "TRAM": "tram",
+    "SUBWAY": "subway",
+    "FERRY": "ferry",
+    "GONDOLA": "tram",
+    "FUNICULAR": "train",
+    "CABLE_CAR": "tram",
+    "WALK": "walk",
+}
+
 
 async def async_plan_trip(
     hass: HomeAssistant,
@@ -38,12 +53,25 @@ async def async_plan_trip(
     departure_time: Optional[datetime] = None,
     origin_id: Optional[str] = None,
     dest_id: Optional[str] = None,
+    api_key: Optional[str] = None,
 ) -> Optional[List[Dict[str, Any]]]:
-    """Plan a trip from origin to destination using EFA API.
+    """Plan a trip from origin to destination.
 
+    Dispatches to OTP REST for vbn_otp, EFA for all other supported providers.
     Uses stop IDs when available (more reliable), falls back to name+place search.
     Returns a list of journey options, each with legs and transfer info.
     """
+    # OTP providers
+    if provider == "vbn_otp":
+        if not origin_id or not dest_id:
+            _LOGGER.warning("VBN OTP trip planning requires stop IDs — search for stops first")
+            return None
+        from .providers import get_provider
+
+        provider_instance = get_provider(provider, hass, api_key=api_key)
+        return await _async_plan_trip_otp(hass, origin_id, dest_id, departure_time, provider_instance)
+
+    # EFA providers
     base_url = EFA_TRIP_ENDPOINTS.get(provider)
     if not base_url:
         _LOGGER.warning("Trip planning not supported for provider: %s", provider)
@@ -91,6 +119,166 @@ async def async_plan_trip(
     except Exception as e:
         _LOGGER.warning("Trip planning failed: %s", e)
         return None
+
+
+async def _async_plan_trip_otp(
+    hass: HomeAssistant,
+    origin_id: str,
+    dest_id: str,
+    departure_time: Optional[datetime],
+    provider_instance,
+) -> Optional[List[Dict[str, Any]]]:
+    """Plan a trip using the OTP 2.x REST /plan endpoint."""
+    now = departure_time or dt_util.now()
+    session = async_get_clientsession(hass)
+    base_url = provider_instance.otp_base_url
+
+    # Resolve stop coordinates concurrently — OTP /plan needs lat,lon not stop IDs
+    origin_stop, dest_stop = await asyncio.gather(
+        provider_instance._get(session, f"{base_url}/index/stops/{quote(origin_id, safe='')}"),
+        provider_instance._get(session, f"{base_url}/index/stops/{quote(dest_id, safe='')}"),
+    )
+    if not origin_stop or not dest_stop:
+        _LOGGER.warning("VBN OTP trip: could not resolve stop coordinates for %s / %s", origin_id, dest_id)
+        return None
+
+    from_place = f"{origin_stop['lat']},{origin_stop['lon']}"
+    to_place = f"{dest_stop['lat']},{dest_stop['lon']}"
+
+    data = await provider_instance._get(
+        session,
+        f"{base_url}/plan",
+        {
+            "fromPlace": from_place,
+            "toPlace": to_place,
+            "date": now.strftime("%Y-%m-%d"),
+            "time": now.strftime("%H:%M:%S"),
+            "numItineraries": "3",
+            "mode": "TRANSIT,WALK",
+        },
+    )
+    if not data:
+        return None
+
+    itineraries = data.get("plan", {}).get("itineraries", [])
+    if not itineraries:
+        _LOGGER.debug("VBN OTP trip: no itineraries returned")
+        return None
+
+    return _parse_otp_itineraries(itineraries)
+
+
+def _parse_otp_itineraries(itineraries: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Parse OTP 2.x plan itineraries into the unified journey dict format."""
+    results = []
+
+    for itin in itineraries:
+        transit_legs = []
+        # ms timestamps for transfer gap calculation
+        leg_arrival_ms: List[int] = []
+        leg_departure_ms: List[int] = []
+
+        for leg in itin.get("legs", []):
+            if not leg.get("transitLeg", False):
+                # Walking/transfer leg — capture its times for gap calc but skip display
+                if transit_legs:
+                    # The walk connects the previous transit leg to the next one
+                    leg_arrival_ms.append(leg.get("endTime", 0))
+                continue
+
+            start_ms: int = leg.get("startTime", 0)
+            end_ms: int = leg.get("endTime", 0)
+            dep_delay_s: int = leg.get("departureDelay", 0)
+            arr_delay_s: int = leg.get("arrivalDelay", 0)
+
+            # planned = actual minus delay
+            planned_start_ms = start_ms - dep_delay_s * 1000
+            planned_end_ms = end_ms - arr_delay_s * 1000
+
+            dep_estimated = _ms_to_hhmm(start_ms)
+            dep_planned = _ms_to_hhmm(planned_start_ms)
+            arr_estimated = _ms_to_hhmm(end_ms)
+            arr_planned = _ms_to_hhmm(planned_end_ms)
+
+            delay_min = dep_delay_s // 60
+
+            transit_legs.append(
+                {
+                    "origin": leg.get("from", {}).get("name", ""),
+                    "destination": leg.get("to", {}).get("name", ""),
+                    "line": leg.get("routeShortName") or leg.get("route", ""),
+                    "product": _OTP_MODE_TO_PRODUCT.get(leg.get("mode", ""), leg.get("mode", "").lower()),
+                    "departure_planned": dep_planned,
+                    "departure_estimated": dep_estimated,
+                    "arrival_planned": arr_planned,
+                    "arrival_estimated": arr_estimated,
+                    "delay": delay_min,
+                    "duration_minutes": round(leg.get("duration", 0) / 60),
+                    "platform": "",
+                    # Internal ms values for transfer gap calculation
+                    "_arrival_ms": end_ms,
+                    "_departure_ms": start_ms,
+                }
+            )
+            leg_departure_ms.append(start_ms)
+            leg_arrival_ms.append(end_ms)
+
+        if not transit_legs:
+            continue
+
+        # Transfer risk from arrival of leg N to departure of leg N+1
+        connection_feasible = True
+        transfer_risk = "low"
+        min_transfer_time: Optional[int] = None
+
+        for i in range(len(transit_legs) - 1):
+            arr_ms = transit_legs[i]["_arrival_ms"]
+            dep_ms = transit_legs[i + 1]["_departure_ms"]
+            gap_min = (dep_ms - arr_ms) // 60000
+            if min_transfer_time is None or gap_min < min_transfer_time:
+                min_transfer_time = gap_min
+            if gap_min <= 0:
+                connection_feasible = False
+                transfer_risk = "missed"
+            elif gap_min <= 3 and transfer_risk != "missed":
+                transfer_risk = "high"
+            elif gap_min <= 5 and transfer_risk not in ("missed", "high"):
+                transfer_risk = "medium"
+
+        # Strip internal keys before returning
+        for leg in transit_legs:
+            leg.pop("_arrival_ms", None)
+            leg.pop("_departure_ms", None)
+
+        first_dep = transit_legs[0].get("departure_estimated") or transit_legs[0].get("departure_planned", "")
+        last_arr = transit_legs[-1].get("arrival_estimated") or transit_legs[-1].get("arrival_planned", "")
+        duration_ms = itin.get("duration", 0) * 1000  # OTP duration is in seconds
+
+        results.append(
+            {
+                "departure": first_dep,
+                "arrival": last_arr,
+                "duration_minutes": round(itin.get("duration", 0) / 60),
+                "transfers": itin.get("transfers", len(transit_legs) - 1),
+                "connection_feasible": connection_feasible,
+                "transfer_risk": transfer_risk,
+                "min_transfer_time": min_transfer_time,
+                "legs": transit_legs,
+            }
+        )
+
+    return results
+
+
+def _ms_to_hhmm(ms: int) -> str:
+    """Convert OTP millisecond Unix timestamp to HH:MM in local time."""
+    if not ms:
+        return ""
+    try:
+        dt = datetime.fromtimestamp(ms / 1000, tz=timezone.utc)
+        return dt_util.as_local(dt).strftime("%H:%M")
+    except (ValueError, OSError):
+        return ""
 
 
 def _parse_journeys(journeys: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

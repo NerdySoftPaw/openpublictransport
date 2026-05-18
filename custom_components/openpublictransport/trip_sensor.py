@@ -15,7 +15,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
 
-from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN
+from .const import CONF_SCAN_INTERVAL, CONF_VBN_API_KEY, DEFAULT_SCAN_INTERVAL, DOMAIN
 from .trip import async_plan_trip
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,6 +42,7 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         scan_interval: int = 120,
         origin_id: Optional[str] = None,
         dest_id: Optional[str] = None,
+        api_key: Optional[str] = None,
     ):
         """Initialize."""
         super().__init__(
@@ -57,6 +58,7 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         self.destination_city = destination_city
         self.origin_id = origin_id
         self.dest_id = dest_id
+        self.api_key = api_key
 
     async def _async_update_data(self) -> Optional[List[Dict[str, Any]]]:
         """Fetch trip data."""
@@ -69,6 +71,7 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
             self.destination_city,
             origin_id=self.origin_id,
             dest_id=self.dest_id,
+            api_key=self.api_key,
         )
 
 
@@ -85,6 +88,7 @@ async def async_setup_trip_entry(
     origin_id = config_entry.data.get("trip_origin_id")
     dest_id = config_entry.data.get("trip_destination_id")
     scan_interval = config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    api_key = config_entry.data.get(CONF_VBN_API_KEY)
 
     coordinator = TripDataUpdateCoordinator(
         hass,
@@ -96,6 +100,7 @@ async def async_setup_trip_entry(
         scan_interval,
         origin_id=origin_id,
         dest_id=dest_id,
+        api_key=api_key,
     )
 
     coordinator_key = f"{config_entry.entry_id}_trip_coordinator"

@@ -47,6 +47,9 @@ PROVIDER_SBB = "sbb"
 PROVIDER_OEBB = "oebb"
 PROVIDER_TRANSITOUS = "transitous"
 PROVIDER_DB = "db"
+PROVIDER_VBN_OTP = "vbn_otp"
+PROVIDER_VBN_TRIAS = "vbn_trias"
+CONF_VBN_API_KEY = "vbn_api_key"
 PROVIDERS = [
     PROVIDER_VRR,
     PROVIDER_KVV,
@@ -72,6 +75,8 @@ PROVIDERS = [
     PROVIDER_OEBB,
     PROVIDER_TRANSITOUS,
     PROVIDER_DB,
+    PROVIDER_VBN_OTP,
+    PROVIDER_VBN_TRIAS,
 ]
 
 # Transportation types mapping
@@ -153,6 +158,8 @@ PROVIDER_ICONS = {
     "nwl": "mdi:train",
     "nvbw": "mdi:train",
     "beg": "mdi:train",
+    "vbn_otp": "mdi:bus-clock",
+    "vbn_trias": "mdi:bus-clock",
 }
 
 # Provider-specific entity pictures (logos)
@@ -183,4 +190,6 @@ PROVIDER_ENTITY_PICTURES = {
     "nvbw": "https://www.efa-bw.de/favicon.ico",
     "beg": "https://www.bahnland-bayern.de/favicon.ico",
     "db": "https://www.bahn.de/favicon.ico",
+    "vbn_otp": "https://www.vbn.de/favicon.ico",
+    "vbn_trias": "https://www.vbn.de/favicon.ico",
 }

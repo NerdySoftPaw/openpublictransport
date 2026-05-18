@@ -24,6 +24,8 @@ from ..const import (
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_TRANSITOUS,
     PROVIDER_VAGFR,
+    PROVIDER_VBN_OTP,
+    PROVIDER_VBN_TRIAS,
     PROVIDER_VGN,
     PROVIDER_VRN,
     PROVIDER_VRR,
@@ -50,6 +52,7 @@ from .sbb import SBBProvider
 from .trafiklab import TrafiklabProvider
 from .transitous import TransitousProvider
 from .vagfr import VAGFRProvider
+from .vbn import VBNOTPProvider, VBNTriasProvider
 from .vgn import VGNProvider
 from .vrn import VRNProvider
 from .vrr import VRRProvider
@@ -109,3 +112,5 @@ register_provider(PROVIDER_SBB, SBBProvider)
 register_provider(PROVIDER_OEBB, OeBBProvider)
 register_provider(PROVIDER_TRANSITOUS, TransitousProvider)
 register_provider(PROVIDER_DB, DBProvider)
+register_provider(PROVIDER_VBN_OTP, VBNOTPProvider)
+register_provider(PROVIDER_VBN_TRIAS, VBNTriasProvider)

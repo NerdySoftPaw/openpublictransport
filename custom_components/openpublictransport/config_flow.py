@@ -15,6 +15,7 @@ from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig, SelectSelectorMode
 
 from .const import (
     CONF_DELAY_THRESHOLD,
@@ -30,6 +31,7 @@ from .const import (
     CONF_TRAFIKLAB_API_KEY,
     CONF_TRANSPORTATION_TYPES,
     CONF_USE_PROVIDER_LOGO,
+    CONF_VBN_API_KEY,
     CONF_WALKING_TIME,
     DEFAULT_DELAY_THRESHOLD,
     DEFAULT_DEPARTURES,
@@ -40,6 +42,8 @@ from .const import (
     PROVIDER_NTA_IE,
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
+    PROVIDER_VBN_OTP,
+    PROVIDER_VBN_TRIAS,
     PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
@@ -69,39 +73,38 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         self._search_cache: Dict[str, Dict[str, Any]] = {}
         self._cache_ttl: int = 300  # Cache TTL in seconds (5 minutes)
 
-    def _get_provider_schema(self) -> vol.Schema:
-        """Get the provider selection schema with descriptive names."""
-        provider_options = {
-            "vrr": "VRR — Rhein-Ruhr (NRW)",
-            "kvv": "KVV — Karlsruhe",
-            "hvv": "HVV — Hamburg",
-            "bvg": "BVG — Berlin / Brandenburg",
-            "mvv": "MVV — München",
-            "vvs": "VVS — Stuttgart",
-            "vgn": "VGN — Nürnberg",
-            "vagfr": "VAG — Freiburg",
-            "rmv": "RMV — Frankfurt / Rhein-Main (API Key)",
-            "trafiklab_se": "Trafiklab — Schweden (API Key)",
-            "nta_ie": "NTA — Irland (API Key)",
-            "sbb": "SBB — Schweiz",
-            "oebb": "ÖBB — Österreich",
-            "transitous": "Transitous — Weltweit (Community, Beta)",
-            "db": "DB — Deutsche Bahn (Community API)",
-            "vrn": "VRN — Rhein-Neckar",
-            "vvo": "VVO — Dresden",
-            "ding": "DING — Ulm / Donau-Iller",
-            "avv_augsburg": "AVV — Augsburg",
-            "rvv": "RVV — Regensburg",
-            "bsvg": "BSVG — Braunschweig",
-            "nwl": "NWL — Westfalen-Lippe",
-            "nvbw": "NVBW — Baden-Württemberg",
-            "beg": "BEG — Bayern",
-        }
-        return vol.Schema(
-            {
-                vol.Required(CONF_PROVIDER, default=PROVIDER_VRR): vol.In(provider_options),
-            }
-        )
+    @staticmethod
+    def _provider_selector() -> SelectSelector:
+        """Return alphabetically sorted provider dropdown."""
+        options = [
+            {"value": "avv_augsburg", "label": "AVV — Augsburg"},
+            {"value": "beg", "label": "BEG — Bayern"},
+            {"value": "bsvg", "label": "BSVG — Braunschweig"},
+            {"value": "bvg", "label": "BVG — Berlin / Brandenburg"},
+            {"value": "db", "label": "DB — Deutsche Bahn (Community API)"},
+            {"value": "ding", "label": "DING — Ulm / Donau-Iller"},
+            {"value": "hvv", "label": "HVV — Hamburg"},
+            {"value": "kvv", "label": "KVV — Karlsruhe"},
+            {"value": "mvv", "label": "MVV — München"},
+            {"value": "nta_ie", "label": "NTA — Irland (API Key)"},
+            {"value": "nvbw", "label": "NVBW — Baden-Württemberg"},
+            {"value": "nwl", "label": "NWL — Westfalen-Lippe"},
+            {"value": "oebb", "label": "ÖBB — Österreich"},
+            {"value": "rmv", "label": "RMV — Frankfurt / Rhein-Main (API Key)"},
+            {"value": "rvv", "label": "RVV — Regensburg"},
+            {"value": "sbb", "label": "SBB — Schweiz"},
+            {"value": "trafiklab_se", "label": "Trafiklab — Schweden (API Key)"},
+            {"value": "transitous", "label": "Transitous — Weltweit (Community, Beta)"},
+            {"value": "vagfr", "label": "VAG — Freiburg"},
+            {"value": "vbn_otp", "label": "VBN — Bremen / Niedersachsen — OTP (API Key)"},
+            {"value": "vbn_trias", "label": "VBN — Bremen / Niedersachsen — TRIAS (API Key)"},
+            {"value": "vgn", "label": "VGN — Nürnberg"},
+            {"value": "vrn", "label": "VRN — Rhein-Neckar"},
+            {"value": "vrr", "label": "VRR — Rhein-Ruhr (NRW)"},
+            {"value": "vvo", "label": "VVO — Dresden"},
+            {"value": "vvs", "label": "VVS — Stuttgart"},
+        ]
+        return SelectSelector(SelectSelectorConfig(options=options, mode=SelectSelectorMode.DROPDOWN))
 
     async def async_step_user(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Handle the initial step - select entry type and provider."""
@@ -113,7 +116,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
 
             self._provider = user_input[CONF_PROVIDER]
 
-            # Check if provider requires API key
             provider_instance = get_provider(self._provider, self.hass)
             if provider_instance and provider_instance.requires_api_key:
                 return await self.async_step_api_key()
@@ -129,14 +131,11 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             "trip": "Verbindungssuche / Trip Planner (A → B)",
             "multi_stop": "Multi-Stop / Mehrere Haltestellen kombinieren",
         }
-        provider_options = (
-            self._get_provider_schema().schema[vol.Required(CONF_PROVIDER, default=PROVIDER_VRR)].container
-        )
 
         schema = vol.Schema(
             {
                 vol.Required("entry_type", default="departures"): vol.In(entry_type_options),
-                vol.Required(CONF_PROVIDER, default=PROVIDER_VRR): vol.In(provider_options),
+                vol.Required(CONF_PROVIDER, default=PROVIDER_VRR): self._provider_selector(),
             }
         )
 
@@ -175,6 +174,13 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 else:
                     self._api_key = api_key
                     return await self._async_next_step_after_api_key()
+            elif self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
+                api_key = user_input.get(CONF_VBN_API_KEY, "").strip()
+                if not api_key:
+                    errors[CONF_VBN_API_KEY] = "vbn_api_key_required"
+                else:
+                    self._api_key = api_key
+                    return await self._async_next_step_after_api_key()
 
         # Show appropriate schema based on provider
         provider_instance = get_provider(self._provider, self.hass)
@@ -192,6 +198,13 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 }
             )
             description = "RMV API key is required. Request one at opendata.rmv.de"
+        elif self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
+            schema = vol.Schema(
+                {
+                    vol.Required(CONF_VBN_API_KEY): str,
+                }
+            )
+            description = "VBN API key is required. Request a free key at api@vbn.de"
         else:  # NTA
             schema = vol.Schema(
                 {
@@ -222,7 +235,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         together with the search field so the user can refine or select.
         """
         # Validate API key for providers that need it
-        if self._provider in (PROVIDER_TRAFIKLAB_SE, PROVIDER_RMV) and not self._api_key:
+        if (
+            self._provider in (PROVIDER_TRAFIKLAB_SE, PROVIDER_RMV, PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS)
+            and not self._api_key
+        ):
             return await self.async_step_api_key()
         if self._provider == PROVIDER_NTA_IE and not self._api_key:
             return self.async_show_form(
@@ -404,6 +420,14 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                         errors={"base": "rmv_api_key_required"},
                     )
                 data[CONF_RMV_API_KEY] = self._api_key
+            elif self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
+                if not self._api_key:
+                    return self.async_show_form(
+                        step_id="settings",
+                        data_schema=schema,
+                        errors={"base": "vbn_api_key_required"},
+                    )
+                data[CONF_VBN_API_KEY] = self._api_key
 
             # Create unique ID (self._selected_stop validated above)
             unique_id = f"{self._provider}_{self._selected_stop['id']}"

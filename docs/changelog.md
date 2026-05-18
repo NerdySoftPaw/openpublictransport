@@ -1,5 +1,39 @@
 # Changelog
 
+## v2026.5.2 - VBN Provider (OTP + TRIAS) & New OTPBaseProvider
+
+### New Providers
+
+- **VBN OTP** (`vbn_otp`) — Bremen, Bremerhaven, and surrounding Lower Saxony counties via OpenTripPlanner REST API (`http://gtfsr.vbn.de/api/`). API key required (free, request at api@vbn.de).
+- **VBN TRIAS** (`vbn_trias`) — Same region via TRIAS XML API (`https://fahrplaner.vbn.de/triasproxy/`). Same API key (or a separate TRIAS key from VBN).
+
+Both providers use `Authorization: <key>` (plain header, no Bearer prefix). Choose the variant that matches the key VBN issued you.
+
+### New Architecture
+
+- **OTPBaseProvider** (`otp_base.py`) — Base class for OpenTripPlanner REST API providers, analogous to `TRIASBaseProvider`. Handles Nominatim geocoding for stop search, stoptimes + routes fetch, alerts, and `parse_departure`. Subclasses only define `otp_base_url`, `provider_id`, `provider_name`, and optional `_auth_headers()`.
+- **`_extra_headers()` hook** in `TRIASBaseProvider` — lets subclasses inject HTTP auth headers without modifying the base class.
+
+### New Features (VBN OTP)
+
+- **Agency/Operator** — Operator name (e.g. "Bremer Straßenbahn AG") extracted from the OTP routes endpoint and exposed as `agency` on every departure.
+- **Stop alerts** — Active service alerts fetched from `/index/stops/{id}/alerts` and attached as `notices` to all departures at the stop.
+
+### Improvements
+
+- **Alphabetical provider order** — All 26 providers sorted A–Z in the dropdown and documentation.
+- **Provider comparison table** — Added Agency/Operator and Alerts/Notices rows across all providers.
+
+### Documentation
+
+- Provider docs: `docs/providers/vbn.md` — both API variants, correct `Authorization: <key>` header format, per-variant feature table, quotas, troubleshooting.
+- Provider count updated to 26 across README and docs.
+
+!!! info "Total providers: 26"
+    VBN joins as two separate selectable variants (OTP + TRIAS) for a total of 26 provider options.
+
+---
+
 ## v2026.4.16 - Deutsche Bahn, TRIAS Protocol, New Logo & Website
 
 ### New Provider

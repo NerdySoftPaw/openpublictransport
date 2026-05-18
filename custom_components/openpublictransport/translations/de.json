@@ -7,9 +7,6 @@
         "data": {
           "provider": "Anbieter",
           "entry_type": "Typ"
-        },
-        "data_description": {
-          "provider": "VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, RMV, SBB, ÖBB, Transitous, Trafiklab oder NTA"
         }
       },
       "stop_search": {
@@ -33,13 +30,15 @@
           "trafiklab_api_key": "Trafiklab API-Schlüssel",
           "nta_api_key": "NTA Primary API-Schlüssel",
           "nta_api_key_secondary": "NTA Secondary API-Schlüssel (optional)",
-          "rmv_api_key": "RMV API-Schlüssel"
+          "rmv_api_key": "RMV API-Schlüssel",
+          "vbn_api_key": "VBN API-Schlüssel"
         },
         "data_description": {
           "trafiklab_api_key": "Trafiklab API-Schlüssel (erhältlich auf trafiklab.se)",
           "nta_api_key": "NTA Primary API-Schlüssel (erforderlich, erhältlich auf developer.nationaltransport.ie)",
           "nta_api_key_secondary": "NTA Secondary API-Schlüssel (optional, als Fallback)",
-          "rmv_api_key": "RMV API-Schlüssel (erhältlich auf opendata.rmv.de)"
+          "rmv_api_key": "RMV API-Schlüssel (erhältlich auf opendata.rmv.de)",
+          "vbn_api_key": "VBN API-Schlüssel — gilt für OTP und TRIAS. Kostenlos für private Nutzung, per E-Mail anfragen bei api@vbn.de"
         }
       },
       "settings": {
@@ -104,6 +103,7 @@
       "trafiklab_api_key_required": "Trafiklab API-Schlüssel ist erforderlich",
       "nta_api_key_required": "NTA API-Schlüssel ist erforderlich",
       "rmv_api_key_required": "RMV API-Schlüssel ist erforderlich",
+      "vbn_api_key_required": "VBN API-Schlüssel ist erforderlich",
       "min_two_entities": "Bitte mindestens 2 Entity-IDs angeben"
     }
   },

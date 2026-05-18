@@ -136,10 +136,14 @@ class TRIASBaseProvider(BaseProvider):
   </ServiceRequest>
 </Trias>"""
 
+    def _extra_headers(self) -> Dict[str, str]:
+        """Additional HTTP headers for TRIAS requests. Override in subclasses for auth."""
+        return {}
+
     async def _post_trias(self, xml_body: str) -> Optional[ET.Element]:
         """Send POST request to TRIAS endpoint and parse XML response."""
         session = async_get_clientsession(self.hass)
-        headers = {"Content-Type": "text/xml; charset=utf-8"}
+        headers = {"Content-Type": "text/xml; charset=utf-8", **self._extra_headers()}
 
         try:
             async with session.post(

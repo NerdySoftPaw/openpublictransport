@@ -4,15 +4,19 @@ The Public Transport Integration supports multiple transit providers across Euro
 
 ## Provider Comparison
 
-| Feature | VRR | KVV | HVV | MVV | VVS | VGN | VAG Freiburg | BVG | RMV | VRN | VVO | DING | AVV | RVV | BSVG | NWL | NVBW | BEG | SBB | ÖBB | Trafiklab | NTA | Transitous |
-|---------|-----|-----|-----|-----|-----|-----|--------------|-----|-----|-----|-----|------|-----|-----|------|-----|------|-----|-----|-----|-----------|-----|-----------|
-| **Region** | NRW | Karlsruhe | Hamburg | Munich | Stuttgart | Nuremberg | Freiburg | Berlin | Frankfurt | Rhein-Neckar | Dresden | Ulm | Augsburg | Regensburg | Braunschweig | Westfalen-Lippe | Baden-Württemberg | Bayern | Switzerland | Austria | Sweden | Ireland | Worldwide |
-| **API Type** | EFA | EFA | EFA | EFA | EFA | EFA | EFA | FPTF REST | HAFAS REST | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | REST | FPTF REST | REST | GTFS-RT | MOTIS2 |
-| **API Key** | No | No | No | No | No | No | No | No | Yes (free) | No | No | No | No | No | No | No | No | No | No | No | Yes (free) | Yes (free) | No |
-| **Real-time Data** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | When available |
-| **Delay Information** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | When available |
-| **Platform Info** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Limited | When available |
-| **Stop Search** | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Stop ID | Autocomplete |
+| Feature | VRR | KVV | HVV | MVV | VVS | VGN | VAG Freiburg | BVG | RMV | VBN OTP | VBN TRIAS | VRN | VVO | DING | AVV | RVV | BSVG | NWL | NVBW | BEG | SBB | ÖBB | Trafiklab | NTA | Transitous |
+|---------|-----|-----|-----|-----|-----|-----|--------------|-----|-----|---------|-----------|-----|-----|------|-----|-----|------|-----|------|-----|-----|-----|-----------|-----|-----------|
+| **Region** | NRW | Karlsruhe | Hamburg | Munich | Stuttgart | Nuremberg | Freiburg | Berlin | Frankfurt | Bremen/Niedersachsen | Bremen/Niedersachsen | Rhein-Neckar | Dresden | Ulm | Augsburg | Regensburg | Braunschweig | Westfalen-Lippe | Baden-Württemberg | Bayern | Switzerland | Austria | Sweden | Ireland | Worldwide |
+| **API Type** | EFA | EFA | EFA | EFA | EFA | EFA | EFA | FPTF REST | HAFAS REST | OTP REST | TRIAS XML | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | REST | FPTF REST | REST | GTFS-RT | MOTIS2 |
+| **API Key** | No | No | No | No | No | No | No | No | Yes (free) | Yes (free) | Yes (free) | No | No | No | No | No | No | No | No | No | No | No | Yes (free) | Yes (free) | No |
+| **Real-time Data** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | When available |
+| **Delay Information** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | When available |
+| **Platform Info** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Limited | When available |
+| **Agency/Operator** | No | No | No | No | No | No | No | Yes | Yes | Yes | No | No | No | No | No | No | No | No | No | No | No | Yes | Yes | No | When available |
+| **Alerts/Notices** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes | No | Yes | When available |
+| **Stop Search** | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Geocoded¹ | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Stop ID | Autocomplete |
+
+¹ VBN OTP has no native name-based stop search. The integration geocodes your search term via Nominatim (OpenStreetMap) and finds stops within 500 m of the resolved coordinates.
 
 ## Timezone Handling
 
@@ -29,6 +33,8 @@ Each provider uses its local timezone for departure times:
 | VAG Freiburg | Europe/Berlin |
 | BVG | Europe/Berlin |
 | RMV | Europe/Berlin |
+| VBN OTP | Europe/Berlin |
+| VBN TRIAS | Europe/Berlin |
 | VRN | Europe/Berlin |
 | VVO | Europe/Berlin |
 | DING | Europe/Berlin |
@@ -107,6 +113,33 @@ Different providers use different internal classification systems. The integrati
 | U | subway | U-Bahn |
 | Tram | tram | Tram/Straßenbahn |
 | Bus | bus | Bus services |
+
+### VBN Transport Modes
+
+VBN is available as two separate provider variants. Both use `Authorization: <key>` (no Bearer prefix).
+
+**VBN TRIAS — PtMode strings:**
+
+| PtMode | Type | Description |
+|--------|------|-------------|
+| rail | train | Regional and long-distance trains |
+| urbanRail | train | S-Bahn |
+| metro | subway | Metro/U-Bahn |
+| tram | tram | Tram/Straßenbahn |
+| bus | bus | City and regional bus |
+| coach | bus | Coach/Express bus |
+| water | ferry | Ferry |
+
+**VBN OTP — GTFS route modes:**
+
+| Mode | Type | Description |
+|------|------|-------------|
+| RAIL | train | Regional trains |
+| TRAM | tram | Tram/Straßenbahn |
+| BUS | bus | City and regional bus |
+| COACH | bus | Express/regional bus |
+| SUBWAY | subway | Metro/U-Bahn |
+| FERRY | ferry | Ferry |
 
 ### Trafiklab Transport Modes
 

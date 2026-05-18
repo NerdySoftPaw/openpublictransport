@@ -252,7 +252,6 @@ def _parse_otp_itineraries(itineraries: List[Dict[str, Any]]) -> List[Dict[str, 
 
         first_dep = transit_legs[0].get("departure_estimated") or transit_legs[0].get("departure_planned", "")
         last_arr = transit_legs[-1].get("arrival_estimated") or transit_legs[-1].get("arrival_planned", "")
-        duration_ms = itin.get("duration", 0) * 1000  # OTP duration is in seconds
 
         results.append(
             {

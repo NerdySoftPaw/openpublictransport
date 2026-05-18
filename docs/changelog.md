@@ -1,5 +1,25 @@
 # Changelog
 
+## v2026.5.3 - VBN OTP Trip Planner
+
+### New Features
+
+- **VBN OTP trip planner** — VBN OTP now supports the built-in trip planner (`entry_type = "trip"`). The integration calls the OTP `/plan` endpoint with `TRANSIT,WALK` mode, resolves stop coordinates from the OTP index automatically, and parses up to 3 itineraries into the unified journey format with legs, delay, and transfer risk assessment.
+
+### Improvements
+
+- **Trip planner comparison table** — Added Trip Planner row to the provider comparison table in docs and README.
+- **HTTP 204 on `/alerts`** — OTP returns 204 (No Content) when there are no active alerts. Treated silently as "no alerts" instead of logging a warning.
+
+### Bugfixes
+
+- **VBN OTP trip: API key not passed** — The trip config entry did not persist the API key, causing 401 errors on `/index/stops` and `/plan` calls. Fixed: `async_step_trip_settings()` now saves `CONF_VBN_API_KEY` when the provider requires one.
+
+!!! note "VBN TRIAS"
+    VBN TRIAS does not support trip planning. TRIAS XML trip requests are not implemented.
+
+---
+
 ## v2026.5.2 - VBN Provider (OTP + TRIAS) & New OTPBaseProvider
 
 ### New Providers

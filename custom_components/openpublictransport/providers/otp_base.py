@@ -162,16 +162,33 @@ class OTPBaseProvider(BaseProvider):
         session = async_get_clientsession(self.hass)
         mode_mapping = self.get_mode_mapping()
 
-        # Routes at stop → line shortName + transport mode (deduplicate by ID)
+        # Routes at stop → line shortName + transport mode + agency (deduplicate by ID)
         routes_data = await self._get(session, self._index_url(f"stops/{encoded_id}/routes"))
         route_map: Dict[str, Dict[str, str]] = {}
         if routes_data:
             for r in routes_data:
                 if isinstance(r, dict) and "id" in r and r["id"] not in route_map:
+                    agency = r.get("agencyName") or (
+                        r["agency"]["name"] if isinstance(r.get("agency"), dict) else None
+                    )
                     route_map[r["id"]] = {
                         "shortName": r.get("shortName") or r.get("longName", ""),
                         "mode": mode_mapping.get(r.get("mode", ""), "unknown"),
+                        "agency": agency or "",
                     }
+
+        # Active alerts for this stop
+        alerts_data = await self._get(session, self._index_url(f"stops/{encoded_id}/alerts"))
+        stop_notices: List[str] = []
+        if alerts_data:
+            seen: set = set()
+            for alert in alerts_data:
+                if not isinstance(alert, dict):
+                    continue
+                text = alert.get("alertHeaderText") or alert.get("alertDescriptionText") or ""
+                if text and text not in seen:
+                    stop_notices.append(text)
+                    seen.add(text)
 
         # Stoptimes — numberOfDepartures is per pattern, not total
         stoptimes = await self._get(
@@ -201,6 +218,8 @@ class OTPBaseProvider(BaseProvider):
                 stop_events.append({
                     "routeName": route_info.get("shortName") or pattern.get("desc", ""),
                     "transportType": route_info.get("mode", "unknown"),
+                    "agency": route_info.get("agency", ""),
+                    "notices": stop_notices or None,
                     "serviceDay": t.get("serviceDay", 0),
                     "scheduledDeparture": t.get("scheduledDeparture", 0),
                     "realtimeDeparture": t.get("realtimeDeparture", 0),
@@ -231,6 +250,9 @@ class OTPBaseProvider(BaseProvider):
             delay_min = max(0, int(stop.get("departureDelay", 0) / 60))
             minutes_until = max(0, int((actual - now).total_seconds() / 60))
 
+            agency = stop.get("agency") or None
+            notices = stop.get("notices") or None
+
             return UnifiedDeparture(
                 line=stop.get("routeName", ""),
                 destination=stop.get("headsign", "Unknown"),
@@ -243,8 +265,8 @@ class OTPBaseProvider(BaseProvider):
                 minutes_until_departure=minutes_until,
                 departure_time_obj=actual,
                 description=None,
-                agency=None,
-                notices=None,
+                agency=agency,
+                notices=notices,
                 planned_platform=None,
                 platform_changed=False,
             )

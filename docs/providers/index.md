@@ -12,7 +12,11 @@ The Public Transport Integration supports multiple transit providers across Euro
 | **Real-time Data** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | When available |
 | **Delay Information** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | When available |
 | **Platform Info** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Limited | When available |
-| **Stop Search** | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Stop ID | Autocomplete |
+| **Agency/Operator** | No | No | No | No | No | No | No | Yes | Yes | Yes | No | No | No | No | No | No | No | No | No | No | No | Yes | Yes | No | When available |
+| **Alerts/Notices** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes | No | Yes | When available |
+| **Stop Search** | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Geocoded¹ | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Stop ID | Autocomplete |
+
+¹ VBN OTP has no native name-based stop search. The integration geocodes your search term via Nominatim (OpenStreetMap) and finds stops within 500 m of the resolved coordinates.
 
 ## Timezone Handling
 
@@ -110,11 +114,11 @@ Different providers use different internal classification systems. The integrati
 | Tram | tram | Tram/Straßenbahn |
 | Bus | bus | Bus services |
 
-### VBN Transport Modes (TRIAS + OTP fallback)
+### VBN Transport Modes
 
-VBN uses TRIAS as the primary API. If TRIAS is unavailable, the integration automatically falls back to VBN's OpenTripPlanner REST API. Both APIs use the same API key (`Authorization: Bearer <key>`).
+VBN is available as two separate provider variants. Both use `Authorization: <key>` (no Bearer prefix).
 
-**TRIAS PtMode strings:**
+**VBN TRIAS — PtMode strings:**
 
 | PtMode | Type | Description |
 |--------|------|-------------|
@@ -126,7 +130,7 @@ VBN uses TRIAS as the primary API. If TRIAS is unavailable, the integration auto
 | coach | bus | Coach/Express bus |
 | water | ferry | Ferry |
 
-**OTP GTFS route modes (fallback):**
+**VBN OTP — GTFS route modes:**
 
 | Mode | Type | Description |
 |------|------|-------------|

@@ -1,5 +1,18 @@
 # Changelog
 
+## v2026.5.2 - VBN Provider (OTP + TRIAS), OTPBaseProvider, Agency & Alerts
+
+### Improvements
+
+- **VBN OTP: agency/operator** — Operator name (e.g. "Bremer Straßenbahn AG") extracted from the OTP routes endpoint and exposed as `agency` on every departure.
+- **VBN OTP: stop alerts** — Active service alerts fetched from `/index/stops/{id}/alerts` and attached as `notices` to all departures at the stop.
+- **VBN OTP: auth fix** — `CONF_VBN_API_KEY` is now correctly extracted from the config entry and passed to the provider in both `__init__.py` and the `sensor.py` fallback coordinator.
+- **VBN OTP: omitNonPickups fix** — Query parameter changed from Python `True` to string `"true"` (aiohttp requirement).
+- **Provider comparison table** — Added Agency/Operator and Alerts/Notices rows; footnote explaining VBN OTP's geocoded stop search.
+- **VBN docs rewritten** — Corrected auth header format, removed incorrect auto-fallback description, added per-variant feature table.
+
+---
+
 ## v2026.5.2 - VBN Provider (OTP + TRIAS) & New OTPBaseProvider
 
 ### New Providers

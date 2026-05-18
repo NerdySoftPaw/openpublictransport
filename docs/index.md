@@ -1,13 +1,13 @@
 # openpublictransport
 
-Real-time public transport departures for Home Assistant — 25 providers across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide.
+Real-time public transport departures for Home Assistant — 26 providers across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide.
 
 !!! tip "Coming from VRRAPI-HACS or hacs-publictransport?"
     This is the new official repository! The domain changed from `vrr` to `openpublictransport` — entity IDs and services have new names.
     
     **[→ Migration Guide](migration.md)** — Step-by-step instructions for both migrations.
 
-## Supported Providers (25)
+## Supported Providers (26)
 
 | Provider | Region | API Type | API Key |
 |----------|--------|----------|---------|
@@ -30,7 +30,8 @@ Real-time public transport departures for Home Assistant — 25 providers across
 | **Trafiklab** | Sweden (nationwide) | REST | Yes (free) |
 | **Transitous** | Worldwide (community) | MOTIS2 | No |
 | **VAG** | Freiburg | EFA | No |
-| **VBN** | Bremen / Niedersachsen | TRIAS / OTP | Yes (free) |
+| **VBN (OTP)** | Bremen / Niedersachsen | OTP REST | Yes (free) |
+| **VBN (TRIAS)** | Bremen / Niedersachsen | TRIAS XML | Yes (free) |
 | **VGN** | Nuremberg | EFA | No |
 | **VRN** | Rhein-Neckar | EFA | No |
 | **VRR** | Rhein-Ruhr (NRW) | EFA | No |

@@ -1,29 +1,30 @@
 # Changelog
 
-## v2026.5.2 - VBN Provider & Alphabetical Provider Dropdown
+## v2026.5.2 - VBN Provider (OTP + TRIAS) & New OTPBaseProvider
 
-### New Provider
+### New Providers
 
-- **VBN (Verkehrsverbund Bremen/Niedersachsen)** - Bremen, Bremerhaven, and surrounding Lower Saxony counties. API key required (free, request at api@vbn.de, 3,000 transactions/day for hobbyists).
+- **VBN OTP** (`vbn_otp`) — Bremen, Bremerhaven, and surrounding Lower Saxony counties via OpenTripPlanner REST API (`http://gtfsr.vbn.de/api/`). API key required (free, request at api@vbn.de).
+- **VBN TRIAS** (`vbn_trias`) — Same region via TRIAS XML API (`https://fahrplaner.vbn.de/triasproxy/`). Same API key.
 
-  VBN supports two APIs, both using `Authorization: Bearer <key>`:
-  - **TRIAS** (`https://fahrplaner.vbn.de/triasproxy/`) — primary
-  - **OTP REST** (`http://gtfsr.vbn.de/api/`) — automatic fallback if TRIAS is unavailable
+Both providers use `Authorization: <key>` HTTP header. Choose based on which API key VBN issued you.
 
-  The integration detects which API works and switches automatically — no configuration needed.
+### New Architecture
+
+- **OTPBaseProvider** (`otp_base.py`) — Base class for OpenTripPlanner REST API providers, analogous to `TRIASBaseProvider`. Handles stop search, stoptimes + routes fetch, and `parse_departure`. Subclasses only define `otp_base_url`, `provider_id`, `provider_name`, and optional `_auth_headers()`.
+- **`_extra_headers()` hook** in `TRIASBaseProvider` — lets subclasses inject HTTP auth headers without modifying the base class.
 
 ### Improvements
 
-- **Alphabetical provider order** - All 25 providers sorted A–Z in the dropdown and documentation.
-- **TRIAS auth header support** - Added `_extra_headers()` hook to `TRIASBaseProvider` so providers that require HTTP-level authentication (like VBN) can inject `Authorization` headers without touching the base class.
+- **Alphabetical provider order** — All 26 providers sorted A–Z in the dropdown and documentation.
 
 ### Documentation
 
-- Provider docs: new page `docs/providers/vbn.md` with API key instructions, quota info, both API endpoints, and troubleshooting.
-- All provider counts updated to 25 across README and docs.
+- Provider docs: `docs/providers/vbn.md` — both API endpoints, auth header format, quotas, troubleshooting.
+- Provider count updated to 26 across README and docs.
 
-!!! info "Total providers: 25"
-    VBN joins as the 25th provider. Both TRIAS and OTP REST are supported with automatic fallback.
+!!! info "Total providers: 26"
+    VBN joins as two separate selectable variants (OTP + TRIAS) for a total of 26 provider options.
 
 ---
 

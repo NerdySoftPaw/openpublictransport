@@ -13,7 +13,7 @@
 [![Code Quality](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml)
 [![Tests](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml)
 
-Real-time public transport departures for Home Assistant — 25 providers across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide.
+Real-time public transport departures for Home Assistant — 26 providers across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide.
 
 **Website**: [openpublictransport.net](https://openpublictransport.net) | **Docs**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
@@ -21,7 +21,7 @@ Real-time public transport departures for Home Assistant — 25 providers across
 > The domain changed from `vrr` to `openpublictransport` — entity IDs and services have new names.
 > See the [Migration Guide](https://docs.openpublictransport.net/migration/) for step-by-step instructions.
 
-## Supported Providers (25)
+## Supported Providers (26)
 
 | Provider | Region | API Key |
 |----------|--------|---------|
@@ -44,7 +44,8 @@ Real-time public transport departures for Home Assistant — 25 providers across
 | **Trafiklab** | Sweden (nationwide) | Yes (free) |
 | **Transitous** | Worldwide (community) | No |
 | **VAG** | Freiburg | No |
-| **VBN** | Bremen / Niedersachsen | Yes (free) |
+| **VBN (OTP)** | Bremen / Niedersachsen | Yes (free) |
+| **VBN (TRIAS)** | Bremen / Niedersachsen | Yes (free) |
 | **VGN** | Nuremberg | No |
 | **VRN** | Rhein-Neckar | No |
 | **VRR** | Rhein-Ruhr (NRW) | No |
@@ -54,7 +55,7 @@ Real-time public transport departures for Home Assistant — 25 providers across
 ## Features
 
 - **Real-time departures** with delay tracking, platform changes, and disruption notices
-- **25 transit providers** — most require no API key
+- **26 transit providers** — most require no API key
 - **Trip planner** — A-to-B routes with transfer risk assessment
 - **7 entity types** — sensor, binary sensor, calendar, event, camera, trip sensor, statistics
 - **4 services** — refresh_departures, plan_trip, check_delays, announce_departure (TTS)

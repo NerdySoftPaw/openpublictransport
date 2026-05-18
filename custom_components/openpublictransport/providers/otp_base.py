@@ -15,6 +15,7 @@ coordinates, then OTP /index/stops?lat=&lon=&radius= to find nearby stops.
 OTP 2.3.0 REST does not support name-based stop search natively.
 """
 
+import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -162,8 +163,22 @@ class OTPBaseProvider(BaseProvider):
         session = async_get_clientsession(self.hass)
         mode_mapping = self.get_mode_mapping()
 
-        # Routes at stop → line shortName + transport mode + agency (deduplicate by ID)
-        routes_data = await self._get(session, self._index_url(f"stops/{encoded_id}/routes"))
+        # Fetch routes, alerts, and stoptimes concurrently
+        routes_data, alerts_data, stoptimes = await asyncio.gather(
+            self._get(session, self._index_url(f"stops/{encoded_id}/routes")),
+            self._get(session, self._index_url(f"stops/{encoded_id}/alerts")),
+            self._get(
+                session,
+                self._index_url(f"stops/{encoded_id}/stoptimes"),
+                {
+                    "timeRange": 7200,
+                    "numberOfDepartures": max(departures_limit, 5),
+                    "omitNonPickups": "true",
+                },
+            ),
+        )
+
+        # Routes → line shortName + transport mode + agency (deduplicate by ID)
         route_map: Dict[str, Dict[str, str]] = {}
         if routes_data:
             for r in routes_data:
@@ -176,7 +191,6 @@ class OTPBaseProvider(BaseProvider):
                     }
 
         # Active alerts for this stop
-        alerts_data = await self._get(session, self._index_url(f"stops/{encoded_id}/alerts"))
         stop_notices: List[str] = []
         if alerts_data:
             seen: set = set()
@@ -187,17 +201,6 @@ class OTPBaseProvider(BaseProvider):
                 if text and text not in seen:
                     stop_notices.append(text)
                     seen.add(text)
-
-        # Stoptimes — numberOfDepartures is per pattern, not total
-        stoptimes = await self._get(
-            session,
-            self._index_url(f"stops/{encoded_id}/stoptimes"),
-            {
-                "timeRange": 7200,
-                "numberOfDepartures": max(departures_limit, 5),
-                "omitNonPickups": "true",
-            },
-        )
         if stoptimes is None:
             return None
 

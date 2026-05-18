@@ -156,7 +156,7 @@ class TRIASBaseProvider(BaseProvider):
                     text = await response.text()
                     return ET.fromstring(text)
                 else:
-                    _LOGGER.debug("%s TRIAS API returned status %s", self.provider_name, response.status)
+                    _LOGGER.warning("%s TRIAS API returned status %s", self.provider_name, response.status)
         except aiohttp.ClientError as e:
             _LOGGER.warning("%s TRIAS API request failed: %s", self.provider_name, e)
         except ET.ParseError as e:

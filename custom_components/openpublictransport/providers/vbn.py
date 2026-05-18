@@ -21,7 +21,7 @@ from .trias_base import TRIASBaseProvider
 class VBNOTPProvider(OTPBaseProvider):
     """VBN via OpenTripPlanner REST API (http://gtfsr.vbn.de/api/)."""
 
-    otp_base_url = "http://gtfsr.vbn.de/api/otp/routers/default"
+    otp_base_url = "http://gtfsr.vbn.de/api/routers/default"
 
     def __init__(
         self,

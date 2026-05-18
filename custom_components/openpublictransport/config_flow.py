@@ -157,7 +157,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     errors[CONF_TRAFIKLAB_API_KEY] = "trafiklab_api_key_required"
                 else:
                     self._api_key = api_key
-                    return await self.async_step_stop_search()
+                    return await self._async_next_step_after_api_key()
             elif self._provider == PROVIDER_NTA_IE:
                 api_key = user_input.get(CONF_NTA_API_KEY, "").strip()
                 api_key_secondary = user_input.get(CONF_NTA_API_KEY_SECONDARY, "").strip()
@@ -166,21 +166,21 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 else:
                     self._api_key = api_key
                     self._api_key_secondary = api_key_secondary if api_key_secondary else None
-                    return await self.async_step_stop_search()
+                    return await self._async_next_step_after_api_key()
             elif self._provider == PROVIDER_RMV:
                 api_key = user_input.get(CONF_RMV_API_KEY, "").strip()
                 if not api_key:
                     errors[CONF_RMV_API_KEY] = "rmv_api_key_required"
                 else:
                     self._api_key = api_key
-                    return await self.async_step_stop_search()
+                    return await self._async_next_step_after_api_key()
             elif self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
                 api_key = user_input.get(CONF_VBN_API_KEY, "").strip()
                 if not api_key:
                     errors[CONF_VBN_API_KEY] = "vbn_api_key_required"
                 else:
                     self._api_key = api_key
-                    return await self.async_step_stop_search()
+                    return await self._async_next_step_after_api_key()
 
         # Show appropriate schema based on provider
         provider_instance = get_provider(self._provider, self.hass)
@@ -220,6 +220,13 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             errors=errors,
             description_placeholders={"info": description},
         )
+
+    async def _async_next_step_after_api_key(self) -> FlowResult:
+        """Route to trip search or stop search depending on entry_type."""
+        if self._entry_type == "trip":
+            self._trip_search_phase = "origin"
+            return await self.async_step_trip_search()
+        return await self.async_step_stop_search()
 
     async def async_step_stop_search(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Handle combined stop search and selection step.

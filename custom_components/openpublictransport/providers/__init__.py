@@ -24,9 +24,9 @@ from ..const import (
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_TRANSITOUS,
     PROVIDER_VAGFR,
-    PROVIDER_VGN,
     PROVIDER_VBN_OTP,
     PROVIDER_VBN_TRIAS,
+    PROVIDER_VGN,
     PROVIDER_VRN,
     PROVIDER_VRR,
     PROVIDER_VVO,
@@ -52,10 +52,10 @@ from .sbb import SBBProvider
 from .trafiklab import TrafiklabProvider
 from .transitous import TransitousProvider
 from .vagfr import VAGFRProvider
+from .vbn import VBNOTPProvider, VBNTriasProvider
 from .vgn import VGNProvider
 from .vrn import VRNProvider
 from .vrr import VRRProvider
-from .vbn import VBNOTPProvider, VBNTriasProvider
 from .vvo import VVOProvider
 from .vvs import VVSProvider
 

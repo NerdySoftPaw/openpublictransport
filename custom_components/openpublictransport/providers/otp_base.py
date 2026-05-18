@@ -84,6 +84,8 @@ class OTPBaseProvider(BaseProvider):
             ) as resp:
                 if resp.status == 200:
                     return await resp.json()
+                if resp.status == 204:
+                    return None  # No content — normal for empty alerts
                 _LOGGER.warning("%s OTP %s → HTTP %s", self.provider_name, url, resp.status)
         except aiohttp.ClientError as exc:
             _LOGGER.warning("%s OTP request failed: %s", self.provider_name, exc)

@@ -1219,6 +1219,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 CONF_SCAN_INTERVAL: user_input.get(CONF_SCAN_INTERVAL, 120),
             }
 
+            # Persist API key for providers that require one
+            if self._api_key and self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
+                data[CONF_VBN_API_KEY] = self._api_key
+
             unique_id = f"{self._provider}_trip_{origin.get('id', '')}_{dest.get('id', '')}"
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()

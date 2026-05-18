@@ -15,12 +15,15 @@ from .const import (
     CONF_SCAN_INTERVAL,
     CONF_STATION_ID,
     CONF_TRAFIKLAB_API_KEY,
+    CONF_VBN_API_KEY,
     DEFAULT_DEPARTURES,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     PROVIDER_NTA_IE,
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
+    PROVIDER_VBN_OTP,
+    PROVIDER_VBN_TRIAS,
 )
 from .sensor import PublicTransportDataUpdateCoordinator
 from .trip import async_plan_trip
@@ -100,6 +103,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     trafiklab_api_key = entry.data.get(CONF_TRAFIKLAB_API_KEY)  # For Trafiklab
     nta_api_key = entry.data.get(CONF_NTA_API_KEY)  # For NTA
     rmv_api_key = entry.data.get(CONF_RMV_API_KEY)  # For RMV
+    vbn_api_key = entry.data.get(CONF_VBN_API_KEY)  # For VBN (OTP + TRIAS)
 
     # Use appropriate API key based on provider
     api_key = None
@@ -109,6 +113,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         api_key = nta_api_key
     elif provider == PROVIDER_RMV:
         api_key = rmv_api_key
+    elif provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
+        api_key = vbn_api_key
 
     departures = entry.options.get(CONF_DEPARTURES, entry.data.get(CONF_DEPARTURES, DEFAULT_DEPARTURES))
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))

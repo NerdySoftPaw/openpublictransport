@@ -180,7 +180,7 @@ class OTPBaseProvider(BaseProvider):
             {
                 "timeRange": 7200,
                 "numberOfDepartures": max(departures_limit, 5),
-                "omitNonPickups": True,
+                "omitNonPickups": "true",
             },
         )
         if stoptimes is None:

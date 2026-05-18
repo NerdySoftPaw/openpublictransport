@@ -26,6 +26,7 @@ from .const import (
     CONF_TRAFIKLAB_API_KEY,
     CONF_TRANSPORTATION_TYPES,
     CONF_USE_PROVIDER_LOGO,
+    CONF_VBN_API_KEY,
     CONF_WALKING_TIME,
     DEFAULT_DEPARTURES,
     DEFAULT_NAME,
@@ -36,6 +37,8 @@ from .const import (
     PROVIDER_ENTITY_PICTURES,
     PROVIDER_NTA_IE,
     PROVIDER_TRAFIKLAB_SE,
+    PROVIDER_VBN_OTP,
+    PROVIDER_VBN_TRIAS,
     PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
@@ -261,6 +264,7 @@ async def async_setup_entry(
         station_id = config_entry.data.get(CONF_STATION_ID)
         trafiklab_api_key = config_entry.data.get(CONF_TRAFIKLAB_API_KEY)
         nta_api_key = config_entry.data.get(CONF_NTA_API_KEY)
+        vbn_api_key = config_entry.data.get(CONF_VBN_API_KEY)
 
         # Use appropriate API key based on provider
         api_key = None
@@ -268,6 +272,8 @@ async def async_setup_entry(
             api_key = trafiklab_api_key
         elif provider == PROVIDER_NTA_IE:
             api_key = nta_api_key
+        elif provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
+            api_key = vbn_api_key
 
         departures = config_entry.options.get(
             CONF_DEPARTURES, config_entry.data.get(CONF_DEPARTURES, DEFAULT_DEPARTURES)

@@ -168,9 +168,7 @@ class OTPBaseProvider(BaseProvider):
         if routes_data:
             for r in routes_data:
                 if isinstance(r, dict) and "id" in r and r["id"] not in route_map:
-                    agency = r.get("agencyName") or (
-                        r["agency"]["name"] if isinstance(r.get("agency"), dict) else None
-                    )
+                    agency = r.get("agencyName") or (r["agency"]["name"] if isinstance(r.get("agency"), dict) else None)
                     route_map[r["id"]] = {
                         "shortName": r.get("shortName") or r.get("longName", ""),
                         "mode": mode_mapping.get(r.get("mode", ""), "unknown"),
@@ -215,19 +213,21 @@ class OTPBaseProvider(BaseProvider):
             for t in group.get("times", []):
                 if not isinstance(t, dict):
                     continue
-                stop_events.append({
-                    "routeName": route_info.get("shortName") or pattern.get("desc", ""),
-                    "transportType": route_info.get("mode", "unknown"),
-                    "agency": route_info.get("agency", ""),
-                    "notices": stop_notices or None,
-                    "serviceDay": t.get("serviceDay", 0),
-                    "scheduledDeparture": t.get("scheduledDeparture", 0),
-                    "realtimeDeparture": t.get("realtimeDeparture", 0),
-                    "departureDelay": t.get("departureDelay", 0),
-                    "realtime": t.get("realtime", False),
-                    # headsign is directly on the time entry (not in a trip sub-object)
-                    "headsign": t.get("headsign", ""),
-                })
+                stop_events.append(
+                    {
+                        "routeName": route_info.get("shortName") or pattern.get("desc", ""),
+                        "transportType": route_info.get("mode", "unknown"),
+                        "agency": route_info.get("agency", ""),
+                        "notices": stop_notices or None,
+                        "serviceDay": t.get("serviceDay", 0),
+                        "scheduledDeparture": t.get("scheduledDeparture", 0),
+                        "realtimeDeparture": t.get("realtimeDeparture", 0),
+                        "departureDelay": t.get("departureDelay", 0),
+                        "realtime": t.get("realtime", False),
+                        # headsign is directly on the time entry (not in a trip sub-object)
+                        "headsign": t.get("headsign", ""),
+                    }
+                )
 
         stop_events.sort(key=lambda x: x["serviceDay"] + x["realtimeDeparture"])
         return {"stopEvents": stop_events[:departures_limit]}
@@ -240,12 +240,8 @@ class OTPBaseProvider(BaseProvider):
     ) -> Optional[UnifiedDeparture]:
         try:
             service_day: int = stop["serviceDay"]
-            planned = datetime.fromtimestamp(
-                service_day + stop["scheduledDeparture"], tz=timezone.utc
-            ).astimezone(tz)
-            actual = datetime.fromtimestamp(
-                service_day + stop["realtimeDeparture"], tz=timezone.utc
-            ).astimezone(tz)
+            planned = datetime.fromtimestamp(service_day + stop["scheduledDeparture"], tz=timezone.utc).astimezone(tz)
+            actual = datetime.fromtimestamp(service_day + stop["realtimeDeparture"], tz=timezone.utc).astimezone(tz)
 
             delay_min = max(0, int(stop.get("departureDelay", 0) / 60))
             minutes_until = max(0, int((actual - now).total_seconds() / 60))

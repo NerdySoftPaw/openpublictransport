@@ -78,31 +78,31 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         """Return alphabetically sorted provider dropdown."""
         options = [
             {"value": "avv_augsburg", "label": "AVV — Augsburg"},
-            {"value": "beg",          "label": "BEG — Bayern"},
-            {"value": "bsvg",         "label": "BSVG — Braunschweig"},
-            {"value": "bvg",          "label": "BVG — Berlin / Brandenburg"},
-            {"value": "db",           "label": "DB — Deutsche Bahn (Community API)"},
-            {"value": "ding",         "label": "DING — Ulm / Donau-Iller"},
-            {"value": "hvv",          "label": "HVV — Hamburg"},
-            {"value": "kvv",          "label": "KVV — Karlsruhe"},
-            {"value": "mvv",          "label": "MVV — München"},
-            {"value": "nta_ie",       "label": "NTA — Irland (API Key)"},
-            {"value": "nvbw",         "label": "NVBW — Baden-Württemberg"},
-            {"value": "nwl",          "label": "NWL — Westfalen-Lippe"},
-            {"value": "oebb",         "label": "ÖBB — Österreich"},
-            {"value": "rmv",          "label": "RMV — Frankfurt / Rhein-Main (API Key)"},
-            {"value": "rvv",          "label": "RVV — Regensburg"},
-            {"value": "sbb",          "label": "SBB — Schweiz"},
+            {"value": "beg", "label": "BEG — Bayern"},
+            {"value": "bsvg", "label": "BSVG — Braunschweig"},
+            {"value": "bvg", "label": "BVG — Berlin / Brandenburg"},
+            {"value": "db", "label": "DB — Deutsche Bahn (Community API)"},
+            {"value": "ding", "label": "DING — Ulm / Donau-Iller"},
+            {"value": "hvv", "label": "HVV — Hamburg"},
+            {"value": "kvv", "label": "KVV — Karlsruhe"},
+            {"value": "mvv", "label": "MVV — München"},
+            {"value": "nta_ie", "label": "NTA — Irland (API Key)"},
+            {"value": "nvbw", "label": "NVBW — Baden-Württemberg"},
+            {"value": "nwl", "label": "NWL — Westfalen-Lippe"},
+            {"value": "oebb", "label": "ÖBB — Österreich"},
+            {"value": "rmv", "label": "RMV — Frankfurt / Rhein-Main (API Key)"},
+            {"value": "rvv", "label": "RVV — Regensburg"},
+            {"value": "sbb", "label": "SBB — Schweiz"},
             {"value": "trafiklab_se", "label": "Trafiklab — Schweden (API Key)"},
-            {"value": "transitous",   "label": "Transitous — Weltweit (Community, Beta)"},
-            {"value": "vagfr",        "label": "VAG — Freiburg"},
-            {"value": "vbn_otp",      "label": "VBN — Bremen / Niedersachsen — OTP (API Key)"},
-            {"value": "vbn_trias",    "label": "VBN — Bremen / Niedersachsen — TRIAS (API Key)"},
-            {"value": "vgn",          "label": "VGN — Nürnberg"},
-            {"value": "vrn",          "label": "VRN — Rhein-Neckar"},
-            {"value": "vrr",          "label": "VRR — Rhein-Ruhr (NRW)"},
-            {"value": "vvo",          "label": "VVO — Dresden"},
-            {"value": "vvs",          "label": "VVS — Stuttgart"},
+            {"value": "transitous", "label": "Transitous — Weltweit (Community, Beta)"},
+            {"value": "vagfr", "label": "VAG — Freiburg"},
+            {"value": "vbn_otp", "label": "VBN — Bremen / Niedersachsen — OTP (API Key)"},
+            {"value": "vbn_trias", "label": "VBN — Bremen / Niedersachsen — TRIAS (API Key)"},
+            {"value": "vgn", "label": "VGN — Nürnberg"},
+            {"value": "vrn", "label": "VRN — Rhein-Neckar"},
+            {"value": "vrr", "label": "VRR — Rhein-Ruhr (NRW)"},
+            {"value": "vvo", "label": "VVO — Dresden"},
+            {"value": "vvs", "label": "VVS — Stuttgart"},
         ]
         return SelectSelector(SelectSelectorConfig(options=options, mode=SelectSelectorMode.DROPDOWN))
 
@@ -235,7 +235,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         together with the search field so the user can refine or select.
         """
         # Validate API key for providers that need it
-        if self._provider in (PROVIDER_TRAFIKLAB_SE, PROVIDER_RMV, PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS) and not self._api_key:
+        if (
+            self._provider in (PROVIDER_TRAFIKLAB_SE, PROVIDER_RMV, PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS)
+            and not self._api_key
+        ):
             return await self.async_step_api_key()
         if self._provider == PROVIDER_NTA_IE and not self._api_key:
             return self.async_show_form(

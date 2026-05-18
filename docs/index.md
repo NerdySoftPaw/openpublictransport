@@ -30,7 +30,7 @@ Real-time public transport departures for Home Assistant — 25 providers across
 | **Trafiklab** | Sweden (nationwide) | REST | Yes (free) |
 | **Transitous** | Worldwide (community) | MOTIS2 | No |
 | **VAG** | Freiburg | EFA | No |
-| **VBN** | Bremen / Niedersachsen | TRIAS | Yes (free) |
+| **VBN** | Bremen / Niedersachsen | TRIAS / OTP | Yes (free) |
 | **VGN** | Nuremberg | EFA | No |
 | **VRN** | Rhein-Neckar | EFA | No |
 | **VRR** | Rhein-Ruhr (NRW) | EFA | No |

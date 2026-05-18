@@ -7,7 +7,7 @@ The Public Transport Integration supports multiple transit providers across Euro
 | Feature | VRR | KVV | HVV | MVV | VVS | VGN | VAG Freiburg | BVG | RMV | VBN | VRN | VVO | DING | AVV | RVV | BSVG | NWL | NVBW | BEG | SBB | ÖBB | Trafiklab | NTA | Transitous |
 |---------|-----|-----|-----|-----|-----|-----|--------------|-----|-----|-----|-----|-----|------|-----|-----|------|-----|------|-----|-----|-----|-----------|-----|-----------|
 | **Region** | NRW | Karlsruhe | Hamburg | Munich | Stuttgart | Nuremberg | Freiburg | Berlin | Frankfurt | Bremen/Niedersachsen | Rhein-Neckar | Dresden | Ulm | Augsburg | Regensburg | Braunschweig | Westfalen-Lippe | Baden-Württemberg | Bayern | Switzerland | Austria | Sweden | Ireland | Worldwide |
-| **API Type** | EFA | EFA | EFA | EFA | EFA | EFA | EFA | FPTF REST | HAFAS REST | TRIAS XML | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | REST | FPTF REST | REST | GTFS-RT | MOTIS2 |
+| **API Type** | EFA | EFA | EFA | EFA | EFA | EFA | EFA | FPTF REST | HAFAS REST | TRIAS / OTP | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | REST | FPTF REST | REST | GTFS-RT | MOTIS2 |
 | **API Key** | No | No | No | No | No | No | No | No | Yes (free) | Yes (free) | No | No | No | No | No | No | No | No | No | No | No | Yes (free) | Yes (free) | No |
 | **Real-time Data** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | When available |
 | **Delay Information** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | When available |
@@ -109,7 +109,11 @@ Different providers use different internal classification systems. The integrati
 | Tram | tram | Tram/Straßenbahn |
 | Bus | bus | Bus services |
 
-### VBN PtMode Strings (TRIAS)
+### VBN Transport Modes (TRIAS + OTP fallback)
+
+VBN uses TRIAS as the primary API. If TRIAS is unavailable, the integration automatically falls back to VBN's OpenTripPlanner REST API. Both APIs use the same API key (`Authorization: Bearer <key>`).
+
+**TRIAS PtMode strings:**
 
 | PtMode | Type | Description |
 |--------|------|-------------|
@@ -120,6 +124,17 @@ Different providers use different internal classification systems. The integrati
 | bus | bus | City and regional bus |
 | coach | bus | Coach/Express bus |
 | water | ferry | Ferry |
+
+**OTP GTFS route modes (fallback):**
+
+| Mode | Type | Description |
+|------|------|-------------|
+| RAIL | train | Regional trains |
+| TRAM | tram | Tram/Straßenbahn |
+| BUS | bus | City and regional bus |
+| COACH | bus | Express/regional bus |
+| SUBWAY | subway | Metro/U-Bahn |
+| FERRY | ferry | Ferry |
 
 ### Trafiklab Transport Modes
 

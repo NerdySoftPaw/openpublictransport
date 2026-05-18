@@ -1,23 +1,29 @@
 # Changelog
 
-## v2026.5.2 - VBN Provider & Searchable Provider Dropdown
+## v2026.5.2 - VBN Provider & Alphabetical Provider Dropdown
 
 ### New Provider
 
-- **VBN (Verkehrsverbund Bremen/Niedersachsen)** - Bremen, Bremerhaven, and surrounding Lower Saxony counties via TRIAS (VDV 431-2) XML API. API key required (free, request at api@vbn.de, 3,000 transactions/day for hobbyists).
+- **VBN (Verkehrsverbund Bremen/Niedersachsen)** - Bremen, Bremerhaven, and surrounding Lower Saxony counties. API key required (free, request at api@vbn.de, 3,000 transactions/day for hobbyists).
+
+  VBN supports two APIs, both using `Authorization: Bearer <key>`:
+  - **TRIAS** (`https://fahrplaner.vbn.de/triasproxy/`) — primary
+  - **OTP REST** (`http://gtfsr.vbn.de/api/`) — automatic fallback if TRIAS is unavailable
+
+  The integration detects which API works and switches automatically — no configuration needed.
 
 ### Improvements
 
-- **Searchable provider dropdown** - The provider selector is now a native HA searchable dropdown (`SelectSelector`). Type to filter — no more scrolling through 25 entries.
-- **Alphabetical provider order** - All 25 providers sorted A–Z in both the dropdown and documentation.
+- **Alphabetical provider order** - All 25 providers sorted A–Z in the dropdown and documentation.
+- **TRIAS auth header support** - Added `_extra_headers()` hook to `TRIASBaseProvider` so providers that require HTTP-level authentication (like VBN) can inject `Authorization` headers without touching the base class.
 
 ### Documentation
 
-- Provider docs: new page `docs/providers/vbn.md` with API key instructions, quota info, and troubleshooting.
+- Provider docs: new page `docs/providers/vbn.md` with API key instructions, quota info, both API endpoints, and troubleshooting.
 - All provider counts updated to 25 across README and docs.
 
 !!! info "Total providers: 25"
-    VBN joins as the 25th provider via the existing TRIAS base class — zero new parsing code required.
+    VBN joins as the 25th provider. Both TRIAS and OTP REST are supported with automatic fallback.
 
 ---
 

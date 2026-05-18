@@ -23,34 +23,34 @@ Real-time public transport departures for Home Assistant — 26 providers across
 
 ## Supported Providers (26)
 
-| Provider | Region | API Key |
-|----------|--------|---------|
-| **AVV** | Augsburg | No |
-| **BEG** | Bavaria | No |
-| **BSVG** | Braunschweig | No |
-| **BVG** | Berlin / Brandenburg | No |
-| **DB** | Germany (nationwide, community API) | No |
-| **DING** | Ulm | No |
-| **HVV** | Hamburg | No |
-| **KVV** | Karlsruhe | No |
-| **MVV** | Munich | No |
-| **NTA** | Ireland (nationwide) | Yes (free) |
-| **NVBW** | Baden-Württemberg | No |
-| **NWL** | Westfalen-Lippe | No |
-| **ÖBB** | Austria (nationwide) | No |
-| **RMV** | Frankfurt / Rhein-Main | Yes (free) |
-| **RVV** | Regensburg | No |
-| **SBB** | Switzerland (nationwide) | No |
-| **Trafiklab** | Sweden (nationwide) | Yes (free) |
-| **Transitous** | Worldwide (community) | No |
-| **VAG** | Freiburg | No |
-| **VBN (OTP)** | Bremen / Niedersachsen | Yes (free) |
-| **VBN (TRIAS)** | Bremen / Niedersachsen | Yes (free) |
-| **VGN** | Nuremberg | No |
-| **VRN** | Rhein-Neckar | No |
-| **VRR** | Rhein-Ruhr (NRW) | No |
-| **VVO** | Dresden | No |
-| **VVS** | Stuttgart | No |
+| Provider | Region | API Key | Trip Planner |
+|----------|--------|---------|--------------|
+| **AVV** | Augsburg | No | Yes |
+| **BEG** | Bavaria | No | Yes |
+| **BSVG** | Braunschweig | No | No |
+| **BVG** | Berlin / Brandenburg | No | No |
+| **DB** | Germany (nationwide, community API) | No | No |
+| **DING** | Ulm | No | Yes |
+| **HVV** | Hamburg | No | Yes |
+| **KVV** | Karlsruhe | No | Yes |
+| **MVV** | Munich | No | Yes |
+| **NTA** | Ireland (nationwide) | Yes (free) | No |
+| **NVBW** | Baden-Württemberg | No | No |
+| **NWL** | Westfalen-Lippe | No | No |
+| **ÖBB** | Austria (nationwide) | No | No |
+| **RMV** | Frankfurt / Rhein-Main | Yes (free) | No |
+| **RVV** | Regensburg | No | No |
+| **SBB** | Switzerland (nationwide) | No | No |
+| **Trafiklab** | Sweden (nationwide) | Yes (free) | No |
+| **Transitous** | Worldwide (community) | No | No |
+| **VAG** | Freiburg | No | Yes |
+| **VBN (OTP)** | Bremen / Niedersachsen | Yes (free) | Yes |
+| **VBN (TRIAS)** | Bremen / Niedersachsen | Yes (free) | No |
+| **VGN** | Nuremberg | No | Yes |
+| **VRN** | Rhein-Neckar | No | No |
+| **VRR** | Rhein-Ruhr (NRW) | No | Yes |
+| **VVO** | Dresden | No | No |
+| **VVS** | Stuttgart | No | Yes |
 
 ## Features
 

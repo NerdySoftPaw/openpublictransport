@@ -87,11 +87,32 @@ Authorization: <your-api-key>
 - **Stop search**: Geocodes your search term via Nominatim (OpenStreetMap), then finds nearby OTP stops within 500 m
 - **Agency/Operator**: Shown in the `agency` departure attribute (e.g. "Bremer Straßenbahn AG")
 - **Stop alerts**: Active service alerts for the stop are attached as `notices` to all departures
+- **Trip planner**: Supported — plan A-to-B connections via the OTP `/plan` endpoint
 
 ### VBN TRIAS
 
 - **Stop search**: Native TRIAS `LocationInformationRequest` — returns direct name matches
 - **Platform info**: Platform/track numbers included when provided by VBN
+- **Trip planner**: Not supported (TRIAS XML trip planning not implemented)
+
+## Trip Planner (VBN OTP only)
+
+VBN OTP supports the built-in trip planner. Select **Verbindungssuche / Trip Planner (A → B)** as entry type during setup.
+
+The integration uses the OTP `/plan` endpoint with `TRANSIT,WALK` mode. It resolves stop coordinates automatically from the OTP stop index — no manual coordinate entry needed.
+
+```yaml
+# Service call example
+service: openpublictransport.plan_trip
+data:
+  provider: vbn_otp
+  origin: Bremen Hauptbahnhof
+  origin_city: Bremen
+  destination: Bremen Domsheide
+  destination_city: Bremen
+```
+
+The trip sensor shows the next connection as state and exposes `legs`, `transfer_risk`, and up to 3 alternative journeys as attributes.
 
 ## Configuration
 

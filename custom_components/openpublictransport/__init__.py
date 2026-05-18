@@ -198,7 +198,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         destination = call.data["destination"]
         destination_city = call.data["destination_city"]
 
-        journeys = await async_plan_trip(hass, provider, origin, origin_city, destination, destination_city)
+        # For API-key providers, look up the key from an existing config entry
+        api_key = None
+        if provider == PROVIDER_VBN_OTP:
+            for existing in hass.config_entries.async_entries(DOMAIN):
+                if existing.data.get(CONF_PROVIDER) == PROVIDER_VBN_OTP:
+                    api_key = existing.data.get(CONF_VBN_API_KEY)
+                    break
+
+        journeys = await async_plan_trip(
+            hass, provider, origin, origin_city, destination, destination_city, api_key=api_key
+        )
 
         return {"journeys": journeys or []}
 

@@ -10,13 +10,21 @@ VBN is the transit authority for the Bremen/Niedersachsen region in northern Ger
 
 ## API Details
 
+VBN offers three APIs, all protected by the same API key sent as `Authorization: Bearer <key>`:
+
+| API | Endpoint | Used for |
+|-----|----------|---------|
+| **TRIAS** (primary) | `https://fahrplaner.vbn.de/triasproxy/` | Stop search, departure boards |
+| **OTP** (fallback) | `http://gtfsr.vbn.de/api/` | Stop search, departure boards |
+| **HAFAS REST** | `https://fahrplaner.vbn.de/restproxy/2/` | Trip planning (not used by this integration) |
+
 | Property | Value |
 |----------|-------|
-| **Endpoint** | `https://fahrplaner.vbn.de/triasproxy/` |
-| **API Type** | TRIAS (VDV 431-2) XML |
 | **API Key** | Required (free for non-commercial/hobbyist use) |
 | **Timezone** | Europe/Berlin |
-| **Quota** | 3,000 transactions/day (12,000/month) for hobbyists |
+| **Quota** | 3,000 transactions/day, 12,000/month |
+
+The integration automatically tries TRIAS first. If TRIAS is unavailable, it falls back to the OTP REST API — no configuration required.
 
 ## API Key
 
@@ -33,23 +41,27 @@ VBN is the transit authority for the Bremen/Niedersachsen region in northern Ger
 !!! tip
     Activation may take a few business days after your e-mail request.
 
-### API Key in Configuration
+### API Key Authentication
 
-The API key is passed as the `RequestorRef` field in every TRIAS XML request sent to the VBN endpoint.
+The API key is sent as an HTTP `Authorization` header on every request:
+
+```
+Authorization: Bearer <your-api-key>
+```
 
 ## Transport Types
 
-VBN uses standard TRIAS `PtMode` strings which are mapped to the integration's unified transport types:
-
-| PtMode | Unified Type | Description |
-|--------|-------------|-------------|
-| `rail` | train | Regional and long-distance trains (RE, IC, ICE) |
-| `urbanRail` | train | S-Bahn |
-| `metro` | subway | Metro/U-Bahn |
-| `tram` | tram | Tram/Straßenbahn (e.g. Bremen Straßenbahn) |
-| `bus` | bus | City and regional bus |
-| `coach` | bus | Coach/Express bus |
-| `water` | ferry | Ferry (e.g. Weser-Fähre in Bremen) |
+| Source | Mode | Unified Type | Description |
+|--------|------|-------------|-------------|
+| TRIAS | `rail` / `urbanRail` | train | Regional trains, S-Bahn |
+| TRIAS | `metro` | subway | Metro/U-Bahn |
+| TRIAS | `tram` | tram | Tram/Straßenbahn (Bremen) |
+| TRIAS | `bus` / `coach` | bus | City and regional bus |
+| TRIAS | `water` | ferry | Ferry (Weser-Fähre) |
+| OTP | `RAIL` | train | Regional trains |
+| OTP | `TRAM` | tram | Tram |
+| OTP | `BUS` | bus | Bus |
+| OTP | `FERRY` | ferry | Ferry |
 
 ## Configuration
 
@@ -66,26 +78,30 @@ VBN uses standard TRIAS `PtMode` strings which are mapped to the integration's u
 - Bremen Hauptbahnhof
 - Bremerhaven Hauptbahnhof
 - Bremen Domsheide
-- Bremen Hbf (Regionalbahn-Bereich)
 - Osnabrück Hauptbahnhof
 
 ## Troubleshooting
 
-### API Key Issues
+### HTTP 403 / API Key Issues
 
-If the integration returns no data or shows connection errors:
+If the integration returns no data or shows a 403 error:
 
 1. Verify the API key was entered correctly (copy-paste from the e-mail)
 2. Check that your daily quota hasn't been exceeded (3,000 transactions/day)
-3. Confirm the key has been activated by VBN — this can take a few business days after your initial e-mail
+3. Confirm the key has been activated by VBN — this can take a few business days
+
+### TRIAS vs. OTP Fallback
+
+The integration logs which API is active at `INFO` level. Enable debug logging to see detailed request/response information:
+
+```yaml
+logger:
+  logs:
+    custom_components.openpublictransport: debug
+```
 
 ### No Departures Found
 
 1. Re-run the stop search to verify the stop ID is correct
 2. Check that the stop has active services at this time of day
-3. Enable debug logging in Home Assistant to inspect the raw TRIAS XML responses:
-   ```yaml
-   logger:
-     logs:
-       custom_components.openpublictransport: debug
-   ```
+3. Enable debug logging to inspect raw API responses

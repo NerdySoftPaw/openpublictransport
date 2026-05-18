@@ -38,7 +38,7 @@
           "nta_api_key": "NTA Primary API key (required, available at developer.nationaltransport.ie)",
           "nta_api_key_secondary": "NTA Secondary API key (optional, used as fallback)",
           "rmv_api_key": "RMV API key (request at opendata.rmv.de)",
-          "vbn_api_key": "VBN API key — free for non-commercial use, request by e-mail at api@vbn.de"
+          "vbn_api_key": "VBN API key — works for both OTP and TRIAS. Free for non-commercial use, request by e-mail at api@vbn.de"
         }
       },
       "settings": {

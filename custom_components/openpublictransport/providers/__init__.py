@@ -25,7 +25,8 @@ from ..const import (
     PROVIDER_TRANSITOUS,
     PROVIDER_VAGFR,
     PROVIDER_VGN,
-    PROVIDER_VBN,
+    PROVIDER_VBN_OTP,
+    PROVIDER_VBN_TRIAS,
     PROVIDER_VRN,
     PROVIDER_VRR,
     PROVIDER_VVO,
@@ -54,7 +55,7 @@ from .vagfr import VAGFRProvider
 from .vgn import VGNProvider
 from .vrn import VRNProvider
 from .vrr import VRRProvider
-from .vbn import VBNProvider
+from .vbn import VBNOTPProvider, VBNTriasProvider
 from .vvo import VVOProvider
 from .vvs import VVSProvider
 
@@ -111,4 +112,5 @@ register_provider(PROVIDER_SBB, SBBProvider)
 register_provider(PROVIDER_OEBB, OeBBProvider)
 register_provider(PROVIDER_TRANSITOUS, TransitousProvider)
 register_provider(PROVIDER_DB, DBProvider)
-register_provider(PROVIDER_VBN, VBNProvider)
+register_provider(PROVIDER_VBN_OTP, VBNOTPProvider)
+register_provider(PROVIDER_VBN_TRIAS, VBNTriasProvider)

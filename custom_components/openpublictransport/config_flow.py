@@ -42,7 +42,8 @@ from .const import (
     PROVIDER_NTA_IE,
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
-    PROVIDER_VBN,
+    PROVIDER_VBN_OTP,
+    PROVIDER_VBN_TRIAS,
     PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
@@ -95,7 +96,8 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             {"value": "trafiklab_se", "label": "Trafiklab — Schweden (API Key)"},
             {"value": "transitous",   "label": "Transitous — Weltweit (Community, Beta)"},
             {"value": "vagfr",        "label": "VAG — Freiburg"},
-            {"value": "vbn",          "label": "VBN — Bremen / Niedersachsen (API Key)"},
+            {"value": "vbn_otp",      "label": "VBN — Bremen / Niedersachsen — OTP (API Key)"},
+            {"value": "vbn_trias",    "label": "VBN — Bremen / Niedersachsen — TRIAS (API Key)"},
             {"value": "vgn",          "label": "VGN — Nürnberg"},
             {"value": "vrn",          "label": "VRN — Rhein-Neckar"},
             {"value": "vrr",          "label": "VRR — Rhein-Ruhr (NRW)"},
@@ -172,7 +174,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 else:
                     self._api_key = api_key
                     return await self.async_step_stop_search()
-            elif self._provider == PROVIDER_VBN:
+            elif self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
                 api_key = user_input.get(CONF_VBN_API_KEY, "").strip()
                 if not api_key:
                     errors[CONF_VBN_API_KEY] = "vbn_api_key_required"
@@ -196,7 +198,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 }
             )
             description = "RMV API key is required. Request one at opendata.rmv.de"
-        elif self._provider == PROVIDER_VBN:
+        elif self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
             schema = vol.Schema(
                 {
                     vol.Required(CONF_VBN_API_KEY): str,
@@ -226,7 +228,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         together with the search field so the user can refine or select.
         """
         # Validate API key for providers that need it
-        if self._provider in (PROVIDER_TRAFIKLAB_SE, PROVIDER_RMV, PROVIDER_VBN) and not self._api_key:
+        if self._provider in (PROVIDER_TRAFIKLAB_SE, PROVIDER_RMV, PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS) and not self._api_key:
             return await self.async_step_api_key()
         if self._provider == PROVIDER_NTA_IE and not self._api_key:
             return self.async_show_form(
@@ -408,7 +410,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                         errors={"base": "rmv_api_key_required"},
                     )
                 data[CONF_RMV_API_KEY] = self._api_key
-            elif self._provider == PROVIDER_VBN:
+            elif self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
                 if not self._api_key:
                     return self.async_show_form(
                         step_id="settings",

@@ -3,7 +3,7 @@
 !!! info "Community Server"
     This provider uses a community-hosted OTP2 server at **api.openpublictransport.net**, backed by [gtfs.de](https://gtfs.de) data (CC 4.0, Germany-wide). An API key is required — [request one here](https://openpublictransport.net/api-key).
 
-The `openpublictransport` provider gives you Germany-wide real-time departures for all transit modes — S-Bahn, U-Bahn, Bus, Tram, Regional, IC/ICE — from a single unified endpoint. Data is updated daily from gtfs.de and enriched with GTFS-RT realtime delays every 30 seconds from VBB, VRR, VRS, VRN, VVO, VBN, NVBW, DEFAS Bayern, VAG Nürnberg, Stadtwerke Münster, and more.
+    The `openpublictransport` provider gives you Germany-wide real-time departures for all transit modes — S-Bahn, U-Bahn, Bus, Tram, Regional, IC/ICE — from a single unified endpoint. Data is updated daily from gtfs.de and enriched with GTFS-RT realtime delays every 30 seconds from VBB, VRR, VRS, VRN, VVO, VBN, NVBW, DEFAS Bayern, VAG Nürnberg, Stadtwerke Münster, and more.
 
 ## Coverage Area
 

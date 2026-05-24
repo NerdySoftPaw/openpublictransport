@@ -29,7 +29,7 @@ EFA_TRIP_ENDPOINTS = {
     "vrn": "https://www.vrn.de/mngvrn/XML_TRIP_REQUEST2",
     "vvo": "https://efa.vvo-online.de/VMSSL3/XML_TRIP_REQUEST2",
     "ding": "https://www.ding.eu/ding3/XML_TRIP_REQUEST2",
-    "avv": "https://fahrtauskunft.avv-augsburg.de/efa/XML_TRIP_REQUEST2",
+    "avv_augsburg": "https://fahrtauskunft.avv-augsburg.de/efa/XML_TRIP_REQUEST2",
     "rvv": "https://efa.rvv.de/efa/XML_TRIP_REQUEST2",
     "bsvg": "https://bsvg.efa.de/bsvagstd/XML_TRIP_REQUEST2",
     "nwl": "https://westfalenfahrplan.de/nwl-efa/XML_TRIP_REQUEST2",
@@ -94,8 +94,8 @@ async def async_plan_trip(
 ) -> Optional[List[Dict[str, Any]]]:
     """Plan a trip from origin to destination.
 
-    Dispatches to OTP2 GraphQL for otp_custom/openpublictransport/vbn_otp,
-    EFA XML for all other supported providers.
+    Dispatches to OTP2 GraphQL for otp_custom/openpublictransport,
+    OTP REST for vbn_otp, EFA XML for all other supported providers.
     Uses stop IDs when available (more reliable), falls back to name+place search.
     Returns a list of journey options, each with legs and transfer info.
     """

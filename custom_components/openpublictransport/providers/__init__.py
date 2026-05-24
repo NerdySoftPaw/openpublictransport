@@ -18,6 +18,8 @@ from ..const import (
     PROVIDER_NVBW,
     PROVIDER_NWL,
     PROVIDER_OEBB,
+    PROVIDER_OPT,
+    PROVIDER_OTP_CUSTOM,
     PROVIDER_RMV,
     PROVIDER_RVV,
     PROVIDER_SBB,
@@ -26,8 +28,6 @@ from ..const import (
     PROVIDER_VAGFR,
     PROVIDER_VBN_OTP,
     PROVIDER_VBN_TRIAS,
-    PROVIDER_OPT,
-    PROVIDER_OTP_CUSTOM,
     PROVIDER_VGN,
     PROVIDER_VRN,
     PROVIDER_VRR,
@@ -41,6 +41,7 @@ from .bsvg import BSVGProvider
 from .bvg import BVGProvider
 from .db import DBProvider
 from .ding import DINGProvider
+from .gtfsde import OPTProvider
 from .hvv import HVVProvider
 from .kvv import KVVProvider
 from .mvv import MVVProvider
@@ -48,14 +49,13 @@ from .nta import NTAProvider
 from .nvbw import NVBWProvider
 from .nwl import NWLProvider
 from .oebb import OeBBProvider
+from .otp_custom import OTPCustomProvider
 from .rmv import RMVProvider
 from .rvv import RVVProvider
 from .sbb import SBBProvider
 from .trafiklab import TrafiklabProvider
 from .transitous import TransitousProvider
 from .vagfr import VAGFRProvider
-from .gtfsde import OPTProvider
-from .otp_custom import OTPCustomProvider
 from .vbn import VBNOTPProvider, VBNTriasProvider
 from .vgn import VGNProvider
 from .vrn import VRNProvider

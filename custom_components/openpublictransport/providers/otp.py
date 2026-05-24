@@ -11,14 +11,11 @@ Handles:
 import asyncio
 import logging
 import time
-from typing import Any, Dict, List, Optional, Union
-from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
+from typing import Any, Dict, List, Optional
 
 import aiohttp
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from ..data_models import UnifiedDeparture
 from .otp_base import OTPBaseProvider
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,6 +66,7 @@ def _detect_city_prefix(search_term: str) -> Optional[str]:
             if remaining:
                 return prefix + remaining
     return None
+
 
 _GRAPHQL_STOPTIMES = """{
   stop(id: "%s") {

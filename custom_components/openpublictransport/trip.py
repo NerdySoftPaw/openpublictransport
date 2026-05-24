@@ -44,7 +44,6 @@ _GRAPHQL_PLAN = """{
     date: "%s"
     time: "%s"
     numItineraries: 3
-    transportModes: [{ mode: TRANSIT }, { mode: WALK }]
   ) {
     itineraries {
       duration

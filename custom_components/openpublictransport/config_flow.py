@@ -558,6 +558,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             self.hass,
             api_key=self._api_key,
             api_key_secondary=self._api_key_secondary,
+            custom_url=self._otp_custom_url,
         )
         if provider_instance:
             try:

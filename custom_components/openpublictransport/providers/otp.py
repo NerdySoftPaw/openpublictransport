@@ -54,6 +54,22 @@ _CITY_PREFIXES: Dict[str, str] = {
 
 _GRAPHQL_STOP_SEARCH = '{ stops(name: "%s") { gtfsId name lat lon } }'
 
+
+def _detect_city_prefix(search_term: str) -> Optional[str]:
+    """If the search contains a known city name, return PREFIX + stop_part.
+
+    Handles "Düsseldorf Elbruchstraße" and "Elbruchstraße, Düsseldorf" by
+    removing the city word and prepending its gtfs.de prefix to the remainder.
+    """
+    words = search_term.strip().replace(",", " ").split()
+    for i, word in enumerate(words):
+        prefix = _CITY_PREFIXES.get(word.lower())
+        if prefix:
+            remaining = " ".join(w for j, w in enumerate(words) if j != i).strip()
+            if remaining:
+                return prefix + remaining
+    return None
+
 _GRAPHQL_STOPTIMES = """{
   stop(id: "%s") {
     name
@@ -136,6 +152,18 @@ class OTPProvider(OTPBaseProvider):
             raw = await self._search_one(term)
             if raw:
                 return self._group_by_name(raw)[:20]
+
+        # Phase 1b: city-word detection — "Düsseldorf Elbruchstraße" → "D-Elbruchstraße"
+        detected = _detect_city_prefix(search_term)
+        if detected:
+            raw = await self._search_one(detected)
+            if raw:
+                return self._group_by_name(raw)[:20]
+            detected_ss = detected.replace("ß", "ss") if "ß" in detected else None
+            if detected_ss:
+                raw = await self._search_one(detected_ss)
+                if raw:
+                    return self._group_by_name(raw)[:20]
 
         # Phase 2: all city prefixes in parallel
         prefixed = [p + search_term for p in _CITY_PREFIXES.values()]

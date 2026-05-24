@@ -3,7 +3,7 @@
 !!! info "Community Server"
     This provider uses a community-hosted OTP2 server at **api.openpublictransport.net**, backed by [gtfs.de](https://gtfs.de) data (CC 4.0, Germany-wide). An API key is required — [request one here](https://openpublictransport.net/api-key).
 
-The `openpublictransport` provider gives you Germany-wide real-time departures for all transit modes — S-Bahn, U-Bahn, Bus, Tram, Regional, IC/ICE — from a single unified endpoint. Data is updated daily from gtfs.de and enriched with GTFS-RT realtime delays every 30 seconds from 25+ Verbünde.
+The `openpublictransport` provider gives you Germany-wide real-time departures for all transit modes — S-Bahn, U-Bahn, Bus, Tram, Regional, IC/ICE — from a single unified endpoint. Data is updated daily from gtfs.de and enriched with GTFS-RT realtime delays every 30 seconds from VBB, VRR, VRS, VRN, VVO, VBN, NVBW, DEFAS Bayern, VAG Nürnberg, Stadtwerke Münster, and more.
 
 ## Coverage Area
 
@@ -81,19 +81,28 @@ See [github.com/NerdySoftPaw/otp-gtfsde](https://github.com/NerdySoftPaw/otp-gtf
 
 ## Realtime Data
 
-The community server polls `realtime.gtfs.de` every 30 seconds. Coverage varies by Verbund:
+The community server polls `realtime.gtfs.de/realtime-free.pb` every 30 seconds (update frequency on the source side: every 10 s). This single aggregated feed combines data from the following regional providers:
 
-| Verbund | Realtime |
-|---------|----------|
-| VRR (NRW) | Yes |
-| BSVG (Braunschweig) | Yes |
-| NWL (Westfalen-Lippe) | Yes |
-| MVV (München) | Yes |
-| S-Bahn Berlin | Yes |
-| And more... | See [gtfs.de/de/realtime](https://gtfs.de/de/realtime/) |
+| Verbund / Provider | Region | Modes |
+|--------------------|--------|-------|
+| VBB | Berlin & Brandenburg | All modes |
+| VRR | Rhein-Ruhr (NRW) | All modes (bus partially) |
+| VRS | Rhein-Sieg (Köln/Bonn) | All modes |
+| VRN / RNN | Rhein-Neckar | Local transit |
+| VVO | Dresden & Chemnitz (Oberelbe) | All modes |
+| VBN | Bremen, Niedersachsen, Schleswig-Holstein | All modes |
+| NVBW | Baden-Württemberg | All modes (bus partially) |
+| DEFAS Bayern | Bavaria (incl. MVV, S-Bahn München) | All modes |
+| VAG Nürnberg | Nürnberg city | Urban transit |
+| Stadtwerke Münster | Münster city | Local transit |
+| opentransportdata.swiss | Baden-Württemberg / Swiss border | Cross-border |
+| OVapi | Netherlands / German border | Cross-border |
+| DELFI SIRI feeds | Various states | Multiple regions |
 
 !!! note
-    Realtime coverage depends on the GTFS-RT feed from each Verbund. If your stop shows no delays, the Verbund may not provide a realtime feed. Scheduled times are always available.
+    Realtime coverage depends on what each Verbund contributes to the feed. If your stop shows no delays, the operator may not yet provide GTFS-RT data. Scheduled departure times are always available regardless of realtime coverage.
+    
+    See [gtfs.de/de/realtime](https://gtfs.de/de/realtime/) for the full feed list and licensing details.
 
 ## Troubleshooting
 

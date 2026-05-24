@@ -60,7 +60,6 @@ _GRAPHQL_PLAN = """{
         transitLeg
         trip { route { shortName } }
         duration
-        realtime
       }
     }
   }

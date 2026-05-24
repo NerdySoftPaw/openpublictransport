@@ -26,6 +26,13 @@ EFA_TRIP_ENDPOINTS = {
     "vvs": "https://www3.vvs.de/mngvvs/XML_TRIP_REQUEST2",
     "vgn": "https://efa.vgn.de/vgnExt_oeffi/XML_TRIP_REQUEST2",
     "vagfr": "https://efa.vagfr.de/vagfr3/XML_TRIP_REQUEST2",
+    "vrn": "https://www.vrn.de/mngvrn/XML_TRIP_REQUEST2",
+    "vvo": "https://efa.vvo-online.de/VMSSL3/XML_TRIP_REQUEST2",
+    "ding": "https://www.ding.eu/ding3/XML_TRIP_REQUEST2",
+    "avv": "https://fahrtauskunft.avv-augsburg.de/efa/XML_TRIP_REQUEST2",
+    "rvv": "https://efa.rvv.de/efa/XML_TRIP_REQUEST2",
+    "bsvg": "https://bsvg.efa.de/bsvagstd/XML_TRIP_REQUEST2",
+    "nwl": "https://westfalenfahrplan.de/nwl-efa/XML_TRIP_REQUEST2",
 }
 
 # OTP GTFS mode → unified product name
@@ -74,7 +81,7 @@ async def async_plan_trip(
     # EFA providers
     base_url = EFA_TRIP_ENDPOINTS.get(provider)
     if not base_url:
-        _LOGGER.warning("Trip planning not supported for provider: %s", provider)
+        _LOGGER.debug("Trip planning not supported for provider: %s", provider)
         return None
 
     now = departure_time or dt_util.now()

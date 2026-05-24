@@ -35,10 +35,12 @@ EFA_TRIP_ENDPOINTS = {
     "nwl": "https://westfalenfahrplan.de/nwl-efa/XML_TRIP_REQUEST2",
 }
 
+_GRAPHQL_STOP_COORDS = '{ stop(id: "%s") { lat lon name } }'
+
 _GRAPHQL_PLAN = """{
   plan(
-    from: { stopId: "%s" }
-    to: { stopId: "%s" }
+    from: { lat: %f, lon: %f }
+    to: { lat: %f, lon: %f }
     date: "%s"
     time: "%s"
     numItineraries: 3
@@ -173,15 +175,33 @@ async def _async_plan_trip_otp2_graphql(
     departure_time: Optional[datetime],
     provider_instance,
 ) -> Optional[List[Dict[str, Any]]]:
-    """Plan a trip via OTP2 GraphQL plan query (community server + custom instances)."""
+    """Plan a trip via OTP2 GraphQL plan query (community server + custom instances).
+
+    Resolves stop coordinates first (more reliable than passing stopId to plan),
+    then calls the plan query with lat/lon.
+    """
     now = departure_time or dt_util.now()
-    # Compound stop IDs are pipe-separated — use the first platform ID for routing
+    # Compound stop IDs are pipe-separated — use the first platform ID for coord lookup
     from_id = origin_id.split("|")[0]
     to_id = dest_id.split("|")[0]
 
+    # Resolve lat/lon for both stops in parallel
+    from_body, to_body = await asyncio.gather(
+        provider_instance._graphql(_GRAPHQL_STOP_COORDS % from_id.replace('"', '\\"')),
+        provider_instance._graphql(_GRAPHQL_STOP_COORDS % to_id.replace('"', '\\"')),
+    )
+    from_stop = ((from_body or {}).get("data") or {}).get("stop") or {}
+    to_stop = ((to_body or {}).get("data") or {}).get("stop") or {}
+
+    if not from_stop.get("lat") or not to_stop.get("lat"):
+        _LOGGER.warning("OTP2 plan: could not resolve stop coordinates for %s / %s", from_id, to_id)
+        return None
+
     query = _GRAPHQL_PLAN % (
-        from_id.replace('"', '\\"'),
-        to_id.replace('"', '\\"'),
+        from_stop["lat"],
+        from_stop["lon"],
+        to_stop["lat"],
+        to_stop["lon"],
         now.strftime("%Y-%m-%d"),
         now.strftime("%H:%M:%S"),
     )
@@ -189,9 +209,18 @@ async def _async_plan_trip_otp2_graphql(
     if body is None:
         return None
 
+    if body.get("errors"):
+        _LOGGER.warning("OTP2 plan GraphQL errors: %s", body["errors"])
+
     itineraries = ((body.get("data") or {}).get("plan") or {}).get("itineraries") or []
     if not itineraries:
-        _LOGGER.debug("OTP2 plan: no itineraries for %s → %s", from_id, to_id)
+        _LOGGER.warning(
+            "OTP2 plan: no itineraries for %s (%s) → %s (%s)",
+            from_stop.get("name", from_id),
+            from_id,
+            to_stop.get("name", to_id),
+            to_id,
+        )
         return None
 
     return _parse_otp_itineraries(itineraries)

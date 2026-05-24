@@ -26,6 +26,8 @@ from ..const import (
     PROVIDER_VAGFR,
     PROVIDER_VBN_OTP,
     PROVIDER_VBN_TRIAS,
+    PROVIDER_OPT,
+    PROVIDER_OTP_CUSTOM,
     PROVIDER_VGN,
     PROVIDER_VRN,
     PROVIDER_VRR,
@@ -52,6 +54,8 @@ from .sbb import SBBProvider
 from .trafiklab import TrafiklabProvider
 from .transitous import TransitousProvider
 from .vagfr import VAGFRProvider
+from .gtfsde import OPTProvider
+from .otp_custom import OTPCustomProvider
 from .vbn import VBNOTPProvider, VBNTriasProvider
 from .vgn import VGNProvider
 from .vrn import VRNProvider
@@ -72,13 +76,19 @@ def get_provider(
     hass: HomeAssistant,
     api_key: Optional[str] = None,
     api_key_secondary: Optional[str] = None,
+    custom_url: Optional[str] = None,
 ) -> Optional[BaseProvider]:
     """Get a provider instance by ID."""
     if provider_id is None:
         return None
     provider_class = _PROVIDER_REGISTRY.get(provider_id)
     if provider_class:
-        return provider_class(hass, api_key=api_key, api_key_secondary=api_key_secondary)
+        return provider_class(
+            hass,
+            api_key=api_key,
+            api_key_secondary=api_key_secondary,
+            custom_url=custom_url,
+        )
     return None
 
 
@@ -114,3 +124,5 @@ register_provider(PROVIDER_TRANSITOUS, TransitousProvider)
 register_provider(PROVIDER_DB, DBProvider)
 register_provider(PROVIDER_VBN_OTP, VBNOTPProvider)
 register_provider(PROVIDER_VBN_TRIAS, VBNTriasProvider)
+register_provider(PROVIDER_OPT, OPTProvider)
+register_provider(PROVIDER_OTP_CUSTOM, OTPCustomProvider)

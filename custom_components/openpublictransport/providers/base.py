@@ -13,17 +13,17 @@ from ..data_models import UnifiedDeparture
 class BaseProvider(ABC):
     """Abstract base class for all public transport providers."""
 
-    def __init__(self, hass: HomeAssistant, api_key: Optional[str] = None, api_key_secondary: Optional[str] = None):
-        """Initialize the provider.
-
-        Args:
-            hass: Home Assistant instance
-            api_key: Primary API key (if required)
-            api_key_secondary: Secondary API key (if required, e.g., for NTA)
-        """
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        api_key: Optional[str] = None,
+        api_key_secondary: Optional[str] = None,
+        custom_url: Optional[str] = None,
+    ):
         self.hass = hass
         self.api_key = api_key
         self.api_key_secondary = api_key_secondary
+        self.custom_url = custom_url
 
     @property
     @abstractmethod

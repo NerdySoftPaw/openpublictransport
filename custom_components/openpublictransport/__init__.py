@@ -10,7 +10,9 @@ from homeassistant.helpers import entity_registry as er
 from .const import (
     CONF_DEPARTURES,
     CONF_NTA_API_KEY,
+    CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
+    CONF_OTP_CUSTOM_API_KEY,
     CONF_PROVIDER,
     CONF_RMV_API_KEY,
     CONF_SCAN_INTERVAL,
@@ -107,8 +109,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     nta_api_key = entry.data.get(CONF_NTA_API_KEY)  # For NTA
     rmv_api_key = entry.data.get(CONF_RMV_API_KEY)  # For RMV
     vbn_api_key = entry.data.get(CONF_VBN_API_KEY)  # For VBN (OTP + TRIAS)
-    opt_api_key = entry.data.get("opt_api_key")  # For community OTP server
-    otp_custom_api_key = entry.data.get("otp_custom_api_key")  # For custom OTP instance
+    opt_api_key = entry.data.get(CONF_OPT_API_KEY)  # For community OTP server
+    otp_custom_api_key = entry.data.get(CONF_OTP_CUSTOM_API_KEY)  # For custom OTP instance
     otp_custom_url = entry.data.get(CONF_OTP_BASE_URL)  # For custom OTP instance
 
     # Use appropriate API key (and URL) based on provider

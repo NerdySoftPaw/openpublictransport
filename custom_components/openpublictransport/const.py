@@ -53,6 +53,8 @@ CONF_VBN_API_KEY = "vbn_api_key"
 PROVIDER_OPT = "openpublictransport"  # community server at api.openpublictransport.net
 PROVIDER_OTP_CUSTOM = "otp_custom"  # user-provided OTP2 instance
 CONF_OTP_BASE_URL = "otp_base_url"  # custom URL for otp_custom provider
+CONF_OPT_API_KEY = "opt_api_key"  # API key for community OTP server
+CONF_OTP_CUSTOM_API_KEY = "otp_custom_api_key"  # API key for custom OTP instance
 PROVIDERS = [
     PROVIDER_VRR,
     PROVIDER_KVV,

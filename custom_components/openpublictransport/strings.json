@@ -26,6 +26,28 @@
           "stop": "Haltestelle"
         }
       },
+      "opt_key": {
+        "title": "API-Schlüssel (openpublictransport.net)",
+        "description": "Gib deinen kostenlosen API-Schlüssel für den Community-OTP2-Server ein. Schlüssel anfordern auf openpublictransport.net/api-key.",
+        "data": {
+          "opt_api_key": "API-Schlüssel"
+        },
+        "data_description": {
+          "opt_api_key": "Kostenloser API-Schlüssel (erforderlich) — erhältlich auf openpublictransport.net/api-key"
+        }
+      },
+      "otp_custom_url": {
+        "title": "Eigene OTP2-Instanz konfigurieren",
+        "description": "Gib die Basis-URL deines OTP2-Servers ein. Format: http://host:8080/otp/routers/default",
+        "data": {
+          "otp_base_url": "OTP2-Server-URL",
+          "otp_custom_api_key": "API-Schlüssel (optional)"
+        },
+        "data_description": {
+          "otp_base_url": "Basis-URL inkl. Router-Pfad, z.B. http://192.168.1.10:8080/otp/routers/default",
+          "otp_custom_api_key": "Optionaler API-Schlüssel, falls deine Instanz Authentifizierung erfordert"
+        }
+      },
       "api_key": {
         "title": "API-Schlüssel eingeben",
         "description": "{info}",
@@ -100,6 +122,8 @@
       "missing_location": "Bitte geben Sie entweder eine Stations-ID oder Ort und Haltestelle an",
       "empty_search": "Bitte geben Sie einen Suchbegriff ein",
       "no_results": "Keine Ergebnisse gefunden. Bitte versuchen Sie einen anderen Suchbegriff.",
+      "opt_api_key_required": "API-Schlüssel ist erforderlich (kostenlos anfordern auf openpublictransport.net/api-key)",
+      "otp_url_required": "Bitte gib eine gültige URL für deinen OTP2-Server ein",
       "api_key_required": "API-Schlüssel ist erforderlich",
       "trafiklab_api_key_required": "Trafiklab API-Schlüssel ist erforderlich",
       "nta_api_key_required": "NTA API-Schlüssel ist erforderlich",

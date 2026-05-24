@@ -39,8 +39,8 @@ _GRAPHQL_STOP_COORDS = '{ stop(id: "%s") { lat lon name } }'
 
 _GRAPHQL_PLAN = """{
   plan(
-    from: { lat: %f, lon: %f, stopId: "%s" }
-    to: { lat: %f, lon: %f, stopId: "%s" }
+    from: { lat: %f, lon: %f }
+    to: { lat: %f, lon: %f }
     date: "%s"
     time: "%s"
     numItineraries: 3
@@ -198,10 +198,8 @@ async def _async_plan_trip_otp2_graphql(
     query = _GRAPHQL_PLAN % (
         from_stop["lat"],
         from_stop["lon"],
-        from_id.replace('"', '\\"'),
         to_stop["lat"],
         to_stop["lon"],
-        to_id.replace('"', '\\"'),
         now.strftime("%Y-%m-%d"),
         now.strftime("%H:%M:%S"),
     )

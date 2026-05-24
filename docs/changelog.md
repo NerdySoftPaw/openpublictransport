@@ -1,5 +1,31 @@
 # Changelog
 
+## v2026.5.3-beta.4 — Bugfixes: API Key 401, Stop Search
+
+### Bugfixes
+
+- **HTTP 401 on sensor polling** — `__init__.py` did not read `opt_api_key` / `otp_custom_api_key` from the config entry. The coordinator was created without credentials, causing every poll to return 401. Fixed for both `openpublictransport` and `otp_custom`.
+- **Stop search: "Düsseldorf Elbruchstraße" found nothing** — Inputs like `Düsseldorf Elbruchstraße` or `Elbruchstraße, Düsseldorf` failed because Phase 2 was searching `D-Düsseldorf Elbruchstraße` instead of `D-Elbruchstraße`. New Phase 1b detects city names in the search term and builds the correct prefix. All formats now work: bare stop name, `City Stopname`, `Stopname, City`.
+- **Config flow: `custom_url` missing for OTP Custom stop search** — `get_provider()` in `_search_stops()` was not passing `custom_url`, which would have broken stop search for custom OTP instances during setup.
+
+---
+
+## v2026.5.3-beta.3 — openpublictransport Community OTP2 + Custom OTP2 Instance
+
+### New Features
+
+- **openpublictransport provider** — Germany-wide real-time departures via community-hosted OTP2 server at `api.openpublictransport.net`. Data: gtfs.de CC 4.0 (daily update, 461 agencies, 437k stops) + GTFS-RT realtime (25+ Verbünde, every 30s). Requires a free API key — [request here](https://openpublictransport.net/api-key).
+- **OTP2 Custom provider** — Connect any self-hosted OpenTripPlanner 2 instance. Provide a base URL and optional X-API-Key. Useful for self-hosting the community server image or running a private GTFS feed.
+- **OTPProvider base class** — New `otp.py` with shared OTP2 GraphQL logic: 3-phase stop search (bare name → city-word detection → parallel prefix search → Nominatim fallback), multi-platform stop merging (compound pipe-separated IDs), parallel platform fetch, deduplication.
+
+### Technical Details
+
+- VRR/NRW city-prefix search: gtfs.de stores NRW stops as `D-Elbruchstraße`, `K-Hauptbahnhof`, etc. The integration tries all known city prefixes in parallel when a bare search finds nothing.
+- Compound stop IDs: GTFS platform stops are grouped by name (`gtfsde:537545|gtfsde:568685`). All platforms are fetched in parallel and merged per sensor.
+- Total providers: **26 → 28**
+
+---
+
 ## v2026.5.3 - VBN OTP Trip Planner
 
 ### New Features

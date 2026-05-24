@@ -1,5 +1,5 @@
 site_name: openpublictransport
-site_description: Multi-Provider Public Transport Home Assistant Integration for 23 transit networks across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide
+site_description: Multi-Provider Public Transport Home Assistant Integration for 28 transit networks across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide
 site_url: https://docs.openpublictransport.net
 repo_url: https://github.com/NerdySoftPaw/openpublictransport
 repo_name: NerdySoftPaw/openpublictransport
@@ -80,6 +80,8 @@ nav:
       - Trafiklab (Sweden): providers/trafiklab.md
       - NTA (Ireland): providers/nta.md
       - Transitous (Worldwide): providers/transitous.md
+      - openpublictransport (Deutschland): providers/openpublictransport.md
+      - OTP2 Custom Instance: providers/otp-custom.md
   - Sensors & Attributes: sensors.md
   - Services: services.md
   - Trip Planner: trip-planner.md

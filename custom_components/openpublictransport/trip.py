@@ -26,7 +26,43 @@ EFA_TRIP_ENDPOINTS = {
     "vvs": "https://www3.vvs.de/mngvvs/XML_TRIP_REQUEST2",
     "vgn": "https://efa.vgn.de/vgnExt_oeffi/XML_TRIP_REQUEST2",
     "vagfr": "https://efa.vagfr.de/vagfr3/XML_TRIP_REQUEST2",
+    "vrn": "https://www.vrn.de/mngvrn/XML_TRIP_REQUEST2",
+    "vvo": "https://efa.vvo-online.de/VMSSL3/XML_TRIP_REQUEST2",
+    "ding": "https://www.ding.eu/ding3/XML_TRIP_REQUEST2",
+    "avv_augsburg": "https://fahrtauskunft.avv-augsburg.de/efa/XML_TRIP_REQUEST2",
+    "rvv": "https://efa.rvv.de/efa/XML_TRIP_REQUEST2",
+    "bsvg": "https://bsvg.efa.de/bsvagstd/XML_TRIP_REQUEST2",
+    "nwl": "https://westfalenfahrplan.de/nwl-efa/XML_TRIP_REQUEST2",
 }
+
+_GRAPHQL_PLAN = """{
+  plan(
+    from: { stopId: "%s" }
+    to: { stopId: "%s" }
+    date: "%s"
+    time: "%s"
+    numItineraries: 3
+    transportModes: [{ mode: TRANSIT }, { mode: WALK }]
+  ) {
+    itineraries {
+      duration
+      numberOfTransfers
+      legs {
+        mode
+        startTime
+        endTime
+        from { name }
+        to   { name }
+        departureDelay
+        arrivalDelay
+        transitLeg
+        routeShortName
+        duration
+        realTime
+      }
+    }
+  }
+}"""
 
 # OTP GTFS mode → unified product name
 _OTP_MODE_TO_PRODUCT = {
@@ -54,27 +90,37 @@ async def async_plan_trip(
     origin_id: Optional[str] = None,
     dest_id: Optional[str] = None,
     api_key: Optional[str] = None,
+    custom_url: Optional[str] = None,
 ) -> Optional[List[Dict[str, Any]]]:
     """Plan a trip from origin to destination.
 
-    Dispatches to OTP REST for vbn_otp, EFA for all other supported providers.
+    Dispatches to OTP2 GraphQL for otp_custom/openpublictransport,
+    OTP REST for vbn_otp, EFA XML for all other supported providers.
     Uses stop IDs when available (more reliable), falls back to name+place search.
     Returns a list of journey options, each with legs and transfer info.
     """
-    # OTP providers
+    from .providers import get_provider
+
+    # OTP2 GraphQL providers (community server + custom instance)
+    if provider in ("openpublictransport", "otp_custom"):
+        if not origin_id or not dest_id:
+            _LOGGER.warning("OTP2 trip planning requires stop IDs — search for stops first")
+            return None
+        provider_instance = get_provider(provider, hass, api_key=api_key, custom_url=custom_url)
+        return await _async_plan_trip_otp2_graphql(origin_id, dest_id, departure_time, provider_instance)
+
+    # VBN OTP — legacy OTP REST plan endpoint
     if provider == "vbn_otp":
         if not origin_id or not dest_id:
             _LOGGER.warning("VBN OTP trip planning requires stop IDs — search for stops first")
             return None
-        from .providers import get_provider
-
         provider_instance = get_provider(provider, hass, api_key=api_key)
         return await _async_plan_trip_otp(hass, origin_id, dest_id, departure_time, provider_instance)
 
     # EFA providers
     base_url = EFA_TRIP_ENDPOINTS.get(provider)
     if not base_url:
-        _LOGGER.warning("Trip planning not supported for provider: %s", provider)
+        _LOGGER.debug("Trip planning not supported for provider: %s", provider)
         return None
 
     now = departure_time or dt_util.now()
@@ -119,6 +165,36 @@ async def async_plan_trip(
     except Exception as e:
         _LOGGER.warning("Trip planning failed: %s", e)
         return None
+
+
+async def _async_plan_trip_otp2_graphql(
+    origin_id: str,
+    dest_id: str,
+    departure_time: Optional[datetime],
+    provider_instance,
+) -> Optional[List[Dict[str, Any]]]:
+    """Plan a trip via OTP2 GraphQL plan query (community server + custom instances)."""
+    now = departure_time or dt_util.now()
+    # Compound stop IDs are pipe-separated — use the first platform ID for routing
+    from_id = origin_id.split("|")[0]
+    to_id = dest_id.split("|")[0]
+
+    query = _GRAPHQL_PLAN % (
+        from_id.replace('"', '\\"'),
+        to_id.replace('"', '\\"'),
+        now.strftime("%Y-%m-%d"),
+        now.strftime("%H:%M:%S"),
+    )
+    body = await provider_instance._graphql(query)
+    if body is None:
+        return None
+
+    itineraries = ((body.get("data") or {}).get("plan") or {}).get("itineraries") or []
+    if not itineraries:
+        _LOGGER.debug("OTP2 plan: no itineraries for %s → %s", from_id, to_id)
+        return None
+
+    return _parse_otp_itineraries(itineraries)
 
 
 async def _async_plan_trip_otp(
@@ -258,7 +334,7 @@ def _parse_otp_itineraries(itineraries: List[Dict[str, Any]]) -> List[Dict[str, 
                 "departure": first_dep,
                 "arrival": last_arr,
                 "duration_minutes": round(itin.get("duration", 0) / 60),
-                "transfers": itin.get("transfers", len(transit_legs) - 1),
+                "transfers": itin.get("numberOfTransfers", itin.get("transfers", len(transit_legs) - 1)),
                 "connection_feasible": connection_feasible,
                 "transfer_risk": transfer_risk,
                 "min_transfer_time": min_transfer_time,

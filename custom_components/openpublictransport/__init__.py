@@ -213,16 +213,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         destination = call.data["destination"]
         destination_city = call.data["destination_city"]
 
-        # For API-key providers, look up the key from an existing config entry
+        # Look up credentials from an existing config entry for this provider
         api_key = None
-        if provider == PROVIDER_VBN_OTP:
-            for existing in hass.config_entries.async_entries(DOMAIN):
-                if existing.data.get(CONF_PROVIDER) == PROVIDER_VBN_OTP:
+        custom_url = None
+        for existing in hass.config_entries.async_entries(DOMAIN):
+            if existing.data.get(CONF_PROVIDER) == provider:
+                if provider == PROVIDER_VBN_OTP:
                     api_key = existing.data.get(CONF_VBN_API_KEY)
-                    break
+                elif provider == PROVIDER_OPT:
+                    api_key = existing.data.get(CONF_OPT_API_KEY)
+                elif provider == PROVIDER_OTP_CUSTOM:
+                    api_key = existing.data.get(CONF_OTP_CUSTOM_API_KEY)
+                    custom_url = existing.data.get(CONF_OTP_BASE_URL)
+                break
 
         journeys = await async_plan_trip(
-            hass, provider, origin, origin_city, destination, destination_city, api_key=api_key
+            hass,
+            provider,
+            origin,
+            origin_city,
+            destination,
+            destination_city,
+            api_key=api_key,
+            custom_url=custom_url,
         )
 
         return {"journeys": journeys or []}

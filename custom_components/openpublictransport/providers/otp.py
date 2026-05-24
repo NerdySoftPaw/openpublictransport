@@ -113,6 +113,10 @@ def _cluster_by_proximity(stops: List[Dict[str, Any]]) -> List[List[Dict[str, An
 _GRAPHQL_STOPTIMES = """{
   stop(id: "%s") {
     name
+    alerts {
+      alertHeaderText
+      alertDescriptionText
+    }
     stoptimesWithoutPatterns(numberOfDepartures: %d, startTime: %d) {
       serviceDay
       scheduledDeparture
@@ -121,9 +125,20 @@ _GRAPHQL_STOPTIMES = """{
       realtime
       headsign
       trip {
+        alerts {
+          alertHeaderText
+          alertDescriptionText
+        }
         route {
           shortName
           mode
+          agency {
+            name
+          }
+          alerts {
+            alertHeaderText
+            alertDescriptionText
+          }
         }
       }
     }
@@ -233,33 +248,56 @@ class OTPProvider(OTPBaseProvider):
         # Phase 3: Nominatim + OTP radius search
         return await super().search_stops(search_term)
 
+    @staticmethod
+    def _alert_texts(alerts: Optional[List[Dict[str, Any]]]) -> List[str]:
+        seen: set = set()
+        result = []
+        for a in alerts or []:
+            text = (a.get("alertHeaderText") or a.get("alertDescriptionText") or "").strip()
+            if text and text not in seen:
+                seen.add(text)
+                result.append(text)
+        return result
+
     def _stoptimes_to_events(self, stoptimes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         mode_mapping = self.get_mode_mapping()
-        return [
-            {
-                "routeName": ((st.get("trip") or {}).get("route") or {}).get("shortName", ""),
-                "transportType": mode_mapping.get(
-                    ((st.get("trip") or {}).get("route") or {}).get("mode", ""), "unknown"
-                ),
-                "agency": "",
-                "notices": None,
-                "serviceDay": st.get("serviceDay", 0),
-                "scheduledDeparture": st.get("scheduledDeparture", 0),
-                "realtimeDeparture": st.get("realtimeDeparture", 0),
-                "departureDelay": st.get("departureDelay", 0),
-                "realtime": st.get("realtime", False),
-                "headsign": st.get("headsign", ""),
-            }
-            for st in stoptimes
-        ]
+        events = []
+        for st in stoptimes:
+            trip = st.get("trip") or {}
+            route = trip.get("route") or {}
+            trip_notices = self._alert_texts(trip.get("alerts"))
+            route_notices = [t for t in self._alert_texts(route.get("alerts")) if t not in trip_notices]
+            notices = trip_notices + route_notices
+            events.append(
+                {
+                    "routeName": route.get("shortName", ""),
+                    "transportType": mode_mapping.get(route.get("mode", ""), "unknown"),
+                    "agency": (route.get("agency") or {}).get("name", ""),
+                    "notices": notices or None,
+                    "serviceDay": st.get("serviceDay", 0),
+                    "scheduledDeparture": st.get("scheduledDeparture", 0),
+                    "realtimeDeparture": st.get("realtimeDeparture", 0),
+                    "departureDelay": st.get("departureDelay", 0),
+                    "realtime": st.get("realtime", False),
+                    "headsign": st.get("headsign", ""),
+                }
+            )
+        return events
 
     async def _fetch_one_stop(self, gtfs_id: str, limit: int, start_epoch: int) -> List[Dict[str, Any]]:
         q = _GRAPHQL_STOPTIMES % (gtfs_id.replace('"', '\\"'), limit, start_epoch)
         body = await self._graphql(q)
         if body is None:
             return []
-        stoptimes = (((body.get("data") or {}).get("stop")) or {}).get("stoptimesWithoutPatterns") or []
-        return self._stoptimes_to_events(stoptimes)
+        stop_data = ((body.get("data") or {}).get("stop")) or {}
+        stoptimes = stop_data.get("stoptimesWithoutPatterns") or []
+        events = self._stoptimes_to_events(stoptimes)
+        stop_notices = self._alert_texts(stop_data.get("alerts"))
+        if stop_notices:
+            for ev in events:
+                existing = ev.get("notices") or []
+                ev["notices"] = stop_notices + [n for n in existing if n not in stop_notices]
+        return events
 
     async def fetch_departures(
         self,

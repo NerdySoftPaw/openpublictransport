@@ -123,8 +123,7 @@ class OTPProvider(OTPBaseProvider):
 
     def _raw_stops_from_body(self, body: Optional[Dict]) -> List[Dict[str, Any]]:
         return [
-            s for s in (((body or {}).get("data") or {}).get("stops") or [])
-            if isinstance(s, dict) and "gtfsId" in s
+            s for s in (((body or {}).get("data") or {}).get("stops") or []) if isinstance(s, dict) and "gtfsId" in s
         ]
 
     def _group_by_name(self, raw_stops: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -132,10 +131,7 @@ class OTPProvider(OTPBaseProvider):
         groups: Dict[str, List[str]] = {}
         for s in raw_stops:
             groups.setdefault(s["name"], []).append(s["gtfsId"])
-        return [
-            {"id": "|".join(ids), "name": name, "place": name, "area_type": "stop"}
-            for name, ids in groups.items()
-        ]
+        return [{"id": "|".join(ids), "name": name, "place": name, "area_type": "stop"} for name, ids in groups.items()]
 
     async def _search_one(self, term: str) -> List[Dict[str, Any]]:
         q = _GRAPHQL_STOP_SEARCH % term.replace('"', '\\"')
@@ -170,9 +166,7 @@ class OTPProvider(OTPBaseProvider):
         seen_terms: set = set()
         unique = [t for t in prefixed if not (t in seen_terms or seen_terms.add(t))]  # type: ignore[func-returns-value]
 
-        bodies = await asyncio.gather(
-            *[self._graphql(_GRAPHQL_STOP_SEARCH % t.replace('"', '\\"')) for t in unique]
-        )
+        bodies = await asyncio.gather(*[self._graphql(_GRAPHQL_STOP_SEARCH % t.replace('"', '\\"')) for t in unique])
         all_raw: List[Dict[str, Any]] = []
         seen_ids: set = set()
         for body in bodies:

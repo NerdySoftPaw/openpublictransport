@@ -98,7 +98,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             {"value": "rvv", "label": "RVV — Regensburg"},
             {"value": "sbb", "label": "SBB — Schweiz"},
             {"value": "trafiklab_se", "label": "Trafiklab — Schweden (API Key)"},
-            {"value": "openpublictransport", "label": "Deutschland — Community Server (api.openpublictransport.net, API Key)"},
+            {
+                "value": "openpublictransport",
+                "label": "Deutschland — Community Server (api.openpublictransport.net, API Key)",
+            },
             {"value": "otp_custom", "label": "OTP2 — Eigene Instanz (URL + optionaler API Key)"},
             {"value": "transitous", "label": "Transitous — Weltweit (Community, Beta)"},
             {"value": "vagfr", "label": "VAG — Freiburg"},
@@ -190,10 +193,14 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     return await self.async_step_trip_search()
                 return await self.async_step_stop_search()
 
-        schema = vol.Schema({
-            vol.Required(CONF_OTP_BASE_URL, description={"suggested_value": "http://192.168.1.10:8080/otp/routers/default"}): str,
-            vol.Optional("otp_custom_api_key"): str,
-        })
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_OTP_BASE_URL, description={"suggested_value": "http://192.168.1.10:8080/otp/routers/default"}
+                ): str,
+                vol.Optional("otp_custom_api_key"): str,
+            }
+        )
         return self.async_show_form(
             step_id="otp_custom_url",
             data_schema=schema,

@@ -58,9 +58,9 @@ _GRAPHQL_PLAN = """{
         departureDelay
         arrivalDelay
         transitLeg
-        routeShortName
+        trip { route { shortName } }
         duration
-        realTime
+        realtime
       }
     }
   }
@@ -311,7 +311,7 @@ def _parse_otp_itineraries(itineraries: List[Dict[str, Any]]) -> List[Dict[str, 
                 {
                     "origin": leg.get("from", {}).get("name", ""),
                     "destination": leg.get("to", {}).get("name", ""),
-                    "line": leg.get("routeShortName") or leg.get("route", ""),
+                    "line": (leg.get("trip") or {}).get("route", {}).get("shortName") or leg.get("route", ""),
                     "product": _OTP_MODE_TO_PRODUCT.get(leg.get("mode", ""), leg.get("mode", "").lower()),
                     "departure_planned": dep_planned,
                     "departure_estimated": dep_estimated,

@@ -39,8 +39,8 @@ _GRAPHQL_STOP_COORDS = '{ stop(id: "%s") { lat lon name } }'
 
 _GRAPHQL_PLAN = """{
   plan(
-    from: { stopId: "%s" }
-    to: { stopId: "%s" }
+    from: { lat: %f, lon: %f, stopId: "%s" }
+    to: { lat: %f, lon: %f, stopId: "%s" }
     date: "%s"
     time: "%s"
     numItineraries: 3
@@ -173,14 +173,34 @@ async def _async_plan_trip_otp2_graphql(
     departure_time: Optional[datetime],
     provider_instance,
 ) -> Optional[List[Dict[str, Any]]]:
-    """Plan a trip via OTP2 GraphQL plan query (community server + custom instances)."""
+    """Plan a trip via OTP2 GraphQL plan query (community server + custom instances).
+
+    lat/lon are required by the plan API; stopId is passed alongside so OTP2
+    uses the exact transit stop without needing a street-network snap.
+    """
     now = departure_time or dt_util.now()
-    # Compound stop IDs are pipe-separated — use the first platform ID for routing
+    # Compound stop IDs are pipe-separated — use the first platform ID
     from_id = origin_id.split("|")[0]
     to_id = dest_id.split("|")[0]
 
+    # Fetch stop coordinates — required by the plan API alongside stopId
+    from_body, to_body = await asyncio.gather(
+        provider_instance._graphql(_GRAPHQL_STOP_COORDS % from_id.replace('"', '\\"')),
+        provider_instance._graphql(_GRAPHQL_STOP_COORDS % to_id.replace('"', '\\"')),
+    )
+    from_stop = ((from_body or {}).get("data") or {}).get("stop") or {}
+    to_stop = ((to_body or {}).get("data") or {}).get("stop") or {}
+
+    if not from_stop.get("lat") or not to_stop.get("lat"):
+        _LOGGER.warning("OTP2 plan: could not resolve stop coordinates for %s / %s", from_id, to_id)
+        return None
+
     query = _GRAPHQL_PLAN % (
+        from_stop["lat"],
+        from_stop["lon"],
         from_id.replace('"', '\\"'),
+        to_stop["lat"],
+        to_stop["lon"],
         to_id.replace('"', '\\"'),
         now.strftime("%Y-%m-%d"),
         now.strftime("%H:%M:%S"),
@@ -194,7 +214,13 @@ async def _async_plan_trip_otp2_graphql(
 
     itineraries = ((body.get("data") or {}).get("plan") or {}).get("itineraries") or []
     if not itineraries:
-        _LOGGER.warning("OTP2 plan: no itineraries for %s → %s", from_id, to_id)
+        _LOGGER.warning(
+            "OTP2 plan: no itineraries for %s (%s) → %s (%s)",
+            from_stop.get("name", from_id),
+            from_id,
+            to_stop.get("name", to_id),
+            to_id,
+        )
         return None
 
     return _parse_otp_itineraries(itineraries)

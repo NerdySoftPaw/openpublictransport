@@ -196,8 +196,9 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         schema = vol.Schema(
             {
                 vol.Required(
-                    CONF_OTP_BASE_URL, description={"suggested_value": "http://192.168.1.10:8080/otp/routers/default"}
-                ): str,
+                    CONF_OTP_BASE_URL,
+                    description={"suggested_value": "http://192.168.1.10:8080/otp/routers/default"},
+                ): cv.url,
                 vol.Optional("otp_custom_api_key"): str,
             }
         )

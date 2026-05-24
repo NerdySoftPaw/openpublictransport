@@ -15,3 +15,7 @@ class OPTProvider(OTPProvider):
     @property
     def provider_name(self) -> str:
         return "Deutschland (api.openpublictransport.net)"
+
+    @property
+    def requires_api_key(self) -> bool:
+        return True

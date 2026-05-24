@@ -28,6 +28,7 @@ class VBNOTPProvider(OTPBaseProvider):
         hass: HomeAssistant,
         api_key: Optional[str] = None,
         api_key_secondary: Optional[str] = None,
+        custom_url: Optional[str] = None,
     ) -> None:
         super().__init__(hass, api_key, api_key_secondary)
 
@@ -60,6 +61,7 @@ class VBNTriasProvider(TRIASBaseProvider):
         hass: HomeAssistant,
         api_key: Optional[str] = None,
         api_key_secondary: Optional[str] = None,
+        custom_url: Optional[str] = None,
     ) -> None:
         super().__init__(hass, api_key, api_key_secondary)
 

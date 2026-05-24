@@ -22,7 +22,13 @@ _LOGGER = logging.getLogger(__name__)
 class NTAProvider(BaseProvider):
     """NTA (National Transport Authority, Ireland) provider."""
 
-    def __init__(self, hass, api_key: Optional[str] = None, api_key_secondary: Optional[str] = None):
+    def __init__(
+        self,
+        hass,
+        api_key: Optional[str] = None,
+        api_key_secondary: Optional[str] = None,
+        custom_url: Optional[str] = None,
+    ):
         """Initialize NTA provider."""
         super().__init__(hass, api_key=api_key, api_key_secondary=api_key_secondary)
 

@@ -15,7 +15,15 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
 
-from .const import CONF_SCAN_INTERVAL, CONF_VBN_API_KEY, DEFAULT_SCAN_INTERVAL, DOMAIN
+from .const import (
+    CONF_OPT_API_KEY,
+    CONF_OTP_BASE_URL,
+    CONF_OTP_CUSTOM_API_KEY,
+    CONF_SCAN_INTERVAL,
+    CONF_VBN_API_KEY,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+)
 from .trip import async_plan_trip
 
 _LOGGER = logging.getLogger(__name__)
@@ -43,6 +51,7 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         origin_id: Optional[str] = None,
         dest_id: Optional[str] = None,
         api_key: Optional[str] = None,
+        custom_url: Optional[str] = None,
     ):
         """Initialize."""
         super().__init__(
@@ -59,6 +68,7 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         self.origin_id = origin_id
         self.dest_id = dest_id
         self.api_key = api_key
+        self.custom_url = custom_url
 
     async def _async_update_data(self) -> Optional[List[Dict[str, Any]]]:
         """Fetch trip data."""
@@ -72,6 +82,7 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
             origin_id=self.origin_id,
             dest_id=self.dest_id,
             api_key=self.api_key,
+            custom_url=self.custom_url,
         )
 
 
@@ -88,7 +99,20 @@ async def async_setup_trip_entry(
     origin_id = config_entry.data.get("trip_origin_id")
     dest_id = config_entry.data.get("trip_destination_id")
     scan_interval = config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-    api_key = config_entry.data.get(CONF_VBN_API_KEY)
+
+    # Resolve API key and custom URL based on provider
+    if provider == "vbn_otp":
+        api_key = config_entry.data.get(CONF_VBN_API_KEY)
+        custom_url = None
+    elif provider == "openpublictransport":
+        api_key = config_entry.data.get(CONF_OPT_API_KEY)
+        custom_url = None
+    elif provider == "otp_custom":
+        api_key = config_entry.data.get(CONF_OTP_CUSTOM_API_KEY)
+        custom_url = config_entry.data.get(CONF_OTP_BASE_URL)
+    else:
+        api_key = None
+        custom_url = None
 
     coordinator = TripDataUpdateCoordinator(
         hass,
@@ -101,6 +125,7 @@ async def async_setup_trip_entry(
         origin_id=origin_id,
         dest_id=dest_id,
         api_key=api_key,
+        custom_url=custom_url,
     )
 
     coordinator_key = f"{config_entry.entry_id}_trip_coordinator"

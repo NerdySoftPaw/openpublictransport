@@ -124,6 +124,9 @@ _GRAPHQL_STOPTIMES = """{
         route {
           shortName
           mode
+          agency {
+            name
+          }
         }
       }
     }
@@ -241,7 +244,7 @@ class OTPProvider(OTPBaseProvider):
                 "transportType": mode_mapping.get(
                     ((st.get("trip") or {}).get("route") or {}).get("mode", ""), "unknown"
                 ),
-                "agency": "",
+                "agency": (((st.get("trip") or {}).get("route") or {}).get("agency") or {}).get("name", ""),
                 "notices": None,
                 "serviceDay": st.get("serviceDay", 0),
                 "scheduledDeparture": st.get("scheduledDeparture", 0),

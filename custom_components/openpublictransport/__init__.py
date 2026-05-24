@@ -10,6 +10,9 @@ from homeassistant.helpers import entity_registry as er
 from .const import (
     CONF_DEPARTURES,
     CONF_NTA_API_KEY,
+    CONF_OPT_API_KEY,
+    CONF_OTP_BASE_URL,
+    CONF_OTP_CUSTOM_API_KEY,
     CONF_PROVIDER,
     CONF_RMV_API_KEY,
     CONF_SCAN_INTERVAL,
@@ -20,6 +23,8 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     PROVIDER_NTA_IE,
+    PROVIDER_OPT,
+    PROVIDER_OTP_CUSTOM,
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_VBN_OTP,
@@ -104,9 +109,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     nta_api_key = entry.data.get(CONF_NTA_API_KEY)  # For NTA
     rmv_api_key = entry.data.get(CONF_RMV_API_KEY)  # For RMV
     vbn_api_key = entry.data.get(CONF_VBN_API_KEY)  # For VBN (OTP + TRIAS)
+    opt_api_key = entry.data.get(CONF_OPT_API_KEY)  # For community OTP server
+    otp_custom_api_key = entry.data.get(CONF_OTP_CUSTOM_API_KEY)  # For custom OTP instance
+    otp_custom_url = entry.data.get(CONF_OTP_BASE_URL)  # For custom OTP instance
 
-    # Use appropriate API key based on provider
+    # Use appropriate API key (and URL) based on provider
     api_key = None
+    custom_url = None
     if provider == PROVIDER_TRAFIKLAB_SE:
         api_key = trafiklab_api_key
     elif provider == PROVIDER_NTA_IE:
@@ -115,6 +124,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         api_key = rmv_api_key
     elif provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
         api_key = vbn_api_key
+    elif provider == PROVIDER_OPT:
+        api_key = opt_api_key
+    elif provider == PROVIDER_OTP_CUSTOM:
+        api_key = otp_custom_api_key
+        custom_url = otp_custom_url
 
     departures = entry.options.get(CONF_DEPARTURES, entry.data.get(CONF_DEPARTURES, DEFAULT_DEPARTURES))
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))
@@ -129,6 +143,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         scan_interval,
         config_entry=entry,
         api_key=api_key,
+        custom_url=custom_url,
     )
 
     # Store coordinator before first refresh

@@ -18,6 +18,8 @@ from ..const import (
     PROVIDER_NVBW,
     PROVIDER_NWL,
     PROVIDER_OEBB,
+    PROVIDER_OPT,
+    PROVIDER_OTP_CUSTOM,
     PROVIDER_RMV,
     PROVIDER_RVV,
     PROVIDER_SBB,
@@ -39,6 +41,7 @@ from .bsvg import BSVGProvider
 from .bvg import BVGProvider
 from .db import DBProvider
 from .ding import DINGProvider
+from .gtfsde import OPTProvider
 from .hvv import HVVProvider
 from .kvv import KVVProvider
 from .mvv import MVVProvider
@@ -46,6 +49,7 @@ from .nta import NTAProvider
 from .nvbw import NVBWProvider
 from .nwl import NWLProvider
 from .oebb import OeBBProvider
+from .otp_custom import OTPCustomProvider
 from .rmv import RMVProvider
 from .rvv import RVVProvider
 from .sbb import SBBProvider
@@ -72,13 +76,19 @@ def get_provider(
     hass: HomeAssistant,
     api_key: Optional[str] = None,
     api_key_secondary: Optional[str] = None,
+    custom_url: Optional[str] = None,
 ) -> Optional[BaseProvider]:
     """Get a provider instance by ID."""
     if provider_id is None:
         return None
     provider_class = _PROVIDER_REGISTRY.get(provider_id)
     if provider_class:
-        return provider_class(hass, api_key=api_key, api_key_secondary=api_key_secondary)
+        return provider_class(
+            hass,
+            api_key=api_key,
+            api_key_secondary=api_key_secondary,
+            custom_url=custom_url,
+        )
     return None
 
 
@@ -114,3 +124,5 @@ register_provider(PROVIDER_TRANSITOUS, TransitousProvider)
 register_provider(PROVIDER_DB, DBProvider)
 register_provider(PROVIDER_VBN_OTP, VBNOTPProvider)
 register_provider(PROVIDER_VBN_TRIAS, VBNTriasProvider)
+register_provider(PROVIDER_OPT, OPTProvider)
+register_provider(PROVIDER_OTP_CUSTOM, OTPCustomProvider)

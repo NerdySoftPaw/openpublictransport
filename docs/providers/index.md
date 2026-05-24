@@ -4,20 +4,22 @@ The Public Transport Integration supports multiple transit providers across Euro
 
 ## Provider Comparison
 
-| Feature | VRR | KVV | HVV | MVV | VVS | VGN | VAG Freiburg | BVG | RMV | VBN OTP | VBN TRIAS | VRN | VVO | DING | AVV | RVV | BSVG | NWL | NVBW | BEG | SBB | ÖBB | Trafiklab | NTA | Transitous |
-|---------|-----|-----|-----|-----|-----|-----|--------------|-----|-----|---------|-----------|-----|-----|------|-----|-----|------|-----|------|-----|-----|-----|-----------|-----|-----------|
-| **Region** | NRW | Karlsruhe | Hamburg | Munich | Stuttgart | Nuremberg | Freiburg | Berlin | Frankfurt | Bremen/Niedersachsen | Bremen/Niedersachsen | Rhein-Neckar | Dresden | Ulm | Augsburg | Regensburg | Braunschweig | Westfalen-Lippe | Baden-Württemberg | Bayern | Switzerland | Austria | Sweden | Ireland | Worldwide |
-| **API Type** | EFA | EFA | EFA | EFA | EFA | EFA | EFA | FPTF REST | HAFAS REST | OTP REST | TRIAS XML | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | REST | FPTF REST | REST | GTFS-RT | MOTIS2 |
-| **API Key** | No | No | No | No | No | No | No | No | Yes (free) | Yes (free) | Yes (free) | No | No | No | No | No | No | No | No | No | No | No | Yes (free) | Yes (free) | No |
-| **Real-time Data** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | When available |
-| **Delay Information** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | When available |
-| **Platform Info** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Limited | When available |
-| **Agency/Operator** | No | No | No | No | No | No | No | Yes | Yes | Yes | No | No | No | No | No | No | No | No | No | No | No | Yes | Yes | No | When available |
-| **Alerts/Notices** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes | No | Yes | When available |
-| **Trip Planner** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | No | Yes | No | No | No | No | No | No | No | No | No | No | No | No | No | No | No |
-| **Stop Search** | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Geocoded¹ | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Stop ID | Autocomplete |
+| Feature | VRR | KVV | HVV | MVV | VVS | VGN | VAG Freiburg | BVG | RMV | VBN OTP | VBN TRIAS | VRN | VVO | DING | AVV | RVV | BSVG | NWL | NVBW | BEG | SBB | ÖBB | Trafiklab | NTA | Transitous | openpublictransport | OTP2 Custom |
+|---------|-----|-----|-----|-----|-----|-----|--------------|-----|-----|---------|-----------|-----|-----|------|-----|-----|------|-----|------|-----|-----|-----|-----------|-----|-----------|---------------------|-------------|
+| **Region** | NRW | Karlsruhe | Hamburg | Munich | Stuttgart | Nuremberg | Freiburg | Berlin | Frankfurt | Bremen/Niedersachsen | Bremen/Niedersachsen | Rhein-Neckar | Dresden | Ulm | Augsburg | Regensburg | Braunschweig | Westfalen-Lippe | Baden-Württemberg | Bayern | Switzerland | Austria | Sweden | Ireland | Worldwide | Germany (all) | Any OTP2 |
+| **API Type** | EFA | EFA | EFA | EFA | EFA | EFA | EFA | FPTF REST | HAFAS REST | OTP REST | TRIAS XML | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | REST | FPTF REST | REST | GTFS-RT | MOTIS2 | OTP2 GraphQL | OTP2 GraphQL |
+| **API Key** | No | No | No | No | No | No | No | No | Yes (free) | Yes (free) | Yes (free) | No | No | No | No | No | No | No | No | No | No | No | Yes (free) | Yes (free) | No | Yes (free²) | Optional |
+| **Real-time Data** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | When available | Yes (GTFS-RT) | Depends on server |
+| **Delay Information** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | When available | Yes | Depends on server |
+| **Platform Info** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Limited | When available | No | No |
+| **Agency/Operator** | No | No | No | No | No | No | No | Yes | Yes | Yes | No | No | No | No | No | No | No | No | No | No | No | Yes | Yes | No | When available | No | No |
+| **Alerts/Notices** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes | No | Yes | When available | No | No |
+| **Trip Planner** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | No | Yes | No | No | No | No | No | No | No | No | No | No | No | No | No | No | No | No | No |
+| **Stop Search** | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Geocoded¹ | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Stop ID | Autocomplete | GraphQL + prefix | GraphQL + prefix |
 
 ¹ VBN OTP has no native name-based stop search. The integration geocodes your search term via Nominatim (OpenStreetMap) and finds stops within 500 m of the resolved coordinates.
+
+² API key for the community server is free — [request it here](https://openpublictransport.net/api-key).
 
 ## Timezone Handling
 
@@ -50,6 +52,8 @@ Each provider uses its local timezone for departure times:
 | Trafiklab | Europe/Stockholm |
 | NTA | Europe/Dublin |
 | Transitous | Per-stop (automatic) |
+| openpublictransport | Europe/Berlin |
+| OTP2 Custom | Europe/Berlin (or per OTP2 config) |
 
 ## Transport Type Mapping
 

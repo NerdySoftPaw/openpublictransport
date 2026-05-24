@@ -20,6 +20,7 @@ from .const import (
     CONF_LINE_FILTER,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
+    CONF_OTP_BASE_URL,
     CONF_PROVIDER,
     CONF_SCAN_INTERVAL,
     CONF_STATION_ID,
@@ -36,6 +37,8 @@ from .const import (
     DOMAIN,
     PROVIDER_ENTITY_PICTURES,
     PROVIDER_NTA_IE,
+    PROVIDER_OPT,
+    PROVIDER_OTP_CUSTOM,
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_VBN_OTP,
     PROVIDER_VBN_TRIAS,
@@ -62,6 +65,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
         scan_interval: int,
         config_entry: Optional[ConfigEntry] = None,
         api_key: Optional[str] = None,
+        custom_url: Optional[str] = None,
     ):
         """Initialize."""
         self.provider = provider
@@ -73,6 +77,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
         self._last_api_reset = datetime.now().date()
         self.api_key = api_key  # For Trafiklab API or NTA API (Primary)
         self.api_key_secondary: Optional[str] = None  # For NTA API (Secondary, optional fallback)
+        self.custom_url = custom_url  # For otp_custom provider
 
         # Note: config_entry parameter was added in HA 2024.11+
         # We store it ourselves for compatibility with older versions
@@ -90,6 +95,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
                 if config_entry and provider == PROVIDER_NTA_IE
                 else None
             ),
+            custom_url=custom_url,
         )
         if not self.provider_instance:
             _LOGGER.error("Failed to initialize provider: %s", provider)
@@ -267,13 +273,23 @@ async def async_setup_entry(
         vbn_api_key = config_entry.data.get(CONF_VBN_API_KEY)
 
         # Use appropriate API key based on provider
+        opt_api_key = config_entry.data.get("opt_api_key")
+        otp_custom_api_key = config_entry.data.get("otp_custom_api_key")
+        otp_custom_url = config_entry.data.get(CONF_OTP_BASE_URL)
+
         api_key = None
+        custom_url = None
         if provider == PROVIDER_TRAFIKLAB_SE:
             api_key = trafiklab_api_key
         elif provider == PROVIDER_NTA_IE:
             api_key = nta_api_key
         elif provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
             api_key = vbn_api_key
+        elif provider == PROVIDER_OPT:
+            api_key = opt_api_key
+        elif provider == PROVIDER_OTP_CUSTOM:
+            api_key = otp_custom_api_key
+            custom_url = otp_custom_url
 
         departures = config_entry.options.get(
             CONF_DEPARTURES, config_entry.data.get(CONF_DEPARTURES, DEFAULT_DEPARTURES)
@@ -292,6 +308,7 @@ async def async_setup_entry(
             scan_interval,
             config_entry=config_entry,
             api_key=api_key,
+            custom_url=custom_url,
         )
         hass.data.setdefault(DOMAIN, {})
         hass.data[DOMAIN][coordinator_key] = coordinator

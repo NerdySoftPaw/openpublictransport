@@ -214,10 +214,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         destination_city = call.data["destination_city"]
 
         # Look up credentials from an existing config entry for this provider
+        # Trip entries store "trip_provider", departure entries store "provider"
         api_key = None
         custom_url = None
         for existing in hass.config_entries.async_entries(DOMAIN):
-            if existing.data.get(CONF_PROVIDER) == provider:
+            ep = existing.data.get(CONF_PROVIDER) or existing.data.get("trip_provider")
+            if ep == provider:
                 if provider == PROVIDER_VBN_OTP:
                     api_key = existing.data.get(CONF_VBN_API_KEY)
                 elif provider == PROVIDER_OPT:

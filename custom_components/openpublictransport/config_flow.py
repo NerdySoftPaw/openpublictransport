@@ -158,8 +158,40 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
 
         return self.async_show_form(step_id="user", data_schema=schema)
 
+    def _find_existing_credentials(self, provider: str) -> dict:
+        """Return stored credentials from any existing entry for this provider."""
+        key_map: Dict[str, list] = {
+            PROVIDER_OPT: [CONF_OPT_API_KEY],
+            PROVIDER_OTP_CUSTOM: [CONF_OTP_CUSTOM_API_KEY, CONF_OTP_BASE_URL],
+            PROVIDER_VBN_OTP: [CONF_VBN_API_KEY],
+            PROVIDER_VBN_TRIAS: [CONF_VBN_API_KEY],
+            PROVIDER_TRAFIKLAB_SE: [CONF_TRAFIKLAB_API_KEY],
+            PROVIDER_NTA_IE: [CONF_NTA_API_KEY, CONF_NTA_API_KEY_SECONDARY],
+            PROVIDER_RMV: [CONF_RMV_API_KEY],
+        }
+        keys = key_map.get(provider, [])
+        if not keys:
+            return {}
+        for entry in self.hass.config_entries.async_entries(DOMAIN):
+            ep = entry.data.get(CONF_PROVIDER) or entry.data.get("trip_provider")
+            if ep == provider:
+                found = {k: entry.data[k] for k in keys if k in entry.data}
+                if found:
+                    return found
+        return {}
+
     async def async_step_opt_key(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Required API key step for the openpublictransport community server."""
+        # Auto-reuse key from an existing entry for this provider
+        if user_input is None and not self._api_key:
+            creds = self._find_existing_credentials(PROVIDER_OPT)
+            if creds.get(CONF_OPT_API_KEY):
+                self._api_key = creds[CONF_OPT_API_KEY]
+                if self._entry_type == "trip":
+                    self._trip_search_phase = "origin"
+                    return await self.async_step_trip_search()
+                return await self.async_step_stop_search()
+
         errors: Dict[str, str] = {}
         if user_input is not None:
             key = user_input.get(CONF_OPT_API_KEY, "").strip()
@@ -187,6 +219,17 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
 
     async def async_step_otp_custom_url(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """URL + optional API key for a user-provided OTP2 instance."""
+        # Auto-reuse URL + key from an existing entry
+        if user_input is None and not self._otp_custom_url:
+            creds = self._find_existing_credentials(PROVIDER_OTP_CUSTOM)
+            if creds.get(CONF_OTP_BASE_URL):
+                self._otp_custom_url = creds[CONF_OTP_BASE_URL]
+                self._api_key = creds.get(CONF_OTP_CUSTOM_API_KEY) or None
+                if self._entry_type == "trip":
+                    self._trip_search_phase = "origin"
+                    return await self.async_step_trip_search()
+                return await self.async_step_stop_search()
+
         errors: Dict[str, str] = {}
         if user_input is not None:
             url = user_input.get(CONF_OTP_BASE_URL, "").strip()
@@ -230,6 +273,23 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         if not provider_instance or not provider_instance.requires_api_key:
             # Should not happen, but handle gracefully
             return await self.async_step_stop_search()
+
+        # Auto-reuse credentials from an existing entry for this provider
+        if user_input is None and not self._api_key:
+            creds = self._find_existing_credentials(self._provider)
+            if self._provider == PROVIDER_TRAFIKLAB_SE and creds.get(CONF_TRAFIKLAB_API_KEY):
+                self._api_key = creds[CONF_TRAFIKLAB_API_KEY]
+                return await self._async_next_step_after_api_key()
+            elif self._provider == PROVIDER_RMV and creds.get(CONF_RMV_API_KEY):
+                self._api_key = creds[CONF_RMV_API_KEY]
+                return await self._async_next_step_after_api_key()
+            elif self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS) and creds.get(CONF_VBN_API_KEY):
+                self._api_key = creds[CONF_VBN_API_KEY]
+                return await self._async_next_step_after_api_key()
+            elif self._provider == PROVIDER_NTA_IE and creds.get(CONF_NTA_API_KEY):
+                self._api_key = creds[CONF_NTA_API_KEY]
+                self._api_key_secondary = creds.get(CONF_NTA_API_KEY_SECONDARY)
+                return await self._async_next_step_after_api_key()
 
         if user_input is not None:
             if self._provider == PROVIDER_TRAFIKLAB_SE:
@@ -1310,8 +1370,15 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             }
 
             # Persist API key for providers that require one
-            if self._api_key and self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
-                data[CONF_VBN_API_KEY] = self._api_key
+            if self._api_key:
+                if self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
+                    data[CONF_VBN_API_KEY] = self._api_key
+                elif self._provider == PROVIDER_OPT:
+                    data[CONF_OPT_API_KEY] = self._api_key
+                elif self._provider == PROVIDER_OTP_CUSTOM:
+                    data[CONF_OTP_CUSTOM_API_KEY] = self._api_key
+                    if self._otp_custom_url:
+                        data[CONF_OTP_BASE_URL] = self._otp_custom_url
 
             unique_id = f"{self._provider}_trip_{origin.get('id', '')}_{dest.get('id', '')}"
             await self.async_set_unique_id(unique_id)

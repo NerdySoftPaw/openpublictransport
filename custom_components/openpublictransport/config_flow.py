@@ -157,23 +157,28 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         return self.async_show_form(step_id="user", data_schema=schema)
 
     async def async_step_opt_key(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
-        """Optional API key step for the openpublictransport community server."""
+        """Required API key step for the openpublictransport community server."""
+        errors: Dict[str, str] = {}
         if user_input is not None:
-            self._api_key = user_input.get("opt_api_key", "").strip() or None
-            if self._entry_type == "trip":
-                self._trip_search_phase = "origin"
-                return await self.async_step_trip_search()
-            return await self.async_step_stop_search()
+            key = user_input.get("opt_api_key", "").strip()
+            if not key:
+                errors["opt_api_key"] = "opt_api_key_required"
+            else:
+                self._api_key = key
+                if self._entry_type == "trip":
+                    self._trip_search_phase = "origin"
+                    return await self.async_step_trip_search()
+                return await self.async_step_stop_search()
 
-        schema = vol.Schema({vol.Optional("opt_api_key"): str})
+        schema = vol.Schema({vol.Required("opt_api_key"): str})
         return self.async_show_form(
             step_id="opt_key",
             data_schema=schema,
+            errors=errors,
             description_placeholders={
                 "info": (
-                    "API key for api.openpublictransport.net (optional for now, required later). "
-                    "Request a free key at openpublictransport.net/api-key — "
-                    "just send your name and use case."
+                    "API key for api.openpublictransport.net — required. "
+                    "Request a free key at openpublictransport.net/api-key."
                 )
             },
         )

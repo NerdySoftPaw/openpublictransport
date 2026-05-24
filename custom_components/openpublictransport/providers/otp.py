@@ -10,6 +10,7 @@ Handles:
 
 import asyncio
 import logging
+import math
 import time
 from typing import Any, Dict, List, Optional
 
@@ -66,6 +67,47 @@ def _detect_city_prefix(search_term: str) -> Optional[str]:
             if remaining:
                 return prefix + remaining
     return None
+
+
+_MAX_PLATFORM_DISTANCE_M = 500
+
+
+def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Great-circle distance in metres between two lat/lon points."""
+    r = 6_371_000
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlambda = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    return r * 2 * math.asin(math.sqrt(a))
+
+
+def _cluster_by_proximity(stops: List[Dict[str, Any]]) -> List[List[Dict[str, Any]]]:
+    """Union-find clustering: stops within _MAX_PLATFORM_DISTANCE_M form one cluster.
+
+    Prevents stops from different cities that share a name (e.g. "Hauptbahnhof")
+    from being merged into a single compound ID.
+    """
+    n = len(stops)
+    parent = list(range(n))
+
+    def find(i: int) -> int:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for i in range(n):
+        for j in range(i + 1, n):
+            si, sj = stops[i], stops[j]
+            if si.get("lat") and si.get("lon") and sj.get("lat") and sj.get("lon"):
+                if _haversine_m(si["lat"], si["lon"], sj["lat"], sj["lon"]) <= _MAX_PLATFORM_DISTANCE_M:
+                    parent[find(i)] = find(j)
+
+    groups: Dict[int, List[Dict[str, Any]]] = {}
+    for i, stop in enumerate(stops):
+        groups.setdefault(find(i), []).append(stop)
+    return list(groups.values())
 
 
 _GRAPHQL_STOPTIMES = """{
@@ -127,11 +169,22 @@ class OTPProvider(OTPBaseProvider):
         ]
 
     def _group_by_name(self, raw_stops: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Group platform stops by name into compound entries (one per physical station)."""
-        groups: Dict[str, List[str]] = {}
+        """Group platform stops into compound entries per physical station.
+
+        First groups by name, then further splits by proximity so stops in
+        different cities that share a name (e.g. "Hauptbahnhof") are not
+        merged into a single compound ID.
+        """
+        by_name: Dict[str, List[Dict[str, Any]]] = {}
         for s in raw_stops:
-            groups.setdefault(s["name"], []).append(s["gtfsId"])
-        return [{"id": "|".join(ids), "name": name, "place": name, "area_type": "stop"} for name, ids in groups.items()]
+            by_name.setdefault(s["name"], []).append(s)
+
+        result = []
+        for name, stops in by_name.items():
+            for cluster in _cluster_by_proximity(stops):
+                compound_id = "|".join(s["gtfsId"] for s in cluster)
+                result.append({"id": compound_id, "name": name, "place": name, "area_type": "stop"})
+        return result
 
     async def _search_one(self, term: str) -> List[Dict[str, Any]]:
         q = _GRAPHQL_STOP_SEARCH % term.replace('"', '\\"')

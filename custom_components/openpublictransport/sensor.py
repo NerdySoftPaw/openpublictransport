@@ -312,7 +312,7 @@ async def async_setup_entry(
         )
         hass.data.setdefault(DOMAIN, {})
         hass.data[DOMAIN][coordinator_key] = coordinator
-        await coordinator.async_config_entry_first_refresh()
+        await coordinator.async_refresh()
 
     # Use options if available, otherwise fall back to data
     transportation_types = config_entry.options.get(

@@ -150,18 +150,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator_key = f"{entry.entry_id}_coordinator"
     hass.data[DOMAIN][coordinator_key] = coordinator
 
-    # Do initial refresh - this can raise ConfigEntryNotReady
-    try:
-        await coordinator.async_config_entry_first_refresh()
-    except Exception as err:
-        # Cleanup coordinator resources before removing from hass.data
-        try:
-            await coordinator.async_shutdown()
-        except Exception as shutdown_err:
-            _LOGGER.warning("Error during coordinator shutdown after failed setup: %s", shutdown_err)
-        # Remove coordinator from hass.data if setup fails
-        hass.data[DOMAIN].pop(coordinator_key, None)
-        raise ConfigEntryNotReady(f"Failed to initialize public transport API: {err}") from err
+    # Fetch immediately on startup — async_refresh does not raise on failure so the
+    # entry always sets up. If the API is temporarily unavailable (e.g. OTP still
+    # loading its graph), the sensor shows "unavailable" and retries at the next
+    # normal poll tick instead of blocking entry setup with ConfigEntryNotReady.
+    await coordinator.async_refresh()
 
     await hass.config_entries.async_forward_entry_setups(
         entry, ["sensor", "binary_sensor", "calendar", "event", "camera"]

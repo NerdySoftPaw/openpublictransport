@@ -20,7 +20,7 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry: ConfigE
 
     # Mock the coordinator's first refresh to avoid real API calls
     with patch(
-        "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_config_entry_first_refresh",
+        "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_refresh",
         new_callable=AsyncMock,
     ):
         with patch(
@@ -50,7 +50,7 @@ async def test_refresh_service(hass: HomeAssistant, mock_config_entry: ConfigEnt
 
     # Mock the coordinator's first refresh to avoid real API calls
     with patch(
-        "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_config_entry_first_refresh",
+        "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_refresh",
         new_callable=AsyncMock,
     ):
         with patch(

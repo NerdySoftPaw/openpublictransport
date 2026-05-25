@@ -83,7 +83,7 @@ async def test_full_flow_simplified(hass: HomeAssistant):
                 ],
             ),
             patch(
-                "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_config_entry_first_refresh",
+                "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_refresh",
             ),
         ):
             result = await hass.config_entries.flow.async_configure(

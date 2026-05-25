@@ -173,7 +173,7 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry, mock_ap
             return_value=mock_api_response,
         ),
         patch(
-            "custom_components.openpublictransport.sensor.PublicTransportDataUpdateCoordinator.async_config_entry_first_refresh",
+            "custom_components.openpublictransport.sensor.PublicTransportDataUpdateCoordinator.async_refresh",
         ),
     ):
         entities = []

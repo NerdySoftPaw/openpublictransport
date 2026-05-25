@@ -50,7 +50,7 @@ _CITY_PREFIXES: Dict[str, str] = {
     "bonn": "BN-",
 }
 
-_GRAPHQL_STOP_SEARCH = '{ stops(name: "%s") { gtfsId name lat lon } }'
+_GRAPHQL_STOP_SEARCH = '{ stops(name: "%s") { gtfsId name lat lon parentStation { gtfsId name } } }'
 
 
 def _detect_city_prefix(search_term: str) -> Optional[str]:
@@ -186,19 +186,34 @@ class OTPProvider(OTPBaseProvider):
     def _group_by_name(self, raw_stops: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Group platform stops into compound entries per physical station.
 
-        First groups by name, then further splits by proximity so stops in
-        different cities that share a name (e.g. "Hauptbahnhof") are not
-        merged into a single compound ID.
+        Prefers grouping by parentStation.gtfsId (GTFS.de sets this correctly).
+        Falls back to name+proximity clustering for stops without a parent station.
         """
-        by_name: Dict[str, List[Dict[str, Any]]] = {}
+        by_parent: Dict[str, List[Dict[str, Any]]] = {}
+        no_parent: List[Dict[str, Any]] = []
+
         for s in raw_stops:
-            by_name.setdefault(s["name"], []).append(s)
+            parent = s.get("parentStation")
+            if parent and parent.get("gtfsId"):
+                by_parent.setdefault(parent["gtfsId"], []).append(s)
+            else:
+                no_parent.append(s)
 
         result = []
+
+        for stops in by_parent.values():
+            compound_id = "|".join(s["gtfsId"] for s in stops)
+            name = (stops[0].get("parentStation") or {}).get("name") or stops[0]["name"]
+            result.append({"id": compound_id, "name": name, "place": name, "area_type": "stop"})
+
+        by_name: Dict[str, List[Dict[str, Any]]] = {}
+        for s in no_parent:
+            by_name.setdefault(s["name"], []).append(s)
         for name, stops in by_name.items():
             for cluster in _cluster_by_proximity(stops):
                 compound_id = "|".join(s["gtfsId"] for s in cluster)
                 result.append({"id": compound_id, "name": name, "place": name, "area_type": "stop"})
+
         return result
 
     async def _search_one(self, term: str) -> List[Dict[str, Any]]:

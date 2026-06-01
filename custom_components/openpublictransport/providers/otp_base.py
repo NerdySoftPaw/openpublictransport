@@ -303,6 +303,8 @@ class OTPBaseProvider(BaseProvider):
                 notices=notices,
                 planned_platform=None,
                 platform_changed=False,
+                line_color=stop.get("lineColor") or None,
+                line_text_color=stop.get("lineTextColor") or None,
             )
         except Exception as exc:
             _LOGGER.debug("%s OTP parse_departure error: %s", self.provider_name, exc)

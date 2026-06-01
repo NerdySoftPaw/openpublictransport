@@ -171,6 +171,8 @@ _GRAPHQL_STOPTIMES = """{
         route {
           shortName
           mode
+          color
+          textColor
           agency {
             name
           }
@@ -343,6 +345,8 @@ class OTPProvider(OTPBaseProvider):
             trip_notices = self._alert_texts(trip.get("alerts"))
             route_notices = [t for t in self._alert_texts(route.get("alerts")) if t not in trip_notices]
             notices = trip_notices + route_notices
+            raw_color = route.get("color") or ""
+            raw_text = route.get("textColor") or ""
             events.append(
                 {
                     "routeName": route.get("shortName", ""),
@@ -355,6 +359,8 @@ class OTPProvider(OTPBaseProvider):
                     "departureDelay": st.get("departureDelay", 0),
                     "realtime": st.get("realtime", False),
                     "headsign": st.get("headsign", ""),
+                    "lineColor": f"#{raw_color}" if raw_color and not raw_color.startswith("#") else raw_color or None,
+                    "lineTextColor": f"#{raw_text}" if raw_text and not raw_text.startswith("#") else raw_text or None,
                 }
             )
         return events

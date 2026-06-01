@@ -52,6 +52,14 @@ _CITY_PREFIXES: Dict[str, str] = {
 
 _GRAPHQL_STOP_SEARCH = '{ stops(name: "%s") { gtfsId name lat lon parentStation { gtfsId name } } }'
 
+
+def _smart_title(s: str) -> str:
+    """Capitalize the first letter of each word, preserving the rest.
+
+    Keeps abbreviations like KIT, S2, ICE intact while fixing lowercase input.
+    """
+    return " ".join(w[0].upper() + w[1:] if w else w for w in s.split())
+
 _GRAPHQL_NEAREST = """{
   nearest(lat: %f, lon: %f, maxDistance: %d, filterByPlaceTypes: [STOP]) {
     edges {
@@ -242,11 +250,12 @@ class OTPProvider(OTPBaseProvider):
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
         """Search stops via OTP2 GraphQL with city-prefix fallback for VRR/NRW."""
         ss_term = search_term.replace("ß", "ss") if "ß" in search_term else None
-        # OTP stops(name:) is case-sensitive — also try first-letter-capitalised variant
-        cap_term = search_term[0].upper() + search_term[1:] if search_term and search_term[0].islower() else None
+        # OTP stops(name:) is case-sensitive — also try smart-title-cased variant
+        smart_term = _smart_title(search_term)
+        smart_term = smart_term if smart_term != search_term else None
 
-        # Phase 1: bare name, ß→ss variant, capitalised variant
-        for term in filter(None, [search_term, ss_term, cap_term]):
+        # Phase 1: bare name, ß→ss variant, smart-title variant
+        for term in filter(None, [search_term, ss_term, smart_term]):
             raw = await self._search_one(term)
             if raw:
                 return self._group_by_name(raw)[:20]

@@ -2,6 +2,10 @@ import logging
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
+from homeassistant.components.application_credentials import (
+    ClientCredential,
+    async_import_client_credential,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import entity_registry as er
@@ -9,6 +13,7 @@ from homeassistant.helpers import entity_registry as er
 from .const import (
     CONF_DEPARTURES,
     CONF_NTA_API_KEY,
+    CONF_NTA_API_KEY_SECONDARY,
     CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
@@ -75,6 +80,61 @@ SERVICE_ANNOUNCE_SCHEMA = vol.Schema(
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
+_PROVIDER_CREDENTIAL_NAMES: dict[str, str] = {
+    PROVIDER_OPT: "Deutschland Community Server (api.openpublictransport.net)",
+    PROVIDER_OTP_CUSTOM: "OTP2 Eigene Instanz",
+    PROVIDER_TRAFIKLAB_SE: "Trafiklab (Schweden)",
+    PROVIDER_RMV: "RMV (Rhein-Main)",
+    PROVIDER_VBN_OTP: "VBN (Bremen/Niedersachsen) — OTP",
+    PROVIDER_VBN_TRIAS: "VBN (Bremen/Niedersachsen) — TRIAS",
+    PROVIDER_NTA_IE: "NTA (Irland)",
+}
+
+
+async def _async_migrate_credential(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Migrate API key from a config entry into HA's Application Credentials store.
+
+    Called for every existing entry on startup so that keys entered before this
+    feature existed show up centrally under Application Credentials.
+    The underlying async_import_item is idempotent — duplicate keys are silently skipped.
+    """
+    provider = entry.data.get(CONF_PROVIDER) or entry.data.get("trip_provider")
+    if not provider:
+        return
+
+    key_map: dict[str, tuple[str, str]] = {
+        # provider: (primary_conf_key, secondary_conf_key_or_empty)
+        PROVIDER_OPT: (CONF_OPT_API_KEY, ""),
+        PROVIDER_OTP_CUSTOM: (CONF_OTP_CUSTOM_API_KEY, ""),
+        PROVIDER_TRAFIKLAB_SE: (CONF_TRAFIKLAB_API_KEY, ""),
+        PROVIDER_RMV: (CONF_RMV_API_KEY, ""),
+        PROVIDER_VBN_OTP: (CONF_VBN_API_KEY, ""),
+        PROVIDER_VBN_TRIAS: (CONF_VBN_API_KEY, ""),
+        PROVIDER_NTA_IE: (CONF_NTA_API_KEY, CONF_NTA_API_KEY_SECONDARY),
+    }
+
+    if provider not in key_map:
+        return
+
+    primary_key, secondary_key = key_map[provider]
+    api_key = entry.data.get(primary_key, "")
+    if not api_key:
+        return
+
+    secondary = entry.data.get(secondary_key, "") if secondary_key else ""
+    name = _PROVIDER_CREDENTIAL_NAMES.get(provider, f"{provider.upper()} API Key")
+
+    try:
+        await async_import_client_credential(
+            hass,
+            DOMAIN,
+            ClientCredential(client_id=api_key, client_secret=secondary, name=name),
+            auth_domain=f"{DOMAIN}.{provider}",
+        )
+        _LOGGER.debug("Migrated %s credential to Application Credentials store", provider)
+    except Exception as exc:
+        _LOGGER.warning("Could not migrate credential for %s: %s", provider, exc)
+
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the Open Public Transport component."""
@@ -85,6 +145,10 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Open Public Transport from a config entry."""
     hass.data.setdefault(DOMAIN, {})
+
+    # Migrate any API key stored in this entry to the Application Credentials store.
+    # Safe for new entries (no key → no-op) and idempotent for existing ones.
+    await _async_migrate_credential(hass, entry)
 
     # Check if this is a multi-stop entry
     if entry.data.get("is_multi_stop"):

@@ -1,5 +1,34 @@
 # Changelog
 
+## v2026.6.2 — Line Colors, Agency Sensor Name, Stop Search Fixes
+
+### New Features
+
+- **Agency name in sensor title** — Sensors are now named `Agency - Stop Name` (e.g. "Karlsruher Verkehrsverbund - Rastatt Kehler Straße") instead of repeating the stop name twice. If no agency is found, only the stop name is shown. Existing entries need to be recreated once.
+- **Line colors** — Each departure now includes `line_color` and `line_text_color` attributes (e.g. `#e10098` / `#ffffff`). Lovelace cards can use these for colored line badges.
+- **Provider label renamed** — Dropdown now shows `openpublictransport.net (Deutschlandweit, API Key)`.
+
+### Fixes
+
+- **Case-insensitive stop search** — Input like `karlsruhe hauptfriedhof` now automatically also searches for `Karlsruhe Hauptfriedhof`. Abbreviations like `KIT`, `S2`, `ICE` are preserved.
+- **GraphQL `nearest` replaces REST endpoint** — The Nominatim geocoding fallback now uses the GraphQL `nearest` query. The REST endpoint `/index/stops` was not exposed on `api.openpublictransport.net`.
+- **Nominatim word elimination fallback** — When Nominatim cannot geocode the full search term, progressively simpler queries are tried. `KIT Haupteingang Karlsruhe` falls back to `KIT Karlsruhe` and finds nearby stops correctly.
+
+---
+
+## v2026.6.1 — Renamed to OpenPublicTransport + Application Credentials
+
+### Breaking Changes
+
+- The integration display name changed from "Public Transport Departures" to **OpenPublicTransport** in HACS and Home Assistant.
+
+### New Features
+
+- **API keys stored centrally** — Provider API keys are now stored under **Settings → Integrations → ⋮ → Application credentials**. One key per provider, reused across all sensors for that provider.
+- **Automatic migration** — Existing keys are migrated automatically on first start. No manual action required.
+
+---
+
 ## v2026.5.3-beta.4 — Bugfixes: API Key 401, Stop Search
 
 ### Bugfixes

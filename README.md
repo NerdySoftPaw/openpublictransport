@@ -19,7 +19,7 @@ Real-time public transport departures for Home Assistant — 28 providers across
 
 > **Coming from VRRAPI-HACS or hacs-publictransport?**
 > The domain changed from `vrr` to `openpublictransport` — entity IDs and services have new names.
-> See the [Migration Guide](https://docs.openpublictransport.net/migration/) for step-by-step instructions.
+> See the [Migration Guide](https://docs.openpublictransport.net/latest/migration/) for step-by-step instructions.
 
 ## Supported Providers (28)
 
@@ -128,14 +128,14 @@ data:
 
 Full documentation at **[docs.openpublictransport.net](https://docs.openpublictransport.net/)**:
 
-- [Configuration](https://docs.openpublictransport.net/configuration/)
-- [Providers](https://docs.openpublictransport.net/providers/)
-- [Sensors & Attributes](https://docs.openpublictransport.net/sensors/)
-- [Services](https://docs.openpublictransport.net/services/)
-- [Trip Planner](https://docs.openpublictransport.net/trip-planner/)
-- [Dashboard Examples](https://docs.openpublictransport.net/dashboard/)
-- [Automations](https://docs.openpublictransport.net/automations/)
-- [Migration Guide](https://docs.openpublictransport.net/migration/)
+- [Configuration](https://docs.openpublictransport.net/latest/configuration/)
+- [Providers](https://docs.openpublictransport.net/latest/providers/)
+- [Sensors & Attributes](https://docs.openpublictransport.net/latest/sensors/)
+- [Services](https://docs.openpublictransport.net/latest/services/)
+- [Trip Planner](https://docs.openpublictransport.net/latest/trip-planner/)
+- [Dashboard Examples](https://docs.openpublictransport.net/latest/dashboard/)
+- [Automations](https://docs.openpublictransport.net/latest/automations/)
+- [Migration Guide](https://docs.openpublictransport.net/latest/migration/)
 
 ## Contributing
 

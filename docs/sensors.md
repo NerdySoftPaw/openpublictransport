@@ -69,7 +69,9 @@ Each departure in the `departures` list contains:
 | `is_realtime` | Boolean | Whether real-time data is available |
 | `minutes_until_departure` | Integer | Minutes until departure |
 | `description` | String | Route description (optional) |
-| `agency` | String | Operating agency (NTA only) |
+| `agency` | String | Operating agency/operator name |
+| `line_color` | String | Route background color in `#RRGGBB` format (OTP providers) |
+| `line_text_color` | String | Route text color in `#RRGGBB` format (OTP providers) |
 
 ### Example Attribute Data
 

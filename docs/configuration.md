@@ -16,7 +16,7 @@ Choose your transit provider from the descriptive dropdown. Each entry shows the
 
 ![Provider selection](assets/screenshots/config-flow/02-provider-selection.png)
 
-All 23 providers are available — see the [full provider list](providers/index.md) for details.
+All 28 providers are available — see the [full provider list](providers/index.md) for details.
 
 !!! note
     Most providers require no API key. Trafiklab (Sweden), NTA (Ireland), and RMV (Frankfurt) require a free API key — you'll be prompted to enter it in the next step.
@@ -40,6 +40,8 @@ Enter your stop/station name. The integration will search and suggest matching s
 
 - Use the "Stop, City" format for precise results (e.g. "Holthausen, Düsseldorf") — the integration splits this into a stop name and city filter automatically
 - You can also enter the city name along with the stop name (e.g., "Düsseldorf Hauptbahnhof")
+- The search is **case-insensitive** — "karlsruhe hauptbahnhof" works just as well as "Karlsruhe Hauptbahnhof"
+- For OTP providers (openpublictransport.net, custom OTP2): you can also enter an address or place of interest (e.g. "KIT Karlsruhe") — the integration geocodes it and finds nearby stops automatically
 - The search handles typos and umlaut variations automatically
 - For Swedish/Irish stops, use local naming conventions
 

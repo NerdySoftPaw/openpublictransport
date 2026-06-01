@@ -242,9 +242,11 @@ class OTPProvider(OTPBaseProvider):
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
         """Search stops via OTP2 GraphQL with city-prefix fallback for VRR/NRW."""
         ss_term = search_term.replace("ß", "ss") if "ß" in search_term else None
+        # OTP stops(name:) is case-sensitive — also try first-letter-capitalised variant
+        cap_term = search_term[0].upper() + search_term[1:] if search_term and search_term[0].islower() else None
 
-        # Phase 1: bare name and ß→ss variant
-        for term in filter(None, [search_term, ss_term]):
+        # Phase 1: bare name, ß→ss variant, capitalised variant
+        for term in filter(None, [search_term, ss_term, cap_term]):
             raw = await self._search_one(term)
             if raw:
                 return self._group_by_name(raw)[:20]

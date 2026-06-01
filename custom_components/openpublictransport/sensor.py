@@ -387,13 +387,13 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
         station_key = station_id or f"{place_dm}_{name_dm}".lower().replace(" ", "_")
         self._attr_unique_id = f"{provider}_{station_key}"
         agency_name = coordinator.agency_name
-        name_prefix = agency_name if agency_name else provider.upper()
-        self._attr_name = f"{name_prefix} - {name_dm}"
+        display_name = f"{agency_name} - {name_dm}" if agency_name else name_dm
+        self._attr_name = display_name
 
         # Device info
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"{provider}_{station_key}")},
-            name=f"{name_prefix} - {name_dm}",
+            name=display_name,
             manufacturer=f"{provider.upper()} Public Transport",
             model="Departure Monitor",
             sw_version=INTEGRATION_VERSION,

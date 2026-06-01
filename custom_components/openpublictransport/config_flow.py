@@ -106,7 +106,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             {"value": "trafiklab_se", "label": "Trafiklab — Schweden (API Key)"},
             {
                 "value": "openpublictransport",
-                "label": "Deutschland — openpublictransport.net (API Key)",
+                "label": "openpublictransport.net (Deutschlandweit, API Key)",
             },
             {"value": "otp_custom", "label": "OTP2 — Eigene Instanz (URL + optionaler API Key)"},
             {"value": "transitous", "label": "Transitous — Weltweit (Community, Beta)"},
@@ -236,7 +236,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         return {}
 
     _PROVIDER_CREDENTIAL_NAMES: Dict[str, str] = {
-        PROVIDER_OPT: "Deutschland — openpublictransport.net",
+        PROVIDER_OPT: "openpublictransport.net (Deutschlandweit)",
         PROVIDER_OTP_CUSTOM: "OTP2 Eigene Instanz",
         PROVIDER_TRAFIKLAB_SE: "Trafiklab (Schweden)",
         PROVIDER_RMV: "RMV (Rhein-Main)",

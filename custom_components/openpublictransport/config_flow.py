@@ -617,6 +617,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 CONF_STATION_ID: self._selected_stop.get("id"),
                 "place_dm": self._selected_stop.get("place", ""),
                 "name_dm": self._selected_stop.get("name", ""),
+                "agency_name": self._selected_stop.get("agency", ""),
                 CONF_DEPARTURES: user_input[CONF_DEPARTURES],
                 CONF_TRANSPORTATION_TYPES: user_input[CONF_TRANSPORTATION_TYPES],
                 CONF_SCAN_INTERVAL: user_input[CONF_SCAN_INTERVAL],

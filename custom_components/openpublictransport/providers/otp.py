@@ -50,7 +50,7 @@ _CITY_PREFIXES: Dict[str, str] = {
     "bonn": "BN-",
 }
 
-_GRAPHQL_STOP_SEARCH = '{ stops(name: "%s") { gtfsId name lat lon parentStation { gtfsId name } } }'
+_GRAPHQL_STOP_SEARCH = '{ stops(name: "%s") { gtfsId name lat lon parentStation { gtfsId name } routes { agency { name } } } }'
 
 
 def _smart_title(s: str) -> str:
@@ -59,6 +59,17 @@ def _smart_title(s: str) -> str:
     Keeps abbreviations like KIT, S2, ICE intact while fixing lowercase input.
     """
     return " ".join(w[0].upper() + w[1:] if w else w for w in s.split())
+
+
+def _primary_agency(stops: List[Dict[str, Any]]) -> str:
+    """Return the most common agency name across all routes of the given stops."""
+    counts: Dict[str, int] = {}
+    for s in stops:
+        for route in (s.get("routes") or []):
+            name = (route.get("agency") or {}).get("name", "")
+            if name:
+                counts[name] = counts.get(name, 0) + 1
+    return max(counts, key=lambda k: counts[k]) if counts else ""
 
 _GRAPHQL_NEAREST = """{
   nearest(lat: %f, lon: %f, maxDistance: %d, filterByPlaceTypes: [STOP]) {
@@ -71,6 +82,7 @@ _GRAPHQL_NEAREST = """{
             lat
             lon
             parentStation { gtfsId name }
+            routes { agency { name } }
           }
         }
         distance
@@ -231,7 +243,8 @@ class OTPProvider(OTPBaseProvider):
         for stops in by_parent.values():
             compound_id = "|".join(s["gtfsId"] for s in stops)
             name = (stops[0].get("parentStation") or {}).get("name") or stops[0]["name"]
-            result.append({"id": compound_id, "name": name, "place": name, "area_type": "stop"})
+            agency = _primary_agency(stops)
+            result.append({"id": compound_id, "name": name, "place": name, "agency": agency, "area_type": "stop"})
 
         by_name: Dict[str, List[Dict[str, Any]]] = {}
         for s in no_parent:
@@ -239,7 +252,8 @@ class OTPProvider(OTPBaseProvider):
         for name, stops in by_name.items():
             for cluster in _cluster_by_proximity(stops):
                 compound_id = "|".join(s["gtfsId"] for s in cluster)
-                result.append({"id": compound_id, "name": name, "place": name, "area_type": "stop"})
+                agency = _primary_agency(cluster)
+                result.append({"id": compound_id, "name": name, "place": name, "agency": agency, "area_type": "stop"})
 
         return result
 

@@ -12,6 +12,10 @@ import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from aiohttp import ClientConnectorError
 from homeassistant import config_entries
+from homeassistant.components.application_credentials import (
+    ClientCredential,
+    async_import_client_credential,
+)
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -158,8 +162,59 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
 
         return self.async_show_form(step_id="user", data_schema=schema)
 
+    def _find_credentials_from_application_credentials(self, provider: str) -> dict:
+        """Return API key for a provider from HA's Application Credentials store."""
+        try:
+            from homeassistant.components.application_credentials import DATA_COMPONENT
+
+            storage = self.hass.data.get(DATA_COMPONENT)
+            if not storage:
+                return {}
+            all_creds = storage.async_client_credentials(DOMAIN)
+            auth_domain = f"{DOMAIN}.{provider}"
+            if auth_domain not in all_creds:
+                return {}
+            credential = all_creds[auth_domain]
+            api_key = credential.client_id
+            secondary_key = credential.client_secret
+            if not api_key:
+                return {}
+            if provider == PROVIDER_OPT:
+                return {CONF_OPT_API_KEY: api_key}
+            if provider == PROVIDER_OTP_CUSTOM:
+                return {CONF_OTP_CUSTOM_API_KEY: api_key}
+            if provider == PROVIDER_TRAFIKLAB_SE:
+                return {CONF_TRAFIKLAB_API_KEY: api_key}
+            if provider == PROVIDER_RMV:
+                return {CONF_RMV_API_KEY: api_key}
+            if provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
+                return {CONF_VBN_API_KEY: api_key}
+            if provider == PROVIDER_NTA_IE:
+                result = {CONF_NTA_API_KEY: api_key}
+                if secondary_key:
+                    result[CONF_NTA_API_KEY_SECONDARY] = secondary_key
+                return result
+        except Exception as exc:
+            _LOGGER.debug("Could not read from application_credentials: %s", exc)
+        return {}
+
     def _find_existing_credentials(self, provider: str) -> dict:
-        """Return stored credentials from any existing entry for this provider."""
+        """Return stored credentials — checks Application Credentials store first, then config entries."""
+        # Prefer central Application Credentials store
+        result = self._find_credentials_from_application_credentials(provider)
+
+        # For otp_custom also grab the URL from existing config entries (URLs are not credentials)
+        if provider == PROVIDER_OTP_CUSTOM and CONF_OTP_BASE_URL not in result:
+            for entry in self.hass.config_entries.async_entries(DOMAIN):
+                ep = entry.data.get(CONF_PROVIDER) or entry.data.get("trip_provider")
+                if ep == provider and CONF_OTP_BASE_URL in entry.data:
+                    result[CONF_OTP_BASE_URL] = entry.data[CONF_OTP_BASE_URL]
+                    break
+
+        if result:
+            return result
+
+        # Fall back to searching existing config entries (legacy / first-run)
         key_map: Dict[str, list] = {
             PROVIDER_OPT: [CONF_OPT_API_KEY],
             PROVIDER_OTP_CUSTOM: [CONF_OTP_CUSTOM_API_KEY, CONF_OTP_BASE_URL],
@@ -179,6 +234,41 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 if found:
                     return found
         return {}
+
+    _PROVIDER_CREDENTIAL_NAMES: Dict[str, str] = {
+        PROVIDER_OPT: "Deutschland Community Server (api.openpublictransport.net)",
+        PROVIDER_OTP_CUSTOM: "OTP2 Eigene Instanz",
+        PROVIDER_TRAFIKLAB_SE: "Trafiklab (Schweden)",
+        PROVIDER_RMV: "RMV (Rhein-Main)",
+        PROVIDER_VBN_OTP: "VBN (Bremen/Niedersachsen) — OTP",
+        PROVIDER_VBN_TRIAS: "VBN (Bremen/Niedersachsen) — TRIAS",
+        PROVIDER_NTA_IE: "NTA (Irland)",
+    }
+
+    async def _async_store_credential(self, provider: str) -> None:
+        """Persist the current API key in HA's Application Credentials store."""
+        if not self._api_key and provider != PROVIDER_OTP_CUSTOM:
+            return
+        secondary = ""
+        key = self._api_key or ""
+        if provider == PROVIDER_NTA_IE:
+            secondary = self._api_key_secondary or ""
+        if not key:
+            return
+        name = self._PROVIDER_CREDENTIAL_NAMES.get(provider, f"{provider.upper()} API Key")
+        try:
+            await async_import_client_credential(
+                self.hass,
+                DOMAIN,
+                ClientCredential(
+                    client_id=key,
+                    client_secret=secondary,
+                    name=name,
+                ),
+                auth_domain=f"{DOMAIN}.{provider}",
+            )
+        except Exception as exc:
+            _LOGGER.debug("Could not store credential in application_credentials: %s", exc)
 
     async def async_step_opt_key(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Required API key step for the openpublictransport community server."""
@@ -577,6 +667,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     data[CONF_OTP_BASE_URL] = self._otp_custom_url
                 if self._api_key:
                     data[CONF_OTP_CUSTOM_API_KEY] = self._api_key
+
+            # Persist API key in Application Credentials store
+            if self._provider:
+                await self._async_store_credential(self._provider)
 
             # Create unique ID (self._selected_stop validated above)
             unique_id = f"{self._provider}_{self._selected_stop['id']}"
@@ -1379,6 +1473,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     data[CONF_OTP_CUSTOM_API_KEY] = self._api_key
                     if self._otp_custom_url:
                         data[CONF_OTP_BASE_URL] = self._otp_custom_url
+
+            # Persist API key in Application Credentials store
+            if self._provider:
+                await self._async_store_credential(self._provider)
 
             unique_id = f"{self._provider}_trip_{origin.get('id', '')}_{dest.get('id', '')}"
             await self.async_set_unique_id(unique_id)

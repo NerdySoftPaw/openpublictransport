@@ -1,6 +1,6 @@
 {
   "domain": "openpublictransport",
-  "name": "Public Transport Departures",
+  "name": "OpenPublicTransport",
   "codeowners": [
     "@NerdySoftPaw"
   ],

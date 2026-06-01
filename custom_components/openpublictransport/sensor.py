@@ -84,6 +84,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
         self._config_entry = config_entry
         self._base_scan_interval = scan_interval
         self._empty_result_count = 0
+        self.agency_name = config_entry.data.get("agency_name", "") if config_entry else ""
 
         # Initialize provider instance
         self.provider_instance = get_provider(
@@ -385,12 +386,14 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
 
         station_key = station_id or f"{place_dm}_{name_dm}".lower().replace(" ", "_")
         self._attr_unique_id = f"{provider}_{station_key}"
-        self._attr_name = f"{provider.upper()} {place_dm} - {name_dm}"
+        agency_name = coordinator.agency_name
+        display_name = f"{agency_name} - {name_dm}" if agency_name else name_dm
+        self._attr_name = display_name
 
         # Device info
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"{provider}_{station_key}")},
-            name=f"{place_dm} - {name_dm}",
+            name=display_name,
             manufacturer=f"{provider.upper()} Public Transport",
             model="Departure Monitor",
             sw_version=INTEGRATION_VERSION,

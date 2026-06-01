@@ -33,6 +33,33 @@ _LOGGER = logging.getLogger(__name__)
 _NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
 _NOMINATIM_UA = "openpublictransport-homeassistant/1.0 (github.com/NerdySoftPaw/openpublictransport)"
 
+
+def _nominatim_candidates(term: str) -> List[str]:
+    """Return progressively simpler Nominatim queries for a search term.
+
+    Strategy (stops after first hit in _geocode):
+    1. Full term
+    2. Comma-swap: "Karlsruhe, KIT Haupteingang" → "KIT Haupteingang Karlsruhe"
+    3. Remove each word once — catches generic words like "Haupteingang"
+       that Nominatim doesn't know as POI names.
+    """
+    candidates: List[str] = [term]
+
+    if "," in term:
+        parts = [p.strip() for p in term.split(",", 1)]
+        swapped = " ".join(reversed(parts))
+        if swapped not in candidates:
+            candidates.append(swapped)
+
+    words = term.replace(",", " ").split()
+    if len(words) > 2:
+        for i in range(len(words)):
+            shorter = " ".join(w for j, w in enumerate(words) if j != i)
+            if shorter not in candidates:
+                candidates.append(shorter)
+
+    return candidates
+
 OTP_MODE_MAP: Dict[str, str] = {
     "BUS": "bus",
     "COACH": "bus",
@@ -96,24 +123,30 @@ class OTPBaseProvider(BaseProvider):
     async def _geocode(self, search_term: str) -> Optional[Tuple[float, float]]:
         """Resolve a stop name to (lat, lon) via Nominatim / OpenStreetMap.
 
-        OTP 2.x REST API has no name-based stop search; we geocode first,
-        then use the coordinate-based /index/stops?lat=&lon=&radius= endpoint.
+        Tries progressively simpler queries so that inputs like
+        "KIT Haupteingang Karlsruhe" still resolve even when Nominatim
+        doesn't know the generic word ("Haupteingang").
         """
         session = async_get_clientsession(self.hass)
-        try:
-            async with session.get(
-                _NOMINATIM_URL,
-                params={"q": search_term, "format": "json", "limit": 1},
-                headers={"User-Agent": _NOMINATIM_UA, "Accept": "application/json"},
-                timeout=aiohttp.ClientTimeout(total=10),
-            ) as resp:
-                if resp.status == 200:
-                    results = await resp.json(content_type=None)
-                    if results:
-                        return float(results[0]["lat"]), float(results[0]["lon"])
-                    _LOGGER.debug("%s: Nominatim returned no results for '%s'", self.provider_name, search_term)
-        except Exception as exc:
-            _LOGGER.debug("%s: Nominatim geocode error: %s", self.provider_name, exc)
+        for i, candidate in enumerate(_nominatim_candidates(search_term)):
+            if i > 0:
+                await asyncio.sleep(0.3)
+            try:
+                async with session.get(
+                    _NOMINATIM_URL,
+                    params={"q": candidate, "format": "json", "limit": 1, "countrycodes": "de"},
+                    headers={"User-Agent": _NOMINATIM_UA, "Accept": "application/json"},
+                    timeout=aiohttp.ClientTimeout(total=10),
+                ) as resp:
+                    if resp.status == 200:
+                        results = await resp.json(content_type=None)
+                        if results:
+                            if i > 0:
+                                _LOGGER.debug("%s: Nominatim hit on simplified query '%s'", self.provider_name, candidate)
+                            return float(results[0]["lat"]), float(results[0]["lon"])
+            except Exception as exc:
+                _LOGGER.debug("%s: Nominatim geocode error: %s", self.provider_name, exc)
+        _LOGGER.warning("%s: Nominatim found nothing for '%s'", self.provider_name, search_term)
         return None
 
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
@@ -270,6 +303,8 @@ class OTPBaseProvider(BaseProvider):
                 notices=notices,
                 planned_platform=None,
                 platform_changed=False,
+                line_color=stop.get("lineColor") or None,
+                line_text_color=stop.get("lineTextColor") or None,
             )
         except Exception as exc:
             _LOGGER.debug("%s OTP parse_departure error: %s", self.provider_name, exc)

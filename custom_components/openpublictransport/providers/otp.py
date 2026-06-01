@@ -50,7 +50,46 @@ _CITY_PREFIXES: Dict[str, str] = {
     "bonn": "BN-",
 }
 
-_GRAPHQL_STOP_SEARCH = '{ stops(name: "%s") { gtfsId name lat lon parentStation { gtfsId name } } }'
+_GRAPHQL_STOP_SEARCH = '{ stops(name: "%s") { gtfsId name lat lon parentStation { gtfsId name } routes { agency { name } } } }'
+
+
+def _smart_title(s: str) -> str:
+    """Capitalize the first letter of each word, preserving the rest.
+
+    Keeps abbreviations like KIT, S2, ICE intact while fixing lowercase input.
+    """
+    return " ".join(w[0].upper() + w[1:] if w else w for w in s.split())
+
+
+def _primary_agency(stops: List[Dict[str, Any]]) -> str:
+    """Return the most common agency name across all routes of the given stops."""
+    counts: Dict[str, int] = {}
+    for s in stops:
+        for route in (s.get("routes") or []):
+            name = (route.get("agency") or {}).get("name", "")
+            if name:
+                counts[name] = counts.get(name, 0) + 1
+    return max(counts, key=lambda k: counts[k]) if counts else ""
+
+_GRAPHQL_NEAREST = """{
+  nearest(lat: %f, lon: %f, maxDistance: %d, filterByPlaceTypes: [STOP]) {
+    edges {
+      node {
+        place {
+          ... on Stop {
+            gtfsId
+            name
+            lat
+            lon
+            parentStation { gtfsId name }
+            routes { agency { name } }
+          }
+        }
+        distance
+      }
+    }
+  }
+}"""
 
 
 def _detect_city_prefix(search_term: str) -> Optional[str]:
@@ -132,6 +171,8 @@ _GRAPHQL_STOPTIMES = """{
         route {
           shortName
           mode
+          color
+          textColor
           agency {
             name
           }
@@ -204,7 +245,8 @@ class OTPProvider(OTPBaseProvider):
         for stops in by_parent.values():
             compound_id = "|".join(s["gtfsId"] for s in stops)
             name = (stops[0].get("parentStation") or {}).get("name") or stops[0]["name"]
-            result.append({"id": compound_id, "name": name, "place": name, "area_type": "stop"})
+            agency = _primary_agency(stops)
+            result.append({"id": compound_id, "name": name, "place": name, "agency": agency, "area_type": "stop"})
 
         by_name: Dict[str, List[Dict[str, Any]]] = {}
         for s in no_parent:
@@ -212,7 +254,8 @@ class OTPProvider(OTPBaseProvider):
         for name, stops in by_name.items():
             for cluster in _cluster_by_proximity(stops):
                 compound_id = "|".join(s["gtfsId"] for s in cluster)
-                result.append({"id": compound_id, "name": name, "place": name, "area_type": "stop"})
+                agency = _primary_agency(cluster)
+                result.append({"id": compound_id, "name": name, "place": name, "agency": agency, "area_type": "stop"})
 
         return result
 
@@ -223,9 +266,12 @@ class OTPProvider(OTPBaseProvider):
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
         """Search stops via OTP2 GraphQL with city-prefix fallback for VRR/NRW."""
         ss_term = search_term.replace("ß", "ss") if "ß" in search_term else None
+        # OTP stops(name:) is case-sensitive — also try smart-title-cased variant
+        smart_term = _smart_title(search_term)
+        smart_term = smart_term if smart_term != search_term else None
 
-        # Phase 1: bare name and ß→ss variant
-        for term in filter(None, [search_term, ss_term]):
+        # Phase 1: bare name, ß→ss variant, smart-title variant
+        for term in filter(None, [search_term, ss_term, smart_term]):
             raw = await self._search_one(term)
             if raw:
                 return self._group_by_name(raw)[:20]
@@ -260,8 +306,24 @@ class OTPProvider(OTPBaseProvider):
         if all_raw:
             return self._group_by_name(all_raw)[:20]
 
-        # Phase 3: Nominatim + OTP radius search
-        return await super().search_stops(search_term)
+        # Phase 3: Nominatim geocode → GraphQL nearest (REST /index/stops not exposed)
+        coords = await self._geocode(search_term)
+        if coords is None:
+            _LOGGER.warning("%s: could not geocode '%s'", self.provider_name, search_term)
+            return []
+        lat, lon = coords
+        q = _GRAPHQL_NEAREST % (lat, lon, self.stop_search_radius)
+        body = await self._graphql(q)
+        edges = (((body or {}).get("data") or {}).get("nearest") or {}).get("edges") or []
+        raw = [
+            edge["node"]["place"]
+            for edge in edges
+            if isinstance((edge.get("node") or {}).get("place"), dict)
+            and "gtfsId" in edge["node"]["place"]
+        ]
+        if raw:
+            return self._group_by_name(raw)[:20]
+        return []
 
     @staticmethod
     def _alert_texts(alerts: Optional[List[Dict[str, Any]]]) -> List[str]:
@@ -283,6 +345,8 @@ class OTPProvider(OTPBaseProvider):
             trip_notices = self._alert_texts(trip.get("alerts"))
             route_notices = [t for t in self._alert_texts(route.get("alerts")) if t not in trip_notices]
             notices = trip_notices + route_notices
+            raw_color = route.get("color") or ""
+            raw_text = route.get("textColor") or ""
             events.append(
                 {
                     "routeName": route.get("shortName", ""),
@@ -295,6 +359,8 @@ class OTPProvider(OTPBaseProvider):
                     "departureDelay": st.get("departureDelay", 0),
                     "realtime": st.get("realtime", False),
                     "headsign": st.get("headsign", ""),
+                    "lineColor": f"#{raw_color}" if raw_color and not raw_color.startswith("#") else raw_color or None,
+                    "lineTextColor": f"#{raw_text}" if raw_text and not raw_text.startswith("#") else raw_text or None,
                 }
             )
         return events

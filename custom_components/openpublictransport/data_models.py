@@ -46,6 +46,8 @@ class UnifiedDeparture:
     notices: Optional[list[str]] = None  # Disruption/info messages
     planned_platform: Optional[str] = None  # Original platform before changes
     platform_changed: bool = False  # True if platform differs from planned
+    line_color: Optional[str] = None  # Route background color (e.g. "#e10098")
+    line_text_color: Optional[str] = None  # Route text color (e.g. "#ffffff")
 
     def to_dict(self) -> dict:
         """Convert to dictionary for Home Assistant attributes."""
@@ -69,6 +71,10 @@ class UnifiedDeparture:
         if self.platform_changed:
             result["planned_platform"] = self.planned_platform
             result["platform_changed"] = True
+        if self.line_color:
+            result["line_color"] = self.line_color
+        if self.line_text_color:
+            result["line_text_color"] = self.line_text_color
         return result
 
 

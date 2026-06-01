@@ -106,7 +106,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             {"value": "trafiklab_se", "label": "Trafiklab — Schweden (API Key)"},
             {
                 "value": "openpublictransport",
-                "label": "Deutschland — Community Server (api.openpublictransport.net, API Key)",
+                "label": "openpublictransport.net (Deutschlandweit, API Key)",
             },
             {"value": "otp_custom", "label": "OTP2 — Eigene Instanz (URL + optionaler API Key)"},
             {"value": "transitous", "label": "Transitous — Weltweit (Community, Beta)"},
@@ -236,7 +236,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         return {}
 
     _PROVIDER_CREDENTIAL_NAMES: Dict[str, str] = {
-        PROVIDER_OPT: "Deutschland Community Server (api.openpublictransport.net)",
+        PROVIDER_OPT: "openpublictransport.net (Deutschlandweit)",
         PROVIDER_OTP_CUSTOM: "OTP2 Eigene Instanz",
         PROVIDER_TRAFIKLAB_SE: "Trafiklab (Schweden)",
         PROVIDER_RMV: "RMV (Rhein-Main)",
@@ -617,6 +617,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 CONF_STATION_ID: self._selected_stop.get("id"),
                 "place_dm": self._selected_stop.get("place", ""),
                 "name_dm": self._selected_stop.get("name", ""),
+                "agency_name": self._selected_stop.get("agency", ""),
                 CONF_DEPARTURES: user_input[CONF_DEPARTURES],
                 CONF_TRANSPORTATION_TYPES: user_input[CONF_TRANSPORTATION_TYPES],
                 CONF_SCAN_INTERVAL: user_input[CONF_SCAN_INTERVAL],

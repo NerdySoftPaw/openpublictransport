@@ -52,6 +52,25 @@ _CITY_PREFIXES: Dict[str, str] = {
 
 _GRAPHQL_STOP_SEARCH = '{ stops(name: "%s") { gtfsId name lat lon parentStation { gtfsId name } } }'
 
+_GRAPHQL_NEAREST = """{
+  nearest(lat: %f, lon: %f, maxDistance: %d, filterByPlaceTypes: [STOP]) {
+    edges {
+      node {
+        place {
+          ... on Stop {
+            gtfsId
+            name
+            lat
+            lon
+            parentStation { gtfsId name }
+          }
+        }
+        distance
+      }
+    }
+  }
+}"""
+
 
 def _detect_city_prefix(search_term: str) -> Optional[str]:
     """If the search contains a known city name, return PREFIX + stop_part.
@@ -260,8 +279,24 @@ class OTPProvider(OTPBaseProvider):
         if all_raw:
             return self._group_by_name(all_raw)[:20]
 
-        # Phase 3: Nominatim + OTP radius search
-        return await super().search_stops(search_term)
+        # Phase 3: Nominatim geocode → GraphQL nearest (REST /index/stops not exposed)
+        coords = await self._geocode(search_term)
+        if coords is None:
+            _LOGGER.warning("%s: could not geocode '%s'", self.provider_name, search_term)
+            return []
+        lat, lon = coords
+        q = _GRAPHQL_NEAREST % (lat, lon, self.stop_search_radius)
+        body = await self._graphql(q)
+        edges = (((body or {}).get("data") or {}).get("nearest") or {}).get("edges") or []
+        raw = [
+            edge["node"]["place"]
+            for edge in edges
+            if isinstance((edge.get("node") or {}).get("place"), dict)
+            and "gtfsId" in edge["node"]["place"]
+        ]
+        if raw:
+            return self._group_by_name(raw)[:20]
+        return []
 
     @staticmethod
     def _alert_texts(alerts: Optional[List[Dict[str, Any]]]) -> List[str]:

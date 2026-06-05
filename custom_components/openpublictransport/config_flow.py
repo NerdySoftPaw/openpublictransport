@@ -26,7 +26,6 @@ from .const import (
     CONF_DEPARTURES,
     CONF_FAVORITE_LINES,
     CONF_LINE_FILTER,
-    CONF_NATIONAL_RAIL_API_KEY,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
     CONF_OPT_API_KEY,
@@ -47,7 +46,6 @@ from .const import (
     DOMAIN,
     PROVIDER_HVV,
     PROVIDER_KVV,
-    PROVIDER_NATIONAL_RAIL,
     PROVIDER_NTA_IE,
     PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
@@ -98,7 +96,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             {"value": "hvv", "label": "HVV — Hamburg"},
             {"value": "kvv", "label": "KVV — Karlsruhe"},
             {"value": "mvv", "label": "MVV — München"},
-            {"value": "national_rail", "label": "National Rail — UK (API Key)"},
             {"value": "nta_ie", "label": "NTA — Irland (API Key)"},
             {"value": "nvbw", "label": "NVBW — Baden-Württemberg"},
             {"value": "nwl", "label": "NWL — Westfalen-Lippe"},
@@ -197,8 +194,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 if secondary_key:
                     result[CONF_NTA_API_KEY_SECONDARY] = secondary_key
                 return result
-            if provider == PROVIDER_NATIONAL_RAIL:
-                return {CONF_NATIONAL_RAIL_API_KEY: api_key}
         except Exception as exc:
             _LOGGER.debug("Could not read from application_credentials: %s", exc)
         return {}
@@ -227,7 +222,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             PROVIDER_VBN_TRIAS: [CONF_VBN_API_KEY],
             PROVIDER_TRAFIKLAB_SE: [CONF_TRAFIKLAB_API_KEY],
             PROVIDER_NTA_IE: [CONF_NTA_API_KEY, CONF_NTA_API_KEY_SECONDARY],
-            PROVIDER_NATIONAL_RAIL: [CONF_NATIONAL_RAIL_API_KEY],
             PROVIDER_RMV: [CONF_RMV_API_KEY],
         }
         keys = key_map.get(provider, [])
@@ -249,7 +243,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         PROVIDER_VBN_OTP: "VBN (Bremen/Niedersachsen) — OTP",
         PROVIDER_VBN_TRIAS: "VBN (Bremen/Niedersachsen) — TRIAS",
         PROVIDER_NTA_IE: "NTA (Irland)",
-        PROVIDER_NATIONAL_RAIL: "National Rail (UK)",
     }
 
     async def _async_store_credential(self, provider: str) -> None:
@@ -387,9 +380,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 self._api_key = creds[CONF_NTA_API_KEY]
                 self._api_key_secondary = creds.get(CONF_NTA_API_KEY_SECONDARY)
                 return await self._async_next_step_after_api_key()
-            elif self._provider == PROVIDER_NATIONAL_RAIL and creds.get(CONF_NATIONAL_RAIL_API_KEY):
-                self._api_key = creds[CONF_NATIONAL_RAIL_API_KEY]
-                return await self._async_next_step_after_api_key()
 
         if user_input is not None:
             if self._provider == PROVIDER_TRAFIKLAB_SE:
@@ -422,13 +412,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 else:
                     self._api_key = api_key
                     return await self._async_next_step_after_api_key()
-            elif self._provider == PROVIDER_NATIONAL_RAIL:
-                api_key = user_input.get(CONF_NATIONAL_RAIL_API_KEY, "").strip()
-                if not api_key:
-                    errors[CONF_NATIONAL_RAIL_API_KEY] = "national_rail_api_key_required"
-                else:
-                    self._api_key = api_key
-                    return await self._async_next_step_after_api_key()
 
         # Show appropriate schema based on provider
         provider_instance = get_provider(self._provider, self.hass)
@@ -453,12 +436,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 }
             )
             description = "VBN API key is required. Request a free key at api@vbn.de"
-        elif self._provider == PROVIDER_NATIONAL_RAIL:
-            schema = vol.Schema({vol.Required(CONF_NATIONAL_RAIL_API_KEY): str})
-            description = (
-                "OpenLDBWS API token required. Register for free at "
-                "realtime.nationalrail.co.uk/OpenLDBWS (100k calls/month)."
-            )
         else:  # NTA
             schema = vol.Schema(
                 {
@@ -683,14 +660,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                         errors={"base": "vbn_api_key_required"},
                     )
                 data[CONF_VBN_API_KEY] = self._api_key
-            elif self._provider == PROVIDER_NATIONAL_RAIL:
-                if not self._api_key:
-                    return self.async_show_form(
-                        step_id="settings",
-                        data_schema=schema,
-                        errors={"base": "national_rail_api_key_required"},
-                    )
-                data[CONF_NATIONAL_RAIL_API_KEY] = self._api_key
             elif self._provider == PROVIDER_OPT:
                 if self._api_key:
                     data[CONF_OPT_API_KEY] = self._api_key

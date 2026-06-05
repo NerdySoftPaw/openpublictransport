@@ -32,6 +32,7 @@ from .const import (
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_PROVIDER,
+    CONF_REJSEPLANEN_API_KEY,
     CONF_RMV_API_KEY,
     CONF_SCAN_INTERVAL,
     CONF_STATION_ID,
@@ -49,6 +50,7 @@ from .const import (
     PROVIDER_NTA_IE,
     PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
+    PROVIDER_REJSEPLANEN,
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_VBN_OTP,
@@ -97,6 +99,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             {"value": "kvv", "label": "KVV — Karlsruhe"},
             {"value": "mvv", "label": "MVV — München"},
             {"value": "nta_ie", "label": "NTA — Irland (API Key)"},
+            {"value": "rejseplanen", "label": "Rejseplanen — Dänemark (API Key)"},
             {"value": "nvbw", "label": "NVBW — Baden-Württemberg"},
             {"value": "nwl", "label": "NWL — Westfalen-Lippe"},
             {"value": "oebb", "label": "ÖBB — Österreich"},
@@ -187,6 +190,8 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 return {CONF_TRAFIKLAB_API_KEY: api_key}
             if provider == PROVIDER_RMV:
                 return {CONF_RMV_API_KEY: api_key}
+            if provider == PROVIDER_REJSEPLANEN:
+                return {CONF_REJSEPLANEN_API_KEY: api_key}
             if provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
                 return {CONF_VBN_API_KEY: api_key}
             if provider == PROVIDER_NTA_IE:
@@ -223,6 +228,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             PROVIDER_TRAFIKLAB_SE: [CONF_TRAFIKLAB_API_KEY],
             PROVIDER_NTA_IE: [CONF_NTA_API_KEY, CONF_NTA_API_KEY_SECONDARY],
             PROVIDER_RMV: [CONF_RMV_API_KEY],
+            PROVIDER_REJSEPLANEN: [CONF_REJSEPLANEN_API_KEY],
         }
         keys = key_map.get(provider, [])
         if not keys:
@@ -239,6 +245,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         PROVIDER_OPT: "openpublictransport.net (Deutschlandweit)",
         PROVIDER_OTP_CUSTOM: "OTP2 Eigene Instanz",
         PROVIDER_TRAFIKLAB_SE: "Trafiklab (Schweden)",
+        PROVIDER_REJSEPLANEN: "Rejseplanen (Dänemark)",
         PROVIDER_RMV: "RMV (Rhein-Main)",
         PROVIDER_VBN_OTP: "VBN (Bremen/Niedersachsen) — OTP",
         PROVIDER_VBN_TRIAS: "VBN (Bremen/Niedersachsen) — TRIAS",
@@ -373,6 +380,9 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             elif self._provider == PROVIDER_RMV and creds.get(CONF_RMV_API_KEY):
                 self._api_key = creds[CONF_RMV_API_KEY]
                 return await self._async_next_step_after_api_key()
+            elif self._provider == PROVIDER_REJSEPLANEN and creds.get(CONF_REJSEPLANEN_API_KEY):
+                self._api_key = creds[CONF_REJSEPLANEN_API_KEY]
+                return await self._async_next_step_after_api_key()
             elif self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS) and creds.get(CONF_VBN_API_KEY):
                 self._api_key = creds[CONF_VBN_API_KEY]
                 return await self._async_next_step_after_api_key()
@@ -412,6 +422,13 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 else:
                     self._api_key = api_key
                     return await self._async_next_step_after_api_key()
+            elif self._provider == PROVIDER_REJSEPLANEN:
+                api_key = user_input.get(CONF_REJSEPLANEN_API_KEY, "").strip()
+                if not api_key:
+                    errors[CONF_REJSEPLANEN_API_KEY] = "rejseplanen_api_key_required"
+                else:
+                    self._api_key = api_key
+                    return await self._async_next_step_after_api_key()
 
         # Show appropriate schema based on provider
         provider_instance = get_provider(self._provider, self.hass)
@@ -429,6 +446,12 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 }
             )
             description = "RMV API key is required. Request one at opendata.rmv.de"
+        elif self._provider == PROVIDER_REJSEPLANEN:
+            schema = vol.Schema({vol.Required(CONF_REJSEPLANEN_API_KEY): str})
+            description = (
+                "Rejseplanen API key required. Register for free at labs.rejseplanen.dk "
+                "(50k calls/month, non-commercial)."
+            )
         elif self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
             schema = vol.Schema(
                 {
@@ -660,6 +683,14 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                         errors={"base": "vbn_api_key_required"},
                     )
                 data[CONF_VBN_API_KEY] = self._api_key
+            elif self._provider == PROVIDER_REJSEPLANEN:
+                if not self._api_key:
+                    return self.async_show_form(
+                        step_id="settings",
+                        data_schema=schema,
+                        errors={"base": "rejseplanen_api_key_required"},
+                    )
+                data[CONF_REJSEPLANEN_API_KEY] = self._api_key
             elif self._provider == PROVIDER_OPT:
                 if self._api_key:
                     data[CONF_OPT_API_KEY] = self._api_key

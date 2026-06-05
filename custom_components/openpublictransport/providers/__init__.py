@@ -20,6 +20,7 @@ from ..const import (
     PROVIDER_OEBB,
     PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
+    PROVIDER_REJSEPLANEN,
     PROVIDER_RMV,
     PROVIDER_RVV,
     PROVIDER_SBB,
@@ -50,6 +51,7 @@ from .nvbw import NVBWProvider
 from .nwl import NWLProvider
 from .oebb import OeBBProvider
 from .otp_custom import OTPCustomProvider
+from .rejseplanen import RejseplanenProvider
 from .rmv import RMVProvider
 from .rvv import RVVProvider
 from .sbb import SBBProvider
@@ -126,3 +128,4 @@ register_provider(PROVIDER_VBN_OTP, VBNOTPProvider)
 register_provider(PROVIDER_VBN_TRIAS, VBNTriasProvider)
 register_provider(PROVIDER_OPT, OPTProvider)
 register_provider(PROVIDER_OTP_CUSTOM, OTPCustomProvider)
+register_provider(PROVIDER_REJSEPLANEN, RejseplanenProvider)  # noqa: F401

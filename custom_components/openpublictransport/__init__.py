@@ -18,6 +18,7 @@ from .const import (
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_PROVIDER,
+    CONF_REJSEPLANEN_API_KEY,
     CONF_RMV_API_KEY,
     CONF_SCAN_INTERVAL,
     CONF_STATION_ID,
@@ -29,6 +30,7 @@ from .const import (
     PROVIDER_NTA_IE,
     PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
+    PROVIDER_REJSEPLANEN,
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_VBN_OTP,
@@ -111,6 +113,7 @@ async def _async_migrate_credential(hass: HomeAssistant, entry: ConfigEntry) -> 
         PROVIDER_VBN_OTP: (CONF_VBN_API_KEY, ""),
         PROVIDER_VBN_TRIAS: (CONF_VBN_API_KEY, ""),
         PROVIDER_NTA_IE: (CONF_NTA_API_KEY, CONF_NTA_API_KEY_SECONDARY),
+        PROVIDER_REJSEPLANEN: (CONF_REJSEPLANEN_API_KEY, ""),
     }
 
     if provider not in key_map:
@@ -192,6 +195,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     elif provider == PROVIDER_OTP_CUSTOM:
         api_key = otp_custom_api_key
         custom_url = otp_custom_url
+    elif provider == PROVIDER_REJSEPLANEN:
+        api_key = entry.data.get(CONF_REJSEPLANEN_API_KEY)
 
     departures = entry.options.get(CONF_DEPARTURES, entry.data.get(CONF_DEPARTURES, DEFAULT_DEPARTURES))
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))

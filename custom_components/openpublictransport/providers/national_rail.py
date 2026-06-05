@@ -7,7 +7,7 @@ ref:crs tags, returning the 3-letter CRS code used by OpenLDBWS.
 import logging
 import re
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 from xml.etree import ElementTree as ET
 from zoneinfo import ZoneInfo
 

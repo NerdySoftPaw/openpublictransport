@@ -16,5 +16,6 @@
     "aiofiles",
     "gtfs-realtime-bindings>=1.0.0"
   ],
+  "integration_type": "service",
   "version": "2026.6.3"
 }

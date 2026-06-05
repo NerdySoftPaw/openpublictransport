@@ -1,6 +1,6 @@
 # Providers Overview
 
-The Public Transport Integration supports multiple transit providers across Europe. Each provider has its own API and data format, but the integration normalizes all data into a consistent format.
+The Public Transport Integration supports multiple transit providers across Europe and the UK. Each provider has its own API and data format, but the integration normalizes all data into a consistent format.
 
 ## Provider Comparison
 

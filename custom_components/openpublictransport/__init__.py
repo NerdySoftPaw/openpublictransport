@@ -12,6 +12,7 @@ from homeassistant.helpers import entity_registry as er
 
 from .const import (
     CONF_DEPARTURES,
+    CONF_NATIONAL_RAIL_API_KEY,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
     CONF_OPT_API_KEY,
@@ -26,6 +27,7 @@ from .const import (
     DEFAULT_DEPARTURES,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    PROVIDER_NATIONAL_RAIL,
     PROVIDER_NTA_IE,
     PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
@@ -111,6 +113,7 @@ async def _async_migrate_credential(hass: HomeAssistant, entry: ConfigEntry) -> 
         PROVIDER_VBN_OTP: (CONF_VBN_API_KEY, ""),
         PROVIDER_VBN_TRIAS: (CONF_VBN_API_KEY, ""),
         PROVIDER_NTA_IE: (CONF_NTA_API_KEY, CONF_NTA_API_KEY_SECONDARY),
+        PROVIDER_NATIONAL_RAIL: (CONF_NATIONAL_RAIL_API_KEY, ""),
     }
 
     if provider not in key_map:
@@ -168,13 +171,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     place_dm = entry.data.get("place_dm", "")
     name_dm = entry.data.get("name_dm", "")
     station_id = entry.data.get(CONF_STATION_ID)
-    trafiklab_api_key = entry.data.get(CONF_TRAFIKLAB_API_KEY)  # For Trafiklab
-    nta_api_key = entry.data.get(CONF_NTA_API_KEY)  # For NTA
-    rmv_api_key = entry.data.get(CONF_RMV_API_KEY)  # For RMV
-    vbn_api_key = entry.data.get(CONF_VBN_API_KEY)  # For VBN (OTP + TRIAS)
-    opt_api_key = entry.data.get(CONF_OPT_API_KEY)  # For community OTP server
-    otp_custom_api_key = entry.data.get(CONF_OTP_CUSTOM_API_KEY)  # For custom OTP instance
-    otp_custom_url = entry.data.get(CONF_OTP_BASE_URL)  # For custom OTP instance
+    trafiklab_api_key = entry.data.get(CONF_TRAFIKLAB_API_KEY)
+    nta_api_key = entry.data.get(CONF_NTA_API_KEY)
+    rmv_api_key = entry.data.get(CONF_RMV_API_KEY)
+    vbn_api_key = entry.data.get(CONF_VBN_API_KEY)
+    opt_api_key = entry.data.get(CONF_OPT_API_KEY)
+    otp_custom_api_key = entry.data.get(CONF_OTP_CUSTOM_API_KEY)
+    otp_custom_url = entry.data.get(CONF_OTP_BASE_URL)
+    national_rail_api_key = entry.data.get(CONF_NATIONAL_RAIL_API_KEY)
 
     # Use appropriate API key (and URL) based on provider
     api_key = None
@@ -192,6 +196,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     elif provider == PROVIDER_OTP_CUSTOM:
         api_key = otp_custom_api_key
         custom_url = otp_custom_url
+    elif provider == PROVIDER_NATIONAL_RAIL:
+        api_key = national_rail_api_key
 
     departures = entry.options.get(CONF_DEPARTURES, entry.data.get(CONF_DEPARTURES, DEFAULT_DEPARTURES))
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))

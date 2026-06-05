@@ -20,6 +20,7 @@ from ..const import (
     PROVIDER_OEBB,
     PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
+    PROVIDER_NATIONAL_RAIL,
     PROVIDER_RMV,
     PROVIDER_RVV,
     PROVIDER_SBB,
@@ -42,6 +43,7 @@ from .bvg import BVGProvider
 from .db import DBProvider
 from .ding import DINGProvider
 from .gtfsde import OPTProvider
+from .national_rail import NationalRailProvider
 from .hvv import HVVProvider
 from .kvv import KVVProvider
 from .mvv import MVVProvider
@@ -126,3 +128,4 @@ register_provider(PROVIDER_VBN_OTP, VBNOTPProvider)
 register_provider(PROVIDER_VBN_TRIAS, VBNTriasProvider)
 register_provider(PROVIDER_OPT, OPTProvider)
 register_provider(PROVIDER_OTP_CUSTOM, OTPCustomProvider)
+register_provider(PROVIDER_NATIONAL_RAIL, NationalRailProvider)

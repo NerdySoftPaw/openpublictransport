@@ -1,8 +1,4 @@
-"""Base class for EFA (Electronic Fahrplan-Auskunft) providers.
-
-EFA is used by VRR, KVV, HVV, MVV and many other German transit authorities.
-This base class implements the shared XML_DM_REQUEST and XML_STOPFINDER_REQUEST logic.
-"""
+"""Base class for EFA (Electronic Fahrplan-Auskunft) providers."""
 
 import asyncio
 import logging
@@ -13,7 +9,6 @@ from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 import aiohttp
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from ..data_models import UnifiedDeparture
 from ..parsers import parse_departure_generic
@@ -23,16 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class EFABaseProvider(BaseProvider):
-    """Base class for all EFA-based providers (VRR, KVV, HVV, MVV, etc.).
-
-    Subclasses only need to define:
-    - provider_id, provider_name
-    - dm_base_url: URL for XML_DM_REQUEST
-    - sf_base_url: URL for XML_STOPFINDER_REQUEST
-    - get_transport_type_mapping(): transport class → type mapping
-    - get_platform_fn(): how to extract platform from stop event
-    - get_realtime_fn(): how to detect realtime data
-    """
+    """Base class for all EFA-based providers (VRR, KVV, HVV, MVV, etc.)."""
 
     @property
     @abstractmethod
@@ -45,17 +31,11 @@ class EFABaseProvider(BaseProvider):
         """Return the base URL for stop finder requests."""
 
     def get_platform_fn(self) -> Callable[[Dict[str, Any]], str]:
-        """Return function to extract platform from stop event.
-
-        Override in subclasses for provider-specific platform extraction.
-        """
+        """Return function to extract platform from stop event."""
         return lambda s: s.get("platform", {}).get("name") or s.get("platformName", "")
 
     def get_realtime_fn(self) -> Callable[[Dict[str, Any], Optional[str], Optional[str]], bool]:
-        """Return function to detect realtime data.
-
-        Override in subclasses for provider-specific realtime detection.
-        """
+        """Return function to detect realtime data."""
         return lambda s, est, plan: "MONITORED" in s.get("realtimeStatus", [])
 
     async def fetch_departures(
@@ -88,15 +68,14 @@ class EFABaseProvider(BaseProvider):
             )
 
         url = f"{self.dm_base_url}?{params}"
-        session = async_get_clientsession(self.hass)
         name = self.provider_name
 
-        headers = {"User-Agent": f"Mozilla/5.0 (compatible; HomeAssistant {self.provider_id.upper()} Integration)"}
+        headers = {"User-Agent": f"Mozilla/5.0 (compatible; OpenPublicTransport {self.provider_id.upper()})"}
 
         max_retries = 3
         for attempt in range(1, max_retries + 1):
             try:
-                async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                async with self.session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as response:
                     if response.status == 200:
                         try:
                             json_data = await response.json()
@@ -161,12 +140,7 @@ class EFABaseProvider(BaseProvider):
         )
 
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
-        """Search for stops using EFA Stopfinder API.
-
-        Supports "stop, city" format — if a comma is present, the part before
-        is used as stop name and the part after as place filter for better results.
-        """
-        # Split "Holthausen, Düsseldorf" into name + place
+        """Search for stops using EFA Stopfinder API."""
         if "," in search_term:
             parts = search_term.split(",", 1)
             stop_name = parts[0].strip()
@@ -189,11 +163,10 @@ class EFABaseProvider(BaseProvider):
             )
 
         url = f"{self.sf_base_url}?{params}"
-        session = async_get_clientsession(self.hass)
         name = self.provider_name
 
         try:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
+            async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
                 if response.status == 200:
                     try:
                         data = await response.json()

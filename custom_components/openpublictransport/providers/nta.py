@@ -2,14 +2,12 @@
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Union
 from zoneinfo import ZoneInfo
 
 import aiohttp
 from aiohttp import ClientConnectorError
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.util import dt as dt_util
 
 from ..const import API_BASE_URL_NTA_GTFSR, NTA_TRANSPORTATION_TYPES, PROVIDER_NTA_IE
 from ..data_models import UnifiedDeparture
@@ -22,37 +20,22 @@ _LOGGER = logging.getLogger(__name__)
 class NTAProvider(BaseProvider):
     """NTA (National Transport Authority, Ireland) provider."""
 
-    def __init__(
-        self,
-        hass,
-        api_key: Optional[str] = None,
-        api_key_secondary: Optional[str] = None,
-        custom_url: Optional[str] = None,
-    ):
-        """Initialize NTA provider."""
-        super().__init__(hass, api_key=api_key, api_key_secondary=api_key_secondary)
-
     @property
     def provider_id(self) -> str:
-        """Return the provider identifier."""
         return PROVIDER_NTA_IE
 
     @property
     def provider_name(self) -> str:
-        """Return the human-readable provider name."""
         return "NTA (Ireland)"
 
     @property
     def requires_api_key(self) -> bool:
-        """Return True if this provider requires an API key."""
         return True
 
     def get_timezone(self) -> str:
-        """Return the timezone for NTA."""
         return "Europe/Dublin"
 
     async def cleanup(self) -> None:
-        """Cleanup provider resources."""
         pass
 
     async def fetch_departures(
@@ -62,7 +45,6 @@ class NTAProvider(BaseProvider):
         name_dm: str,
         departures_limit: int,
     ) -> Optional[Dict[str, Any]]:
-        """Fetch departure data from NTA GTFS-RT API."""
         if not self.api_key:
             _LOGGER.error("NTA API key is required")
             return None
@@ -73,10 +55,9 @@ class NTAProvider(BaseProvider):
 
         url = f"{API_BASE_URL_NTA_GTFSR}/v2/TripUpdates"
         params = {"format": "json"}
-        session = async_get_clientsession(self.hass)
 
         headers = {
-            "User-Agent": "Mozilla/5.0 (compatible; HomeAssistant NTA Integration)",
+            "User-Agent": "Mozilla/5.0 (compatible; OpenPublicTransport NTA)",
             "x-api-key": self.api_key,
         }
 
@@ -86,7 +67,7 @@ class NTAProvider(BaseProvider):
             try:
                 headers["x-api-key"] = current_api_key
 
-                async with session.get(
+                async with self.session.get(
                     url, params=params, headers=headers, timeout=aiohttp.ClientTimeout(total=15)
                 ) as response:
                     if response.status == 200:
@@ -111,11 +92,12 @@ class NTAProvider(BaseProvider):
                                 "NTA API returned %d entities (processing for stop %s)", entity_count, station_id
                             )
 
-                            # Filter entities for our stop_id and convert to stopEvents format
                             stop_events = []
                             target_stop_id = station_id
                             max_departures = departures_limit * 3
                             processed_entities = 0
+
+                            now = datetime.now(timezone.utc)
 
                             for entity in entities:
                                 if not isinstance(entity, dict):
@@ -129,7 +111,6 @@ class NTAProvider(BaseProvider):
                                 if not isinstance(stop_time_updates, list) or len(stop_time_updates) == 0:
                                     continue
 
-                                # Early filter: check if any stop_time_update matches our stop_id
                                 matching_stop_time = None
                                 for stop_time_update in stop_time_updates:
                                     if not isinstance(stop_time_update, dict):
@@ -152,31 +133,21 @@ class NTAProvider(BaseProvider):
                                 trip_id = trip.get("trip_id", "")
                                 stop_id = stop_time_update.get("stop_id", target_stop_id)
 
-                                # Extract route info from route_id (without GTFS Static)
-                                # Route IDs in NTA often contain the route number
                                 route_short_name = route_id.split("_")[0] if route_id else ""
 
-                                # Default route type to bus (3) - can be improved later
                                 route_type = 3
-                                # Try to detect Luas (tram) from route_id
                                 if route_short_name and route_short_name.lower() in ["red", "green", "luas"]:
-                                    route_type = 0  # Tram/Light rail for Luas
+                                    route_type = 0
 
-                                # Get delay (in seconds)
                                 departure = stop_time_update.get("departure", {})
                                 arrival = stop_time_update.get("arrival", {})
                                 delay_seconds = departure.get("delay") or arrival.get("delay") or 0
 
-                                # Get scheduled time
                                 schedule_relationship = stop_time_update.get("schedule_relationship", "SCHEDULED")
                                 if schedule_relationship in ["CANCELED", "SKIPPED"]:
                                     continue
 
-                                # Use route_id as destination placeholder (without GTFS Static)
                                 destination = route_short_name or "Unknown"
-
-                                # Calculate time from GTFS-RT data
-                                now = dt_util.now()
 
                                 departure_time = departure.get("time")
                                 arrival_time = arrival.get("time")
@@ -199,11 +170,9 @@ class NTAProvider(BaseProvider):
                                     planned_time = now
                                     estimated_time = now + timedelta(seconds=delay_seconds)
 
-                                # Format times
                                 planned_time_str = planned_time.strftime("%Y-%m-%dT%H:%M:%S%z")
                                 estimated_time_str = estimated_time.strftime("%Y-%m-%dT%H:%M:%S%z")
 
-                                # Get platform
                                 platform = (
                                     stop_time_update.get("platform_code") or stop_time_update.get("platform") or ""
                                 )
@@ -249,7 +218,6 @@ class NTAProvider(BaseProvider):
                         _LOGGER.warning("NTA API endpoint not found (404)")
                         return None
                     elif response.status == 401:
-                        # Try Secondary Key as fallback if available
                         if self.api_key_secondary and current_api_key == self.api_key:
                             _LOGGER.info("NTA Primary API key failed (401), trying Secondary key...")
                             current_api_key = self.api_key_secondary
@@ -296,7 +264,6 @@ class NTAProvider(BaseProvider):
     def parse_departure(
         self, stop: Dict[str, Any], tz: Union[ZoneInfo, Any], now: datetime
     ) -> Optional[UnifiedDeparture]:
-        """Parse a single departure from NTA GTFS-RT API response."""
         transportation = stop.get("transportation", {})
         product = transportation.get("product", {})
         route_type = product.get("class", 3)
@@ -316,9 +283,6 @@ class NTAProvider(BaseProvider):
         )
 
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
-        """Search for stops - not supported without GTFS Static.
-
-        Users need to enter the stop_id directly.
-        """
+        """NTA stop search is not available without GTFS Static data."""
         _LOGGER.warning("NTA stop search is not available without GTFS Static data. Please enter the stop_id directly.")
         return []

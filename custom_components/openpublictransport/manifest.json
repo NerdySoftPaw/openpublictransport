@@ -13,7 +13,6 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/NerdySoftPaw/openpublictransport/issues",
   "requirements": [
-    "pytz",
     "aiofiles",
     "gtfs-realtime-bindings>=1.0.0"
   ],

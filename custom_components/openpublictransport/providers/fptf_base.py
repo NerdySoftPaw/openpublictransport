@@ -1,13 +1,4 @@
-"""Base provider for FPTF (Friendly Public Transport Format) APIs.
-
-Used by transport.rest endpoints (BVG, DB, and potentially others).
-These APIs return JSON in FPTF format with no authentication required.
-
-Subclasses only need to define:
-- provider_id, provider_name
-- API_BASE url
-- PRODUCT_MAPPING for transport type conversion
-"""
+"""Base provider for FPTF (Friendly Public Transport Format) APIs."""
 
 import logging
 from datetime import datetime
@@ -16,13 +7,19 @@ from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 import aiohttp
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.util import dt as dt_util
 
 from ..data_models import UnifiedDeparture
 from .base import BaseProvider
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _parse_dt(s: str) -> Optional[datetime]:
+    """Parse an ISO datetime string, returning None on failure."""
+    try:
+        return datetime.fromisoformat(s)
+    except (ValueError, TypeError):
+        return None
 
 
 class FPTFBaseProvider(BaseProvider):
@@ -42,16 +39,14 @@ class FPTFBaseProvider(BaseProvider):
         name_dm: str,
         departures_limit: int,
     ) -> Optional[Dict[str, Any]]:
-        """Fetch departures from FPTF REST API."""
         if not station_id:
             _LOGGER.warning("%s provider requires a station_id", self.provider_name)
             return None
 
         url = f"{self.API_BASE}/stops/{station_id}/departures?results={departures_limit}&duration=120"
-        session = async_get_clientsession(self.hass)
 
         try:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:
+            async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:
                 if response.status == 200:
                     data = await response.json()
                     if not isinstance(data, dict) or "departures" not in data:
@@ -70,15 +65,14 @@ class FPTFBaseProvider(BaseProvider):
     def parse_departure(
         self, stop: Dict[str, Any], tz: Union[ZoneInfo, Any], now: datetime
     ) -> Optional[UnifiedDeparture]:
-        """Parse a single FPTF departure."""
         try:
             when_str = stop.get("when") or stop.get("plannedWhen")
             planned_str = stop.get("plannedWhen")
             if not when_str or not planned_str:
                 return None
 
-            when = dt_util.parse_datetime(when_str)
-            planned = dt_util.parse_datetime(planned_str)
+            when = _parse_dt(when_str)
+            planned = _parse_dt(planned_str)
             if not when or not planned:
                 return None
 
@@ -137,12 +131,10 @@ class FPTFBaseProvider(BaseProvider):
             return None
 
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
-        """Search for stops using FPTF REST API."""
         url = f"{self.API_BASE}/locations?query={quote(search_term, safe='')}&results=15"
-        session = async_get_clientsession(self.hass)
 
         try:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
+            async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
                 if response.status == 200:
                     data = await response.json()
                     if not isinstance(data, list):

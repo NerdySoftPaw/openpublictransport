@@ -137,7 +137,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             if self._provider == PROVIDER_OPT:
                 return await self.async_step_opt_key()
 
-            provider_instance = get_provider(self._provider, self.hass)
+            provider_instance = get_provider(self._provider, async_get_clientsession(self.hass))
             if provider_instance and provider_instance.requires_api_key:
                 return await self.async_step_api_key()
 
@@ -359,7 +359,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         """Handle API key input for providers that require it."""
         errors = {}
 
-        provider_instance = get_provider(self._provider, self.hass)
+        provider_instance = get_provider(self._provider, async_get_clientsession(self.hass))
         if not provider_instance or not provider_instance.requires_api_key:
             # Should not happen, but handle gracefully
             return await self.async_step_stop_search()
@@ -414,7 +414,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     return await self._async_next_step_after_api_key()
 
         # Show appropriate schema based on provider
-        provider_instance = get_provider(self._provider, self.hass)
+        provider_instance = get_provider(self._provider, async_get_clientsession(self.hass))
         if self._provider == PROVIDER_TRAFIKLAB_SE:
             schema = vol.Schema(
                 {
@@ -725,7 +725,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         # Use provider instance for stop search if available
         provider_instance = get_provider(
             self._provider,
-            self.hass,
+            async_get_clientsession(self.hass),
             api_key=self._api_key,
             api_key_secondary=self._api_key_secondary,
             custom_url=self._otp_custom_url,

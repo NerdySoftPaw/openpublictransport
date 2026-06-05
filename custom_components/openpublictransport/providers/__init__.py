@@ -1,8 +1,7 @@
 """Provider registry and factory."""
 
+import aiohttp
 from typing import Dict, Optional, Type
-
-from homeassistant.core import HomeAssistant
 
 from ..const import (
     PROVIDER_AVV_AUGSBURG,
@@ -73,7 +72,7 @@ def register_provider(provider_id: str, provider_class: Type[BaseProvider]) -> N
 
 def get_provider(
     provider_id: Optional[str],
-    hass: HomeAssistant,
+    session: aiohttp.ClientSession,
     api_key: Optional[str] = None,
     api_key_secondary: Optional[str] = None,
     custom_url: Optional[str] = None,
@@ -84,7 +83,7 @@ def get_provider(
     provider_class = _PROVIDER_REGISTRY.get(provider_id)
     if provider_class:
         return provider_class(
-            hass,
+            session,
             api_key=api_key,
             api_key_secondary=api_key_secondary,
             custom_url=custom_url,

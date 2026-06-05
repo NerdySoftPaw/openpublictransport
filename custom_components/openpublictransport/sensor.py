@@ -10,6 +10,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
@@ -87,9 +88,10 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
         self.agency_name = config_entry.data.get("agency_name", "") if config_entry else ""
 
         # Initialize provider instance
+        session = async_get_clientsession(hass)
         self.provider_instance = get_provider(
             provider,
-            hass,
+            session,
             api_key=api_key,
             api_key_secondary=(
                 config_entry.data.get(CONF_NTA_API_KEY_SECONDARY)

@@ -1,11 +1,10 @@
 """Base class for all public transport providers."""
 
+import aiohttp
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from zoneinfo import ZoneInfo
-
-from homeassistant.core import HomeAssistant
 
 from ..data_models import UnifiedDeparture
 
@@ -15,12 +14,12 @@ class BaseProvider(ABC):
 
     def __init__(
         self,
-        hass: HomeAssistant,
+        session: aiohttp.ClientSession,
         api_key: Optional[str] = None,
         api_key_secondary: Optional[str] = None,
         custom_url: Optional[str] = None,
     ):
-        self.hass = hass
+        self.session = session
         self.api_key = api_key
         self.api_key_secondary = api_key_secondary
         self.custom_url = custom_url
@@ -50,45 +49,19 @@ class BaseProvider(ABC):
         name_dm: str,
         departures_limit: int,
     ) -> Optional[Dict[str, Any]]:
-        """Fetch departure data from the provider's API.
-
-        Args:
-            station_id: Station/stop ID (if available)
-            place_dm: Place/city name
-            name_dm: Stop name
-            departures_limit: Maximum number of departures to fetch
-
-        Returns:
-            Dictionary with 'stopEvents' key containing list of departures, or None on error
-        """
+        """Fetch departure data from the provider's API."""
         pass
 
     @abstractmethod
     def parse_departure(
         self, stop: Dict[str, Any], tz: Union[ZoneInfo, Any], now: datetime
     ) -> Optional[UnifiedDeparture]:
-        """Parse a single departure from the provider's API response.
-
-        Args:
-            stop: Stop event data from API
-            tz: Timezone object
-            now: Current datetime
-
-        Returns:
-            UnifiedDeparture object or None if parsing fails
-        """
+        """Parse a single departure from the provider's API response."""
         pass
 
     @abstractmethod
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
-        """Search for stops/stations.
-
-        Args:
-            search_term: Search query
-
-        Returns:
-            List of stop dictionaries with 'id', 'name', and optionally 'place' keys
-        """
+        """Search for stops/stations."""
         pass
 
     def get_timezone(self) -> str:
@@ -96,19 +69,9 @@ class BaseProvider(ABC):
         return "Europe/Berlin"
 
     def get_transport_type_mapping(self) -> Dict[Any, str]:
-        """Return the transportation type mapping for this provider.
-
-        Returns:
-            Dictionary mapping provider-specific transport types to unified types
-        """
+        """Return the transportation type mapping for this provider."""
         return {}
 
     async def cleanup(self) -> None:
-        """Cleanup provider resources.
-
-        This method is called when the provider is being unloaded.
-        Override in subclasses to release resources like GTFS data references.
-
-        Default implementation does nothing.
-        """
+        """Cleanup provider resources."""
         pass

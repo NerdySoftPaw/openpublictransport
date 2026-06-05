@@ -1,12 +1,4 @@
-"""Generic OTP2 provider base — used by the community server and custom instances.
-
-Handles:
-- GraphQL stop search with ß→ss and VRR/NRW city-prefix fallback
-- Multi-platform compound stop IDs (pipe-separated)
-- Parallel platform fetch + merge
-- X-API-Key header when api_key is set
-- custom_url override for self-hosted instances
-"""
+"""Generic OTP2 provider base — used by the community server and custom instances."""
 
 import asyncio
 import logging
@@ -15,13 +7,11 @@ import time
 from typing import Any, Dict, List, Optional
 
 import aiohttp
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .otp_base import OTPBaseProvider
 
 _LOGGER = logging.getLogger(__name__)
 
-# gtfs.de stores VRR/NRW stops with a city-prefix: "D-Elbruchstraße" not "Elbruchstraße"
 _CITY_PREFIXES: Dict[str, str] = {
     "düsseldorf": "D-",
     "duesseldorf": "D-",
@@ -56,15 +46,10 @@ _GRAPHQL_STOP_SEARCH = (
 
 
 def _smart_title(s: str) -> str:
-    """Capitalize the first letter of each word, preserving the rest.
-
-    Keeps abbreviations like KIT, S2, ICE intact while fixing lowercase input.
-    """
     return " ".join(w[0].upper() + w[1:] if w else w for w in s.split())
 
 
 def _primary_agency(stops: List[Dict[str, Any]]) -> str:
-    """Return the most common agency name across all routes of the given stops."""
     counts: Dict[str, int] = {}
     for s in stops:
         for route in s.get("routes") or []:
@@ -96,11 +81,6 @@ _GRAPHQL_NEAREST = """{
 
 
 def _detect_city_prefix(search_term: str) -> Optional[str]:
-    """If the search contains a known city name, return PREFIX + stop_part.
-
-    Handles "Düsseldorf Elbruchstraße" and "Elbruchstraße, Düsseldorf" by
-    removing the city word and prepending its gtfs.de prefix to the remainder.
-    """
     words = search_term.strip().replace(",", " ").split()
     for i, word in enumerate(words):
         prefix = _CITY_PREFIXES.get(word.lower())
@@ -115,7 +95,6 @@ _MAX_PLATFORM_DISTANCE_M = 500
 
 
 def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Great-circle distance in metres between two lat/lon points."""
     r = 6_371_000
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
@@ -125,11 +104,6 @@ def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 
 def _cluster_by_proximity(stops: List[Dict[str, Any]]) -> List[List[Dict[str, Any]]]:
-    """Union-find clustering: stops within _MAX_PLATFORM_DISTANCE_M form one cluster.
-
-    Prevents stops from different cities that share a name (e.g. "Hauptbahnhof")
-    from being merged into a single compound ID.
-    """
     n = len(stops)
     parent = list(range(n))
 
@@ -206,10 +180,9 @@ class OTPProvider(OTPBaseProvider):
         return headers
 
     async def _graphql(self, query: str) -> Optional[Dict[str, Any]]:
-        session = async_get_clientsession(self.hass)
         url = f"{self._effective_base_url}/index/graphql"
         try:
-            async with session.post(
+            async with self.session.post(
                 url,
                 json={"query": query},
                 headers=self._auth_headers(),
@@ -228,11 +201,6 @@ class OTPProvider(OTPBaseProvider):
         ]
 
     def _group_by_name(self, raw_stops: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Group platform stops into compound entries per physical station.
-
-        Prefers grouping by parentStation.gtfsId (GTFS.de sets this correctly).
-        Falls back to name+proximity clustering for stops without a parent station.
-        """
         by_parent: Dict[str, List[Dict[str, Any]]] = {}
         no_parent: List[Dict[str, Any]] = []
 
@@ -269,17 +237,14 @@ class OTPProvider(OTPBaseProvider):
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
         """Search stops via OTP2 GraphQL with city-prefix fallback for VRR/NRW."""
         ss_term = search_term.replace("ß", "ss") if "ß" in search_term else None
-        # OTP stops(name:) is case-sensitive — also try smart-title-cased variant
         smart_term = _smart_title(search_term)
         smart_term = smart_term if smart_term != search_term else None
 
-        # Phase 1: bare name, ß→ss variant, smart-title variant
         for term in filter(None, [search_term, ss_term, smart_term]):
             raw = await self._search_one(term)
             if raw:
                 return self._group_by_name(raw)[:20]
 
-        # Phase 1b: city-word detection — "Düsseldorf Elbruchstraße" → "D-Elbruchstraße"
         detected = _detect_city_prefix(search_term)
         if detected:
             raw = await self._search_one(detected)
@@ -291,7 +256,6 @@ class OTPProvider(OTPBaseProvider):
                 if raw:
                     return self._group_by_name(raw)[:20]
 
-        # Phase 2: all city prefixes in parallel
         prefixed = [p + search_term for p in _CITY_PREFIXES.values()]
         if ss_term:
             prefixed += [p + ss_term for p in _CITY_PREFIXES.values()]
@@ -309,7 +273,6 @@ class OTPProvider(OTPBaseProvider):
         if all_raw:
             return self._group_by_name(all_raw)[:20]
 
-        # Phase 3: Nominatim geocode → GraphQL nearest (REST /index/stops not exposed)
         coords = await self._geocode(search_term)
         if coords is None:
             _LOGGER.warning("%s: could not geocode '%s'", self.provider_name, search_term)
@@ -413,5 +376,3 @@ class OTPProvider(OTPBaseProvider):
             events = merged[:departures_limit]
 
         return {"stopEvents": events}
-
-    # parse_departure inherited from OTPBaseProvider: serviceDay + departure as UTC → correct local time

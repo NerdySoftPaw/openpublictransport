@@ -45,6 +45,7 @@ jobs:
           mv tmp.json custom_components/openpublictransport/manifest.json
 
       - name: Commit version to repo
+        continue-on-error: true
         run: |
           BRANCH=${{ github.event.release.target_commitish }}
           git config user.name "github-actions[bot]"
@@ -54,6 +55,7 @@ jobs:
           git push origin HEAD:${BRANCH}
 
       - name: Update tag to include version commit
+        continue-on-error: true
         run: |
           git tag -f ${GITHUB_REF#refs/tags/}
           git push origin ${GITHUB_REF#refs/tags/} --force

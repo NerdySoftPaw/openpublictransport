@@ -56,7 +56,7 @@ from .const import (
     PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
-from .providers import get_provider
+from .providers import get_provider, get_provider_class
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -137,8 +137,8 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             if self._provider == PROVIDER_OPT:
                 return await self.async_step_opt_key()
 
-            provider_instance = get_provider(self._provider, async_get_clientsession(self.hass))
-            if provider_instance and provider_instance.requires_api_key:
+            provider_class = get_provider_class(self._provider)
+            if provider_class and provider_class(None).requires_api_key:  # type: ignore[arg-type]
                 return await self.async_step_api_key()
 
             if self._entry_type == "trip":
@@ -359,8 +359,8 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         """Handle API key input for providers that require it."""
         errors = {}
 
-        provider_instance = get_provider(self._provider, async_get_clientsession(self.hass))
-        if not provider_instance or not provider_instance.requires_api_key:
+        provider_class = get_provider_class(self._provider)
+        if not provider_class or not provider_class(None).requires_api_key:  # type: ignore[arg-type]
             # Should not happen, but handle gracefully
             return await self.async_step_stop_search()
 
@@ -414,7 +414,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     return await self._async_next_step_after_api_key()
 
         # Show appropriate schema based on provider
-        provider_instance = get_provider(self._provider, async_get_clientsession(self.hass))
+        provider_instance = get_provider_class(self._provider)(None) if get_provider_class(self._provider) else None  # type: ignore[arg-type]
         if self._provider == PROVIDER_TRAFIKLAB_SE:
             schema = vol.Schema(
                 {

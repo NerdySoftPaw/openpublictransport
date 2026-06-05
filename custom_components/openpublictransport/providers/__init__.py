@@ -97,6 +97,13 @@ def get_all_provider_ids() -> list[str]:
     return list(_PROVIDER_REGISTRY.keys())
 
 
+def get_provider_class(provider_id: Optional[str]) -> Optional[Type[BaseProvider]]:
+    """Return the provider class without instantiating (no session needed)."""
+    if provider_id is None:
+        return None
+    return _PROVIDER_REGISTRY.get(provider_id)
+
+
 # Register all providers
 register_provider(PROVIDER_VRR, VRRProvider)
 register_provider(PROVIDER_KVV, KVVProvider)

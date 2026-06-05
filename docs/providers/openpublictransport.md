@@ -86,6 +86,31 @@ The gtfs.de feed stores VRR/NRW stops with a city prefix. The integration handle
 
 GTFS stores one entry per platform/direction. The integration automatically groups stops by name and creates compound IDs (`gtfsde:537545|gtfsde:568685`). When fetching departures, all platforms are queried in parallel and merged — the sensor shows a complete view of the station.
 
+## Lovelace Card
+
+The [openpublictransport-card](https://github.com/NerdySoftPaw/openpublictransport-card) provides four layouts for visualizing departure data:
+
+| Layout | Best for |
+|--------|----------|
+| `table` | Classic departure board — all departures at a glance |
+| `compact` | Space-efficient chip view for dense dashboards |
+| `next` | Single large "next departure" widget for quick glance |
+| `trip` | Multi-leg A→B journey planning display |
+
+**Line badge colors** are applied automatically — the openpublictransport provider returns `line_color` and `line_text_color` for many lines (e.g., VBB Berlin, where U-Bahn lines show their official colors).
+
+**Card-side line filter** — the card's `line_filter` option lets you show only specific lines per card instance, independently of the integration's own line filter:
+
+```yaml
+type: custom:openpublictransport-card
+entity: sensor.dusseldorf_hbf_departures
+layout: table
+line_filter: "U79, U75"   # show only U79 and U75 in this card
+```
+
+!!! tip
+    The **integration's** `line_filter` (set during HA config) reduces API load for all entities from that stop. The **card's** `line_filter` is purely visual — use it to show different subsets of the same sensor in multiple cards.
+
 ## Self-Hosting
 
 You can run your own OTP2 instance with gtfs.de data using the Docker image:

@@ -165,6 +165,8 @@ The binary sensor indicates whether there are significant delays at the stop.
 
 A separate statistics sensor is created for each configured stop: `sensor.*_statistics`.
 
+Statistics are **persisted across Home Assistant restarts** — the integration stores cumulative data in `.storage/openpublictransport_stats_*` and restores it on startup. Data is only lost if the integration entry is removed or the storage file is deleted manually.
+
 ### State
 
 Overall punctuality percentage (%). Delays of 2 minutes or less are considered on-time.

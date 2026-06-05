@@ -13,6 +13,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
@@ -69,11 +70,23 @@ class PunctualitySensor(CoordinatorEntity, SensorEntity):
             suggested_area=place_dm,
         )
 
-        # Statistics storage
+        # Statistics storage (persisted across restarts via HA Store)
+        self._store = Store(hass, 1, f"openpublictransport_stats_{self._attr_unique_id}")
         self._total_departures = 0
         self._on_time_departures = 0
         self._line_stats: Dict[str, Dict[str, int]] = defaultdict(lambda: {"total": 0, "on_time": 0, "total_delay": 0})
         self._seen_departures: set[str] = set()
+
+    async def async_added_to_hass(self) -> None:
+        """Load persisted statistics on startup."""
+        await super().async_added_to_hass()
+        stored = await self._store.async_load()
+        if stored:
+            self._total_departures = stored.get("total", 0)
+            self._on_time_departures = stored.get("on_time", 0)
+            for line, stats in stored.get("lines", {}).items():
+                self._line_stats[line].update(stats)
+            self._seen_departures = set(stored.get("seen", []))
 
     @property
     def native_value(self) -> float | None:
@@ -143,3 +156,9 @@ class PunctualitySensor(CoordinatorEntity, SensorEntity):
             self._line_stats[line]["total_delay"] += dep.delay
 
         self.async_write_ha_state()
+        self.hass.async_create_task(self._store.async_save({
+            "total": self._total_departures,
+            "on_time": self._on_time_departures,
+            "lines": {k: dict(v) for k, v in self._line_stats.items()},
+            "seen": list(self._seen_departures)[-250:],
+        }))

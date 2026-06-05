@@ -71,7 +71,7 @@ class PunctualitySensor(CoordinatorEntity, SensorEntity):
         )
 
         # Statistics storage (persisted across restarts via HA Store)
-        self._store = Store(hass, 1, f"openpublictransport_stats_{self._attr_unique_id}")
+        self._store = Store(coordinator.hass, 1, f"openpublictransport_stats_{self._attr_unique_id}")
         self._total_departures = 0
         self._on_time_departures = 0
         self._line_stats: Dict[str, Dict[str, int]] = defaultdict(lambda: {"total": 0, "on_time": 0, "total_delay": 0})
@@ -156,9 +156,13 @@ class PunctualitySensor(CoordinatorEntity, SensorEntity):
             self._line_stats[line]["total_delay"] += dep.delay
 
         self.async_write_ha_state()
-        self.hass.async_create_task(self._store.async_save({
-            "total": self._total_departures,
-            "on_time": self._on_time_departures,
-            "lines": {k: dict(v) for k, v in self._line_stats.items()},
-            "seen": list(self._seen_departures)[-250:],
-        }))
+        self.hass.async_create_task(
+            self._store.async_save(
+                {
+                    "total": self._total_departures,
+                    "on_time": self._on_time_departures,
+                    "lines": {k: dict(v) for k, v in self._line_stats.items()},
+                    "seen": list(self._seen_departures)[-250:],
+                }
+            )
+        )

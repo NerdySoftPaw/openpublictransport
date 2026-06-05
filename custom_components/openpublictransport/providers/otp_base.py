@@ -60,6 +60,7 @@ def _nominatim_candidates(term: str) -> List[str]:
 
     return candidates
 
+
 OTP_MODE_MAP: Dict[str, str] = {
     "BUS": "bus",
     "COACH": "bus",
@@ -142,7 +143,9 @@ class OTPBaseProvider(BaseProvider):
                         results = await resp.json(content_type=None)
                         if results:
                             if i > 0:
-                                _LOGGER.debug("%s: Nominatim hit on simplified query '%s'", self.provider_name, candidate)
+                                _LOGGER.debug(
+                                    "%s: Nominatim hit on simplified query '%s'", self.provider_name, candidate
+                                )
                             return float(results[0]["lat"]), float(results[0]["lon"])
             except Exception as exc:
                 _LOGGER.debug("%s: Nominatim geocode error: %s", self.provider_name, exc)

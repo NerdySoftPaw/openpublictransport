@@ -50,7 +50,9 @@ _CITY_PREFIXES: Dict[str, str] = {
     "bonn": "BN-",
 }
 
-_GRAPHQL_STOP_SEARCH = '{ stops(name: "%s") { gtfsId name lat lon parentStation { gtfsId name } routes { agency { name } } } }'
+_GRAPHQL_STOP_SEARCH = (
+    '{ stops(name: "%s") { gtfsId name lat lon parentStation { gtfsId name } routes { agency { name } } } }'
+)
 
 
 def _smart_title(s: str) -> str:
@@ -65,11 +67,12 @@ def _primary_agency(stops: List[Dict[str, Any]]) -> str:
     """Return the most common agency name across all routes of the given stops."""
     counts: Dict[str, int] = {}
     for s in stops:
-        for route in (s.get("routes") or []):
+        for route in s.get("routes") or []:
             name = (route.get("agency") or {}).get("name", "")
             if name:
                 counts[name] = counts.get(name, 0) + 1
     return max(counts, key=lambda k: counts[k]) if counts else ""
+
 
 _GRAPHQL_NEAREST = """{
   nearest(lat: %f, lon: %f, maxDistance: %d, filterByPlaceTypes: [STOP]) {
@@ -318,8 +321,7 @@ class OTPProvider(OTPBaseProvider):
         raw = [
             edge["node"]["place"]
             for edge in edges
-            if isinstance((edge.get("node") or {}).get("place"), dict)
-            and "gtfsId" in edge["node"]["place"]
+            if isinstance((edge.get("node") or {}).get("place"), dict) and "gtfsId" in edge["node"]["place"]
         ]
         if raw:
             return self._group_by_name(raw)[:20]

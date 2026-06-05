@@ -4,6 +4,7 @@ from typing import Dict, Optional, Type
 
 from homeassistant.core import HomeAssistant
 
+from ..const import PROVIDER_NATIONAL_RAIL  # noqa: F401
 from ..const import (
     PROVIDER_AVV_AUGSBURG,
     PROVIDER_BEG,
@@ -14,7 +15,6 @@ from ..const import (
     PROVIDER_HVV,
     PROVIDER_KVV,
     PROVIDER_MVV,
-    PROVIDER_NATIONAL_RAIL,  # noqa: F401
     PROVIDER_NTA_IE,
     PROVIDER_NVBW,
     PROVIDER_NWL,

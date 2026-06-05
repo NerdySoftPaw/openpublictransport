@@ -50,6 +50,17 @@ This guide helps you diagnose and resolve common issues with the Public Transpor
 - The unknown class number
 - The type of transport it should represent
 
+### Scheduled Maintenance (Sunday ~2:00 AM)
+
+**Symptoms**: All sensors show connection errors or stop updating simultaneously, then recover automatically after ~80 minutes.
+
+**Cause**: The `openpublictransport` community server rebuilds its routing graph every Sunday around 2:00 AM (Europe/Berlin). During this window the API is completely offline.
+
+**Action**: None required — the API recovers automatically. If automations are scheduled for Sunday early morning, move them to after 4:00 AM.
+
+!!! note
+    This only affects the **openpublictransport (Community Server)** provider. All other providers are unaffected.
+
 ### Connection Errors
 
 **Symptoms**: "API connection error" or timeout messages.
@@ -57,7 +68,7 @@ This guide helps you diagnose and resolve common issues with the Public Transpor
 **Possible Causes**:
 
 - Network connectivity issues
-- Provider API downtime
+- Provider API downtime (see scheduled maintenance above)
 - Firewall blocking connections
 
 **Solutions**:

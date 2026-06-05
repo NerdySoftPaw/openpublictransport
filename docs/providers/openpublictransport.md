@@ -3,7 +3,7 @@
 !!! info "Community Server"
     This provider uses a community-hosted OTP2 server at **api.openpublictransport.net**, backed by [gtfs.de](https://gtfs.de) data (CC 4.0, Germany-wide). An API key is required — [request one here](https://openpublictransport.net/api-key).
 
-    The `openpublictransport` provider gives you Germany-wide real-time departures for all transit modes — S-Bahn, U-Bahn, Bus, Tram, Regional, IC/ICE — from a single unified endpoint. Data is updated daily from gtfs.de and enriched with GTFS-RT realtime delays every 30 seconds from VBB, VRR, VRS, VRN, VVO, VBN, NVBW, DEFAS Bayern, VAG Nürnberg, Stadtwerke Münster, and more.
+    The `openpublictransport` provider gives you Germany-wide real-time departures for all transit modes — S-Bahn, U-Bahn, Bus, Tram, Regional, IC/ICE — from a single unified endpoint. Static GTFS data is rebuilt weekly (every Sunday night) from gtfs.de and enriched with GTFS-RT realtime delays every 30 seconds from VBB, VRR, VRS, VRN, VVO, VBN, NVBW, DEFAS Bayern, VAG Nürnberg, Stadtwerke Münster, and more.
 
 ## Coverage Area
 
@@ -16,10 +16,27 @@
 | Property | Value |
 |----------|-------|
 | **Server** | `https://api.openpublictransport.net/otp/routers/default` |
+| **GraphQL Endpoint** | `https://api.openpublictransport.net/otp/gtfs/v1` |
 | **API Type** | OTP2 GraphQL |
 | **API Key** | Yes — [request free key](https://openpublictransport.net/api-key) |
 | **Timezone** | Europe/Berlin |
 | **Data Source** | gtfs.de CC 4.0 + GTFS-RT |
+| **GTFS Refresh** | Weekly (Sunday ~2:00 AM) + Realtime every 30s |
+| **Maintenance** | Every Sunday ~2:00–3:30 AM Europe/Berlin (~80 min offline) |
+
+## Scheduled Maintenance
+
+The community server rebuilds its routing graph every **Sunday at approximately 2:00 AM (Europe/Berlin)**. During this window (roughly 80 minutes), the API is completely offline.
+
+| | |
+|---|---|
+| **Schedule** | Every Sunday, ~2:00 AM Europe/Berlin |
+| **Duration** | ~80 minutes (graph rebuild ~57 min + loading ~20 min) |
+| **Impact** | API unreachable; sensors show connection errors |
+| **After rebuild** | Fresh weekly GTFS data, realtime resumes within seconds |
+
+!!! tip
+    If you have Home Assistant automations that run on Sunday mornings, schedule them after **4:00 AM** to ensure the API is back online.
 
 ## Transport Types
 
@@ -105,6 +122,10 @@ The community server polls `realtime.gtfs.de/realtime-free.pb` every 30 seconds 
     See [gtfs.de/de/realtime](https://gtfs.de/de/realtime/) for the full feed list and licensing details.
 
 ## Troubleshooting
+
+### API Offline on Sunday Morning
+
+If all sensors fail with connection errors on Sunday between 2:00–4:00 AM (Europe/Berlin), this is the scheduled weekly maintenance window. No action needed — the API recovers automatically after ~80 minutes.
 
 ### HTTP 401
 

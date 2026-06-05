@@ -234,24 +234,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             entity_entry = entity_registry.async_get(entity_id)
 
             if entity_entry and entity_entry.platform == DOMAIN:
-                # Get the entity and trigger refresh
-                entity_obj = hass.data.get("entity_components", {}).get("sensor")
-                if entity_obj:
-                    for ent in entity_obj.entities:
-                        if ent.entity_id == entity_id:
-                            await ent.coordinator.async_request_refresh()
-                            break
+                coordinator_key = f"{entity_entry.config_entry_id}_coordinator"
+                coordinator = hass.data[DOMAIN].get(coordinator_key)
+                if coordinator:
+                    await coordinator.async_request_refresh()
         else:
             # Refresh all entities
             entity_registry = er.async_get(hass)
             entities = [e for e in entity_registry.entities.values() if e.platform == DOMAIN]
 
-            entity_obj = hass.data.get("entity_components", {}).get("sensor")
-            if entity_obj:
-                for entity_entry in entities:
-                    for ent in entity_obj.entities:
-                        if ent.entity_id == entity_entry.entity_id:
-                            await ent.coordinator.async_request_refresh()
+            seen_entries: set[str] = set()
+            for entity_entry in entities:
+                entry_id = entity_entry.config_entry_id
+                if entry_id and entry_id not in seen_entries:
+                    seen_entries.add(entry_id)
+                    coordinator_key = f"{entry_id}_coordinator"
+                    coordinator = hass.data[DOMAIN].get(coordinator_key)
+                    if coordinator:
+                        await coordinator.async_request_refresh()
 
     hass.services.async_register(
         DOMAIN,

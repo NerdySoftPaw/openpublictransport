@@ -14,7 +14,7 @@ from ..const import (
     PROVIDER_HVV,
     PROVIDER_KVV,
     PROVIDER_MVV,
-    PROVIDER_NATIONAL_RAIL,
+    PROVIDER_NATIONAL_RAIL,  # noqa: F401
     PROVIDER_NTA_IE,
     PROVIDER_NVBW,
     PROVIDER_NWL,
@@ -46,7 +46,7 @@ from .gtfsde import OPTProvider
 from .hvv import HVVProvider
 from .kvv import KVVProvider
 from .mvv import MVVProvider
-from .national_rail import NationalRailProvider
+from .national_rail import NationalRailProvider  # noqa: F401
 from .nta import NTAProvider
 from .nvbw import NVBWProvider
 from .nwl import NWLProvider

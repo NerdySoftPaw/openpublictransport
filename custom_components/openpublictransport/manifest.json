@@ -16,6 +16,6 @@
     "aiofiles",
     "gtfs-realtime-bindings>=1.0.0"
   ],
-  "homeassistant": "2024.11.0",
+  "homeassistant": "2026.1.0",
   "version": "2026.6.3"
 }

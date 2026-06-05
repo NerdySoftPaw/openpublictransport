@@ -195,7 +195,6 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch data from API."""
-        self._ensure_provider()
         if not self._check_rate_limit():
             # Return last known data instead of failing
             if self.data:
@@ -245,6 +244,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _fetch_departures(self) -> Optional[Dict[str, Any]]:
         """Fetch departure data from the API."""
+        self._ensure_provider()
         if not self.provider_instance:
             raise UpdateFailed(f"No provider instance for {self.provider}")
 

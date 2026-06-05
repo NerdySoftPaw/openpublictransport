@@ -414,7 +414,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     return await self._async_next_step_after_api_key()
 
         # Show appropriate schema based on provider
-        provider_instance = get_provider_class(self._provider)(None) if get_provider_class(self._provider) else None  # type: ignore[arg-type]
         if self._provider == PROVIDER_TRAFIKLAB_SE:
             schema = vol.Schema(
                 {

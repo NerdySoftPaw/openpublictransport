@@ -1,10 +1,11 @@
 """Base class for all public transport providers."""
 
-import aiohttp
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from zoneinfo import ZoneInfo
+
+import aiohttp
 
 from ..data_models import UnifiedDeparture
 

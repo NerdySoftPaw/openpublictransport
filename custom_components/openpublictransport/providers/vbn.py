@@ -1,7 +1,8 @@
 """VBN (Verkehrsverbund Bremen/Niedersachsen) providers."""
 
-import aiohttp
 from typing import Dict, Optional
+
+import aiohttp
 
 from ..const import PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS
 from .otp_base import OTPBaseProvider

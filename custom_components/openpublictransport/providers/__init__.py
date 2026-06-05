@@ -14,13 +14,13 @@ from ..const import (
     PROVIDER_HVV,
     PROVIDER_KVV,
     PROVIDER_MVV,
+    PROVIDER_NATIONAL_RAIL,
     PROVIDER_NTA_IE,
     PROVIDER_NVBW,
     PROVIDER_NWL,
     PROVIDER_OEBB,
     PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
-    PROVIDER_NATIONAL_RAIL,
     PROVIDER_RMV,
     PROVIDER_RVV,
     PROVIDER_SBB,
@@ -43,10 +43,10 @@ from .bvg import BVGProvider
 from .db import DBProvider
 from .ding import DINGProvider
 from .gtfsde import OPTProvider
-from .national_rail import NationalRailProvider
 from .hvv import HVVProvider
 from .kvv import KVVProvider
 from .mvv import MVVProvider
+from .national_rail import NationalRailProvider
 from .nta import NTAProvider
 from .nvbw import NVBWProvider
 from .nwl import NWLProvider

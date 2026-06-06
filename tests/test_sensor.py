@@ -80,7 +80,7 @@ async def test_coordinator_api_error(hass: HomeAssistant):
 async def test_sensor_state(hass: HomeAssistant, mock_coordinator, mock_config_entry):
     """Test sensor state updates."""
     # Test with provider instance
-    from custom_components.openpublictransport.providers import get_provider
+    from openpublictransport import get_provider
 
     mock_coordinator.provider_instance = get_provider(PROVIDER_VRR, hass)
     sensor = MultiProviderSensor(
@@ -142,7 +142,7 @@ async def test_sensor_no_departures(hass: HomeAssistant, mock_config_entry):
     coordinator.departures_limit = 10
 
     # Test with provider instance
-    from custom_components.openpublictransport.providers import get_provider
+    from openpublictransport import get_provider
 
     coordinator.provider_instance = get_provider(PROVIDER_VRR, hass)
 
@@ -225,7 +225,7 @@ async def test_sensor_transportation_type_filtering(hass: HomeAssistant, mock_co
     coordinator.departures_limit = 10
 
     # Test with provider instance
-    from custom_components.openpublictransport.providers import get_provider
+    from openpublictransport import get_provider
 
     coordinator.provider_instance = get_provider(PROVIDER_VRR, hass)
 

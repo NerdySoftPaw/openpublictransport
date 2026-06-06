@@ -6,8 +6,7 @@ from typing import Any, Callable, Dict, Optional, Union
 from zoneinfo import ZoneInfo
 
 from homeassistant.util import dt as dt_util
-
-from .data_models import UnifiedDeparture
+from openpublictransport.models import UnifiedDeparture
 
 _LOGGER = logging.getLogger(__name__)
 

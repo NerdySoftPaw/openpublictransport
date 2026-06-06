@@ -20,6 +20,7 @@ from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig, SelectSelectorMode
+from openpublictransport import get_provider, get_provider_class
 
 from .const import (
     CONF_DELAY_THRESHOLD,
@@ -56,7 +57,6 @@ from .const import (
     PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
-from .providers import get_provider, get_provider_class
 
 _LOGGER = logging.getLogger(__name__)
 

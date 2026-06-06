@@ -13,6 +13,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
+from openpublictransport import get_provider
 
 from .const import (
     API_RATE_LIMIT_PER_DAY,
@@ -32,7 +33,6 @@ from .const import (
     PROVIDER_NTA_IE,
     TRANSPORTATION_TYPES,
 )
-from .providers import get_provider
 
 _LOGGER = logging.getLogger(__name__)
 INTEGRATION_VERSION = json.loads((Path(__file__).parent / "manifest.json").read_text()).get("version", "unknown")

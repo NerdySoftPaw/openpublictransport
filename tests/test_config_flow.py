@@ -375,6 +375,7 @@ async def test_nta_api_key_flow(hass: HomeAssistant):
 
         # Submit stop ID with mocked validation
         with (
+            patch("custom_components.openpublictransport.config_flow.async_get_clientsession"),
             patch(
                 "custom_components.openpublictransport.config_flow.get_provider",
             ) as mock_get_provider,

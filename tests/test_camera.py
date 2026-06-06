@@ -8,12 +8,15 @@ from homeassistant.core import HomeAssistant
 from openpublictransport.models import UnifiedDeparture
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.openpublictransport.camera import (
-    DepartureBoardCamera,
-    _get_font,
-    async_setup_entry,
-    render_departure_board,
-)
+try:
+    from custom_components.openpublictransport.camera import (
+        DepartureBoardCamera,
+        _get_font,
+        async_setup_entry,
+        render_departure_board,
+    )
+except ImportError:
+    pytest.skip("camera platform requires turbojpeg", allow_module_level=True)
 from custom_components.openpublictransport.const import (
     CONF_DEPARTURES,
     CONF_PROVIDER,

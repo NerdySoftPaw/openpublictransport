@@ -1,19 +1,4 @@
-"""Base provider for OpenTripPlanner (OTP) REST API.
-
-Subclasses only need to define:
-- provider_id, provider_name
-- otp_base_url: router base URL up to and including the router ID,
-  e.g. 'http://gtfsr.vbn.de/api/routers/default'
-  NOTE: no /otp/ prefix needed when the base path already includes /api/
-
-Override _auth_headers() to add an API key.
-Override get_timezone() if not Europe/Berlin.
-Override stop_search_radius if 500 m is not appropriate.
-
-Stop search uses Nominatim geocoding (OSM) to resolve the stop name to
-coordinates, then OTP /index/stops?lat=&lon=&radius= to find nearby stops.
-OTP 2.3.0 REST does not support name-based stop search natively.
-"""
+"""Base provider for OpenTripPlanner (OTP) REST API."""
 
 import asyncio
 import logging
@@ -23,7 +8,6 @@ from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 import aiohttp
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from ..data_models import UnifiedDeparture
 from .base import BaseProvider
@@ -31,18 +15,11 @@ from .base import BaseProvider
 _LOGGER = logging.getLogger(__name__)
 
 _NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
-_NOMINATIM_UA = "openpublictransport-homeassistant/1.0 (github.com/NerdySoftPaw/openpublictransport)"
+_NOMINATIM_UA = "openpublictransport/1.0 (github.com/NerdySoftPaw/openpublictransport)"
 
 
 def _nominatim_candidates(term: str) -> List[str]:
-    """Return progressively simpler Nominatim queries for a search term.
-
-    Strategy (stops after first hit in _geocode):
-    1. Full term
-    2. Comma-swap: "Karlsruhe, KIT Haupteingang" → "KIT Haupteingang Karlsruhe"
-    3. Remove each word once — catches generic words like "Haupteingang"
-       that Nominatim doesn't know as POI names.
-    """
+    """Return progressively simpler Nominatim queries for a search term."""
     candidates: List[str] = [term]
 
     if "," in term:
@@ -77,11 +54,7 @@ OTP_MODE_MAP: Dict[str, str] = {
 class OTPBaseProvider(BaseProvider):
     """Base class for OpenTripPlanner REST API providers."""
 
-    # Subclasses set this to the OTP router base URL (without trailing slash)
-    # e.g. 'http://gtfsr.vbn.de/api/routers/default'
     otp_base_url: str = ""
-
-    # Search radius in metres for stop lookup after geocoding
     stop_search_radius: int = 500
 
     def get_timezone(self) -> str:
@@ -99,12 +72,11 @@ class OTPBaseProvider(BaseProvider):
 
     async def _get(
         self,
-        session: aiohttp.ClientSession,
         url: str,
         params: Optional[Dict] = None,
     ) -> Optional[Any]:
         try:
-            async with session.get(
+            async with self.session.get(
                 url,
                 params=params or {},
                 headers=self._auth_headers(),
@@ -113,7 +85,7 @@ class OTPBaseProvider(BaseProvider):
                 if resp.status == 200:
                     return await resp.json()
                 if resp.status == 204:
-                    return None  # No content — normal for empty alerts
+                    return None
                 _LOGGER.warning("%s OTP %s → HTTP %s", self.provider_name, url, resp.status)
         except aiohttp.ClientError as exc:
             _LOGGER.warning("%s OTP request failed: %s", self.provider_name, exc)
@@ -122,18 +94,12 @@ class OTPBaseProvider(BaseProvider):
         return None
 
     async def _geocode(self, search_term: str) -> Optional[Tuple[float, float]]:
-        """Resolve a stop name to (lat, lon) via Nominatim / OpenStreetMap.
-
-        Tries progressively simpler queries so that inputs like
-        "KIT Haupteingang Karlsruhe" still resolve even when Nominatim
-        doesn't know the generic word ("Haupteingang").
-        """
-        session = async_get_clientsession(self.hass)
+        """Resolve a stop name to (lat, lon) via Nominatim / OpenStreetMap."""
         for i, candidate in enumerate(_nominatim_candidates(search_term)):
             if i > 0:
                 await asyncio.sleep(0.3)
             try:
-                async with session.get(
+                async with self.session.get(
                     _NOMINATIM_URL,
                     params={"q": candidate, "format": "json", "limit": 1, "countrycodes": "de"},
                     headers={"User-Agent": _NOMINATIM_UA, "Accept": "application/json"},
@@ -153,10 +119,7 @@ class OTPBaseProvider(BaseProvider):
         return None
 
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
-        """Search stops by geocoding the term, then finding nearby OTP stops.
-
-        Returns stops sorted by distance from the geocoded coordinates.
-        """
+        """Search stops by geocoding the term, then finding nearby OTP stops."""
         coords = await self._geocode(search_term)
         if coords is None:
             _LOGGER.warning(
@@ -167,9 +130,7 @@ class OTPBaseProvider(BaseProvider):
             return []
 
         lat, lon = coords
-        session = async_get_clientsession(self.hass)
         data = await self._get(
-            session,
             self._index_url("stops"),
             {"lat": lat, "lon": lon, "radius": self.stop_search_radius},
         )
@@ -198,15 +159,12 @@ class OTPBaseProvider(BaseProvider):
             return None
 
         encoded_id = quote(station_id, safe="")
-        session = async_get_clientsession(self.hass)
         mode_mapping = self.get_mode_mapping()
 
-        # Fetch routes, alerts, and stoptimes concurrently
         routes_data, alerts_data, stoptimes = await asyncio.gather(
-            self._get(session, self._index_url(f"stops/{encoded_id}/routes")),
-            self._get(session, self._index_url(f"stops/{encoded_id}/alerts")),
+            self._get(self._index_url(f"stops/{encoded_id}/routes")),
+            self._get(self._index_url(f"stops/{encoded_id}/alerts")),
             self._get(
-                session,
                 self._index_url(f"stops/{encoded_id}/stoptimes"),
                 {
                     "timeRange": 7200,
@@ -216,7 +174,6 @@ class OTPBaseProvider(BaseProvider):
             ),
         )
 
-        # Routes → line shortName + transport mode + agency (deduplicate by ID)
         route_map: Dict[str, Dict[str, str]] = {}
         if routes_data:
             for r in routes_data:
@@ -228,7 +185,6 @@ class OTPBaseProvider(BaseProvider):
                         "agency": agency or "",
                     }
 
-        # Active alerts for this stop
         stop_notices: List[str] = []
         if alerts_data:
             seen: set = set()
@@ -246,7 +202,6 @@ class OTPBaseProvider(BaseProvider):
         for group in stoptimes:
             if not isinstance(group, dict):
                 continue
-            # routeId lives on the pattern, not on individual time entries
             pattern = group.get("pattern", {})
             route_id = pattern.get("routeId", "")
             route_info = route_map.get(route_id, {})
@@ -265,7 +220,6 @@ class OTPBaseProvider(BaseProvider):
                         "realtimeDeparture": t.get("realtimeDeparture", 0),
                         "departureDelay": t.get("departureDelay", 0),
                         "realtime": t.get("realtime", False),
-                        # headsign is directly on the time entry (not in a trip sub-object)
                         "headsign": t.get("headsign", ""),
                     }
                 )

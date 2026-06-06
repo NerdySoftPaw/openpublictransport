@@ -1,18 +1,12 @@
-"""SBB (Swiss Federal Railways) provider implementation.
-
-Uses the Swiss public transport API at transport.opendata.ch.
-No API key required. Covers all Swiss public transport.
-"""
+"""SBB (Swiss Federal Railways) provider implementation."""
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 import aiohttp
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.util import dt as dt_util
 
 from ..const import PROVIDER_SBB
 from ..data_models import UnifiedDeparture
@@ -42,6 +36,13 @@ CATEGORY_MAPPING = {
 }
 
 
+def _parse_dt(s: str) -> Optional[datetime]:
+    try:
+        return datetime.fromisoformat(s)
+    except (ValueError, TypeError):
+        return None
+
+
 class SBBProvider(BaseProvider):
     """SBB (Swiss Federal Railways) provider."""
 
@@ -63,17 +64,14 @@ class SBBProvider(BaseProvider):
         name_dm: str,
         departures_limit: int,
     ) -> Optional[Dict[str, Any]]:
-        """Fetch departures from Swiss transport API."""
         if station_id:
             url = f"{API_BASE}/stationboard?id={station_id}&limit={departures_limit}"
         else:
             station_name = f"{name_dm}, {place_dm}" if place_dm else name_dm
             url = f"{API_BASE}/stationboard?station={quote(station_name, safe='')}&limit={departures_limit}"
 
-        session = async_get_clientsession(self.hass)
-
         try:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:
+            async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:
                 if response.status == 200:
                     data = await response.json()
                     if not isinstance(data, dict):
@@ -92,22 +90,18 @@ class SBBProvider(BaseProvider):
     def parse_departure(
         self, stop: Dict[str, Any], tz: Union[ZoneInfo, Any], now: datetime
     ) -> Optional[UnifiedDeparture]:
-        """Parse a single Swiss transport departure."""
         try:
             stop_info = stop.get("stop", {})
             dep_str = stop_info.get("departure")
             if not dep_str:
                 return None
 
-            dep_dt = dt_util.parse_datetime(dep_str)
+            dep_dt = _parse_dt(dep_str)
             if not dep_dt:
                 return None
 
             dep_local = dep_dt.astimezone(tz)
             delay_min = stop_info.get("delay") or 0
-
-            # Planned time = actual - delay
-            from datetime import timedelta
 
             planned_local = dep_local - timedelta(minutes=delay_min)
 
@@ -124,7 +118,6 @@ class SBBProvider(BaseProvider):
 
             is_realtime = stop_info.get("prognosis", {}).get("departure") is not None
 
-            # Platform change
             prognosis_platform = stop_info.get("prognosis", {}).get("platform")
             platform_changed = bool(prognosis_platform and platform and prognosis_platform != platform)
             planned_platform = platform if platform_changed else None
@@ -152,12 +145,10 @@ class SBBProvider(BaseProvider):
             return None
 
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
-        """Search for stops using Swiss transport API."""
         url = f"{API_BASE}/locations?query={quote(search_term, safe='')}&type=station"
-        session = async_get_clientsession(self.hass)
 
         try:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
+            async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
                 if response.status == 200:
                     data = await response.json()
                     stations = data.get("stations", [])

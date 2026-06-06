@@ -1,17 +1,8 @@
-"""VBN (Verkehrsverbund Bremen/Niedersachsen) providers.
-
-Two separate variants — same API key, different protocol:
-
-  VBNOTPProvider   — OpenTripPlanner REST API (http://gtfsr.vbn.de/api/)
-  VBNTriasProvider — TRIAS XML API            (https://fahrplaner.vbn.de/triasproxy/)
-
-API key: free, request at api@vbn.de — 3,000 transactions/day for non-commercial use.
-Auth: Authorization: <key>  (plain header, no Bearer prefix)
-"""
+"""VBN (Verkehrsverbund Bremen/Niedersachsen) providers."""
 
 from typing import Dict, Optional
 
-from homeassistant.core import HomeAssistant
+import aiohttp
 
 from ..const import PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS
 from .otp_base import OTPBaseProvider
@@ -25,12 +16,12 @@ class VBNOTPProvider(OTPBaseProvider):
 
     def __init__(
         self,
-        hass: HomeAssistant,
+        session: aiohttp.ClientSession,
         api_key: Optional[str] = None,
         api_key_secondary: Optional[str] = None,
         custom_url: Optional[str] = None,
     ) -> None:
-        super().__init__(hass, api_key, api_key_secondary)
+        super().__init__(session, api_key, api_key_secondary)
 
     @property
     def provider_id(self) -> str:
@@ -58,12 +49,12 @@ class VBNTriasProvider(TRIASBaseProvider):
 
     def __init__(
         self,
-        hass: HomeAssistant,
+        session: aiohttp.ClientSession,
         api_key: Optional[str] = None,
         api_key_secondary: Optional[str] = None,
         custom_url: Optional[str] = None,
     ) -> None:
-        super().__init__(hass, api_key, api_key_secondary)
+        super().__init__(session, api_key, api_key_secondary)
 
     @property
     def provider_id(self) -> str:

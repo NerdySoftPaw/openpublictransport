@@ -13,9 +13,9 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/NerdySoftPaw/openpublictransport/issues",
   "requirements": [
-    "pytz",
+    "python-openpublictransport==0.1.1",
     "aiofiles",
     "gtfs-realtime-bindings>=1.0.0"
   ],
-  "version": "2026.6.3"
+  "version": "2026.6.6"
 }

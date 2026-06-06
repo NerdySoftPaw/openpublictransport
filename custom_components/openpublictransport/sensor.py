@@ -8,6 +8,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator, UpdateFailed
@@ -86,24 +87,16 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
         self._empty_result_count = 0
         self.agency_name = config_entry.data.get("agency_name", "") if config_entry else ""
 
-        # Initialize provider instance
-        self.provider_instance = get_provider(
-            provider,
-            hass,
-            api_key=api_key,
-            api_key_secondary=(
-                config_entry.data.get(CONF_NTA_API_KEY_SECONDARY)
-                if config_entry and provider == PROVIDER_NTA_IE
-                else None
-            ),
-            custom_url=custom_url,
-        )
-        if not self.provider_instance:
-            _LOGGER.error("Failed to initialize provider: %s", provider)
-
-        # Get secondary key from config entry if available (only for NTA)
+        # Store secondary key for NTA
         if provider == PROVIDER_NTA_IE and config_entry:
             self.api_key_secondary = config_entry.data.get(CONF_NTA_API_KEY_SECONDARY)
+        self._nta_secondary_key = (
+            config_entry.data.get(CONF_NTA_API_KEY_SECONDARY) if config_entry and provider == PROVIDER_NTA_IE else None
+        )
+
+        # Provider is initialized lazily on first update to avoid creating
+        # an aiohttp session (and its thread pool) before any data is fetched.
+        self.provider_instance = None
 
         super().__init__(
             hass,
@@ -184,6 +177,20 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
             self.update_interval = new_td
             _LOGGER.debug("Adjusted polling interval to %ss for %s", new_interval, self.provider)
 
+    def _ensure_provider(self) -> None:
+        """Initialize provider instance on first use."""
+        if self.provider_instance is None:
+            session = async_get_clientsession(self.hass)
+            self.provider_instance = get_provider(
+                self.provider,
+                session,
+                api_key=self.api_key,
+                api_key_secondary=self._nta_secondary_key,
+                custom_url=self.custom_url,
+            )
+            if not self.provider_instance:
+                _LOGGER.error("Failed to initialize provider: %s", self.provider)
+
     async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch data from API."""
         if not self._check_rate_limit():
@@ -235,6 +242,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _fetch_departures(self) -> Optional[Dict[str, Any]]:
         """Fetch departure data from the API."""
+        self._ensure_provider()
         if not self.provider_instance:
             raise UpdateFailed(f"No provider instance for {self.provider}")
 

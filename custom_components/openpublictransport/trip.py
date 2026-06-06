@@ -106,7 +106,8 @@ async def async_plan_trip(
         if not origin_id or not dest_id:
             _LOGGER.warning("OTP2 trip planning requires stop IDs — search for stops first")
             return None
-        provider_instance = get_provider(provider, hass, api_key=api_key, custom_url=custom_url)
+        session = async_get_clientsession(hass)
+        provider_instance = get_provider(provider, session, api_key=api_key, custom_url=custom_url)
         return await _async_plan_trip_otp2_graphql(origin_id, dest_id, departure_time, provider_instance)
 
     # VBN OTP — legacy OTP REST plan endpoint
@@ -114,7 +115,8 @@ async def async_plan_trip(
         if not origin_id or not dest_id:
             _LOGGER.warning("VBN OTP trip planning requires stop IDs — search for stops first")
             return None
-        provider_instance = get_provider(provider, hass, api_key=api_key)
+        session = async_get_clientsession(hass)
+        provider_instance = get_provider(provider, session, api_key=api_key)
         return await _async_plan_trip_otp(hass, origin_id, dest_id, departure_time, provider_instance)
 
     # EFA providers

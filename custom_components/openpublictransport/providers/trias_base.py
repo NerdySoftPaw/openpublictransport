@@ -1,14 +1,4 @@
-"""Base provider for TRIAS (VDV 431-2) protocol APIs.
-
-TRIAS is an XML-based, POST-only protocol standardized by VDV.
-Used by various German and European transit agencies.
-
-Subclasses only need to define:
-- provider_id, provider_name
-- trias_base_url (the TRIAS endpoint)
-- requestor_ref (identifier for the requesting application)
-- get_transport_type_mapping() for mode conversion
-"""
+"""Base provider for TRIAS (VDV 431-2) protocol APIs."""
 
 import logging
 from datetime import datetime
@@ -17,44 +7,45 @@ from xml.etree import ElementTree as ET
 from zoneinfo import ZoneInfo
 
 import aiohttp
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.util import dt as dt_util
 
 from ..data_models import UnifiedDeparture
 from .base import BaseProvider
 
 _LOGGER = logging.getLogger(__name__)
 
-# TRIAS XML namespace
 NS = {
     "trias": "http://www.vdv.de/trias",
     "siri": "http://www.siri.org.uk/siri",
 }
 
 
+def _parse_dt(s: str) -> Optional[datetime]:
+    """Parse an ISO datetime string, returning None on failure."""
+    try:
+        return datetime.fromisoformat(s)
+    except (ValueError, TypeError):
+        return None
+
+
 def _find(element: Optional[ET.Element], path: str) -> Optional[ET.Element]:
-    """Find element using TRIAS namespace."""
     if element is None:
         return None
     return element.find(path, NS)
 
 
 def _findall(element: Optional[ET.Element], path: str) -> List[ET.Element]:
-    """Find all elements using TRIAS namespace."""
     if element is None:
         return []
     return element.findall(path, NS)
 
 
 def _text(element: Optional[ET.Element], path: str, default: str = "") -> str:
-    """Get text content of a child element."""
     if element is None:
         return default
     child = element.find(path, NS)
     return child.text if child is not None and child.text else default
 
 
-# TRIAS PtMode → our transport type (default mapping, can be overridden)
 DEFAULT_MODE_MAPPING = {
     "rail": "train",
     "urbanRail": "train",
@@ -81,11 +72,9 @@ class TRIASBaseProvider(BaseProvider):
         return "Europe/Berlin"
 
     def get_mode_mapping(self) -> Dict[str, str]:
-        """Return PtMode → transport type mapping. Override for custom mappings."""
         return DEFAULT_MODE_MAPPING
 
     def _build_stop_event_request(self, stop_id: str, limit: int) -> str:
-        """Build TRIAS StopEventRequest XML."""
         now = datetime.now(ZoneInfo(self.get_timezone())).isoformat()
         return f"""<?xml version="1.0" encoding="UTF-8"?>
 <Trias version="{self.trias_version}" xmlns="http://www.vdv.de/trias"
@@ -114,7 +103,6 @@ class TRIASBaseProvider(BaseProvider):
 </Trias>"""
 
     def _build_location_request(self, search_term: str) -> str:
-        """Build TRIAS LocationInformationRequest XML."""
         now = datetime.now(ZoneInfo(self.get_timezone())).isoformat()
         return f"""<?xml version="1.0" encoding="UTF-8"?>
 <Trias version="{self.trias_version}" xmlns="http://www.vdv.de/trias"
@@ -137,16 +125,13 @@ class TRIASBaseProvider(BaseProvider):
 </Trias>"""
 
     def _extra_headers(self) -> Dict[str, str]:
-        """Additional HTTP headers for TRIAS requests. Override in subclasses for auth."""
         return {}
 
     async def _post_trias(self, xml_body: str) -> Optional[ET.Element]:
-        """Send POST request to TRIAS endpoint and parse XML response."""
-        session = async_get_clientsession(self.hass)
         headers = {"Content-Type": "text/xml; charset=utf-8", **self._extra_headers()}
 
         try:
-            async with session.post(
+            async with self.session.post(
                 self.trias_base_url,
                 data=xml_body.encode("utf-8"),
                 headers=headers,
@@ -173,7 +158,6 @@ class TRIASBaseProvider(BaseProvider):
         name_dm: str,
         departures_limit: int,
     ) -> Optional[Dict[str, Any]]:
-        """Fetch departures via TRIAS StopEventRequest."""
         if not station_id:
             _LOGGER.warning("%s provider requires a station_id", self.provider_name)
             return None
@@ -183,11 +167,9 @@ class TRIASBaseProvider(BaseProvider):
         if root is None:
             return None
 
-        # Extract StopEventResult elements
         results = root.findall(".//trias:StopEventResult", NS)
 
         if not results:
-            # Try alternative path (some TRIAS implementations nest differently)
             results = root.findall(
                 ".//trias:ServiceDelivery/trias:DeliveryPayload/trias:StopEventResponse/trias:StopEventResult",
                 NS,
@@ -197,7 +179,6 @@ class TRIASBaseProvider(BaseProvider):
             _LOGGER.debug("%s: No StopEventResult elements found", self.provider_name)
             return {"stopEvents": []}
 
-        # Convert XML elements to dicts for parse_departure
         stop_events = []
         for result in results:
             stop_event = _find(result, "trias:StopEvent")
@@ -207,22 +188,15 @@ class TRIASBaseProvider(BaseProvider):
         return {"stopEvents": stop_events}
 
     def _stop_event_to_dict(self, stop_event: ET.Element) -> Dict[str, Any]:
-        """Convert a TRIAS StopEvent XML element to a dict."""
-        # This/CallAtStop contains time and platform info
         call = _find(stop_event, "trias:ThisCall/trias:CallAtStop")
-
-        # Service section contains line and destination info
         service = _find(stop_event, "trias:Service")
 
-        # Times
         timetabled = _text(call, "trias:ServiceDeparture/trias:TimetabledTime")
         estimated = _text(call, "trias:ServiceDeparture/trias:EstimatedTime")
 
-        # Platform
         platform_text = _text(call, "trias:PlannedBay/trias:Text")
         estimated_platform = _text(call, "trias:EstimatedBay/trias:Text")
 
-        # Line info
         line_name = _text(service, "trias:PublishedLineName/trias:Text")
         mode = _text(service, "trias:Mode/trias:PtMode")
         submode = (
@@ -232,16 +206,12 @@ class TRIASBaseProvider(BaseProvider):
             or _text(service, "trias:Mode/trias:MetroSubmode")
         )
 
-        # Destination
         destination = _text(service, "trias:DestinationText/trias:Text")
         if not destination:
             dest_stop = _find(service, "trias:DestinationStopPointRef")
             destination = _text(dest_stop, "trias:StopPointName/trias:Text")
 
-        # Operator
         operator = _text(service, "trias:OperatorRef")
-
-        # Realtime flag
         is_realtime = bool(estimated)
 
         return {
@@ -260,7 +230,6 @@ class TRIASBaseProvider(BaseProvider):
     def parse_departure(
         self, stop: Dict[str, Any], tz: Union[ZoneInfo, Any], now: datetime
     ) -> Optional[UnifiedDeparture]:
-        """Parse a TRIAS departure dict into UnifiedDeparture."""
         try:
             timetabled_str = stop.get("timetabledTime", "")
             estimated_str = stop.get("estimatedTime", "")
@@ -268,14 +237,14 @@ class TRIASBaseProvider(BaseProvider):
             if not timetabled_str:
                 return None
 
-            planned = dt_util.parse_datetime(timetabled_str)
+            planned = _parse_dt(timetabled_str)
             if not planned:
                 return None
 
             planned_local = planned.astimezone(tz)
 
             if estimated_str:
-                when = dt_util.parse_datetime(estimated_str)
+                when = _parse_dt(estimated_str)
                 when_local = when.astimezone(tz) if when else planned_local
             else:
                 when_local = planned_local
@@ -316,7 +285,6 @@ class TRIASBaseProvider(BaseProvider):
             return None
 
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
-        """Search for stops via TRIAS LocationInformationRequest."""
         xml_body = self._build_location_request(search_term)
         root = await self._post_trias(xml_body)
         if root is None:

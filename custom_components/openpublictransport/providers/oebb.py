@@ -1,8 +1,4 @@
-"""ÖBB (Österreichische Bundesbahnen) provider implementation.
-
-Uses the oebb.macistry.com API (FPTF format).
-No API key required. Covers all Austrian public transport.
-"""
+"""ÖBB (Österreichische Bundesbahnen) provider implementation."""
 
 import logging
 from datetime import datetime
@@ -11,8 +7,6 @@ from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 import aiohttp
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.util import dt as dt_util
 
 from ..const import PROVIDER_OEBB
 from ..data_models import UnifiedDeparture
@@ -36,6 +30,13 @@ PRODUCT_MAPPING = {
 }
 
 
+def _parse_dt(s: str) -> Optional[datetime]:
+    try:
+        return datetime.fromisoformat(s)
+    except (ValueError, TypeError):
+        return None
+
+
 class OeBBProvider(BaseProvider):
     """ÖBB (Austria) provider using FPTF REST API."""
 
@@ -57,16 +58,14 @@ class OeBBProvider(BaseProvider):
         name_dm: str,
         departures_limit: int,
     ) -> Optional[Dict[str, Any]]:
-        """Fetch departures from ÖBB API."""
         if not station_id:
             _LOGGER.warning("ÖBB provider requires a station_id")
             return None
 
         url = f"{API_BASE}/stops/{station_id}/departures?results={departures_limit}&duration=120"
-        session = async_get_clientsession(self.hass)
 
         try:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:
+            async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:
                 if response.status == 200:
                     data = await response.json()
                     if not isinstance(data, dict) or "departures" not in data:
@@ -84,15 +83,14 @@ class OeBBProvider(BaseProvider):
     def parse_departure(
         self, stop: Dict[str, Any], tz: Union[ZoneInfo, Any], now: datetime
     ) -> Optional[UnifiedDeparture]:
-        """Parse a single FPTF departure."""
         try:
             when_str = stop.get("when") or stop.get("plannedWhen")
             planned_str = stop.get("plannedWhen")
             if not when_str or not planned_str:
                 return None
 
-            when = dt_util.parse_datetime(when_str)
-            planned = dt_util.parse_datetime(planned_str)
+            when = _parse_dt(when_str)
+            planned = _parse_dt(planned_str)
             if not when or not planned:
                 return None
 
@@ -151,12 +149,10 @@ class OeBBProvider(BaseProvider):
             return None
 
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
-        """Search for stops using ÖBB API."""
         url = f"{API_BASE}/locations?query={quote(search_term, safe='')}&results=15"
-        session = async_get_clientsession(self.hass)
 
         try:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
+            async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
                 if response.status == 200:
                     data = await response.json()
                     if not isinstance(data, list):

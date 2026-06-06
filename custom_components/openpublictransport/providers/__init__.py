@@ -2,7 +2,7 @@
 
 from typing import Dict, Optional, Type
 
-from homeassistant.core import HomeAssistant
+import aiohttp
 
 from ..const import (
     PROVIDER_AVV_AUGSBURG,
@@ -73,7 +73,7 @@ def register_provider(provider_id: str, provider_class: Type[BaseProvider]) -> N
 
 def get_provider(
     provider_id: Optional[str],
-    hass: HomeAssistant,
+    session: aiohttp.ClientSession,
     api_key: Optional[str] = None,
     api_key_secondary: Optional[str] = None,
     custom_url: Optional[str] = None,
@@ -84,7 +84,7 @@ def get_provider(
     provider_class = _PROVIDER_REGISTRY.get(provider_id)
     if provider_class:
         return provider_class(
-            hass,
+            session,
             api_key=api_key,
             api_key_secondary=api_key_secondary,
             custom_url=custom_url,
@@ -95,6 +95,13 @@ def get_provider(
 def get_all_provider_ids() -> list[str]:
     """Get all registered provider IDs."""
     return list(_PROVIDER_REGISTRY.keys())
+
+
+def get_provider_class(provider_id: Optional[str]) -> Optional[Type[BaseProvider]]:
+    """Return the provider class without instantiating (no session needed)."""
+    if provider_id is None:
+        return None
+    return _PROVIDER_REGISTRY.get(provider_id)
 
 
 # Register all providers

@@ -9,8 +9,6 @@ from zoneinfo import ZoneInfo
 
 import aiohttp
 from aiohttp import ClientConnectorError
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.util import dt as dt_util
 
 from ..const import API_BASE_URL_TRAFIKLAB, PROVIDER_TRAFIKLAB_SE, TRAFIKLAB_TRANSPORTATION_TYPES
 from ..data_models import UnifiedDeparture
@@ -25,21 +23,17 @@ class TrafiklabProvider(BaseProvider):
 
     @property
     def provider_id(self) -> str:
-        """Return the provider identifier."""
         return PROVIDER_TRAFIKLAB_SE
 
     @property
     def provider_name(self) -> str:
-        """Return the human-readable provider name."""
         return "Trafiklab (Sweden)"
 
     @property
     def requires_api_key(self) -> bool:
-        """Return True if this provider requires an API key."""
         return True
 
     def get_timezone(self) -> str:
-        """Return the timezone for Trafiklab."""
         return "Europe/Stockholm"
 
     async def fetch_departures(
@@ -49,7 +43,6 @@ class TrafiklabProvider(BaseProvider):
         name_dm: str,
         departures_limit: int,
     ) -> Optional[Dict[str, Any]]:
-        """Fetch departure data from Trafiklab API."""
         if not self.api_key:
             _LOGGER.error("Trafiklab API key is required")
             return None
@@ -60,14 +53,13 @@ class TrafiklabProvider(BaseProvider):
 
         url = f"{API_BASE_URL_TRAFIKLAB}/departures/{station_id}"
         params = {"key": self.api_key}
-        session = async_get_clientsession(self.hass)
 
-        headers = {"User-Agent": "Mozilla/5.0 (compatible; HomeAssistant Trafiklab Integration)"}
+        headers = {"User-Agent": "Mozilla/5.0 (compatible; OpenPublicTransport Trafiklab)"}
 
         max_retries = 3
         for attempt in range(1, max_retries + 1):
             try:
-                async with session.get(
+                async with self.session.get(
                     url, params=params, headers=headers, timeout=aiohttp.ClientTimeout(total=10)
                 ) as response:
                     if response.status == 200:
@@ -81,18 +73,14 @@ class TrafiklabProvider(BaseProvider):
                                 _LOGGER.debug("Trafiklab API response missing 'departures' field")
                                 return {"stopEvents": []}
 
-                            # Convert Trafiklab format to our expected format
                             departures = json_data.get("departures", [])
                             _LOGGER.debug("Trafiklab API returned %d departures", len(departures))
                             stop_events = []
 
-                            # Get Stockholm timezone offset once
-                            stockholm_tz = dt_util.get_time_zone("Europe/Stockholm")
-                            offset_formatted = "+01:00"  # Default to CET
-                            if stockholm_tz:
-                                now_stockholm = datetime.now(stockholm_tz)
-                                offset = now_stockholm.strftime("%z")
-                                offset_formatted = f"{offset[:3]}:{offset[3:]}"  # +0100 -> +01:00
+                            stockholm_tz = ZoneInfo("Europe/Stockholm")
+                            now_stockholm = datetime.now(stockholm_tz)
+                            offset = now_stockholm.strftime("%z")
+                            offset_formatted = f"{offset[:3]}:{offset[3:]}"  # +0100 -> +01:00
 
                             for dep in departures:
                                 if not isinstance(dep, dict):
@@ -111,7 +99,6 @@ class TrafiklabProvider(BaseProvider):
                                     else "Unknown"
                                 )
 
-                                # Trafiklab returns time without timezone, it's in local Swedish time
                                 if scheduled_time and "+" not in scheduled_time and "Z" not in scheduled_time:
                                     scheduled_time = f"{scheduled_time}{offset_formatted}"
                                 if realtime_time and "+" not in realtime_time and "Z" not in realtime_time:
@@ -187,8 +174,6 @@ class TrafiklabProvider(BaseProvider):
     def parse_departure(
         self, stop: Dict[str, Any], tz: Union[ZoneInfo, Any], now: datetime
     ) -> Optional[UnifiedDeparture]:
-        """Parse a single departure from Trafiklab API response."""
-        # Map transportMode to our transport type
         transport_mode = stop.get("transportMode", "BUS")
         transport_type = TRAFIKLAB_TRANSPORTATION_TYPES.get(transport_mode, "bus")
 
@@ -206,7 +191,6 @@ class TrafiklabProvider(BaseProvider):
         )
 
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
-        """Search for stops using Trafiklab API."""
         if not self.api_key:
             _LOGGER.error("Trafiklab API key is required for stop search")
             return []
@@ -214,12 +198,11 @@ class TrafiklabProvider(BaseProvider):
         encoded_search = quote(search_term, safe="")
         url = f"{API_BASE_URL_TRAFIKLAB}/stops/name/{encoded_search}"
         params = {"key": self.api_key}
-        session = async_get_clientsession(self.hass)
 
         max_retries = 3
         for attempt in range(1, max_retries + 1):
             try:
-                async with session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                async with self.session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=10)) as response:
                     if response.status == 200:
                         try:
                             data = await response.json()

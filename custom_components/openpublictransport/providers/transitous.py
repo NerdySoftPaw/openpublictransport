@@ -1,8 +1,4 @@
-"""Transitous (MOTIS2) provider implementation.
-
-Uses the Transitous API (api.transitous.org) powered by MOTIS2.
-No API key required. Covers public transport worldwide via GTFS data.
-"""
+"""Transitous (MOTIS2) provider implementation."""
 
 import logging
 from datetime import datetime
@@ -11,8 +7,6 @@ from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 import aiohttp
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.util import dt as dt_util
 
 from ..const import PROVIDER_TRANSITOUS
 from ..data_models import UnifiedDeparture
@@ -45,6 +39,13 @@ MODE_MAPPING = {
 }
 
 
+def _parse_dt(s: str) -> Optional[datetime]:
+    try:
+        return datetime.fromisoformat(s)
+    except (ValueError, TypeError):
+        return None
+
+
 class TransitousProvider(BaseProvider):
     """Transitous provider — worldwide public transport via MOTIS2."""
 
@@ -66,16 +67,14 @@ class TransitousProvider(BaseProvider):
         name_dm: str,
         departures_limit: int,
     ) -> Optional[Dict[str, Any]]:
-        """Fetch departures from Transitous MOTIS2 API."""
         if not station_id:
             _LOGGER.warning("Transitous provider requires a station_id")
             return None
 
         url = f"{API_BASE}/v5/stoptimes?stopId={quote(station_id, safe='')}&n={departures_limit}"
-        session = async_get_clientsession(self.hass)
 
         try:
-            async with session.get(
+            async with self.session.get(
                 url, headers={"User-Agent": USER_AGENT}, timeout=aiohttp.ClientTimeout(total=15)
             ) as response:
                 if response.status == 200:
@@ -95,7 +94,6 @@ class TransitousProvider(BaseProvider):
     def parse_departure(
         self, stop: Dict[str, Any], tz: Union[ZoneInfo, Any], now: datetime
     ) -> Optional[UnifiedDeparture]:
-        """Parse a single MOTIS2 stopTime."""
         try:
             place = stop.get("place", {})
             dep_str = place.get("departure") or place.get("scheduledDeparture")
@@ -104,12 +102,11 @@ class TransitousProvider(BaseProvider):
             if not dep_str:
                 return None
 
-            dep_dt = dt_util.parse_datetime(dep_str)
-            sched_dt = dt_util.parse_datetime(sched_str) if sched_str else dep_dt
+            dep_dt = _parse_dt(dep_str)
+            sched_dt = _parse_dt(sched_str) if sched_str else dep_dt
             if not dep_dt or not sched_dt:
                 return None
 
-            # Use stop-specific timezone if available
             stop_tz_str = place.get("tz")
             if stop_tz_str:
                 try:
@@ -140,7 +137,6 @@ class TransitousProvider(BaseProvider):
             is_realtime = stop.get("realTime", False)
             is_cancelled = stop.get("cancelled", False) or stop.get("tripCancelled", False)
 
-            # Build notices
             notices = []
             if is_cancelled:
                 notices.append("Fällt aus / Cancelled")
@@ -169,12 +165,10 @@ class TransitousProvider(BaseProvider):
             return None
 
     async def search_stops(self, search_term: str) -> List[Dict[str, Any]]:
-        """Search for stops using Transitous geocode API."""
         url = f"{API_BASE}/v1/geocode?text={quote(search_term, safe='')}&type=STOP"
-        session = async_get_clientsession(self.hass)
 
         try:
-            async with session.get(
+            async with self.session.get(
                 url, headers={"User-Agent": USER_AGENT}, timeout=aiohttp.ClientTimeout(total=10)
             ) as response:
                 if response.status == 200:

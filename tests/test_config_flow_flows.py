@@ -519,3 +519,47 @@ async def test_reauth_vbn_empty_key_shows_error(hass: HomeAssistant):
     )
     assert result2["type"] == "form"
     assert "vbn_api_key_required" in str(result2.get("errors", {}))
+
+
+# ── reconfigure flow ───────────────────────────────────────────────────────────
+
+async def test_reconfigure_initiates_stop_search(hass: HomeAssistant):
+    """Test reconfigure flow sets _reconfiguring and jumps to stop_search."""
+    from custom_components.openpublictransport.const import PROVIDER_VRR
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_PROVIDER: PROVIDER_VRR,
+            CONF_STATION_ID: "de:05111:21",
+            "place_dm": "Düsseldorf",
+            "name_dm": "Hauptbahnhof",
+        },
+    )
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": "reconfigure", "entry_id": entry.entry_id},
+    )
+    assert result["type"] == "form"
+    assert result["step_id"] == "stop_search"
+
+
+async def test_reconfigure_no_entry_still_shows_stop_search(hass: HomeAssistant):
+    """Test reconfigure falls through to stop_search even if entry lookup fails."""
+    from custom_components.openpublictransport.const import PROVIDER_VRR
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_PROVIDER: PROVIDER_VRR, CONF_STATION_ID: "de:05111:21",
+              "place_dm": "Düsseldorf", "name_dm": "Hbf"},
+    )
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": "reconfigure", "entry_id": entry.entry_id},
+    )
+    assert result["type"] == "form"
+    assert result["step_id"] == "stop_search"

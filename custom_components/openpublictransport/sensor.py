@@ -30,12 +30,6 @@ from .const import (
     DOMAIN,
     PROVIDER_ENTITY_PICTURES,
     PROVIDER_NTA_IE,
-    PROVIDER_OPT,
-    PROVIDER_OTP_CUSTOM,
-    PROVIDER_TRAFIKLAB_SE,
-    PROVIDER_VBN_OTP,
-    PROVIDER_VBN_TRIAS,
-    PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
 from .providers import get_provider

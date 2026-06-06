@@ -500,10 +500,13 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             if not search_term:
                 errors["stop_search"] = "empty_search"
             else:
-                stops = await self._search_stops(search_term)
+                try:
+                    stops = await self._search_stops(search_term)
+                except Exception as exc:
+                    _LOGGER.error("Stop search raised exception: %s", exc)
+                    stops = None
 
                 if not isinstance(stops, list):
-                    _LOGGER.error("Search returned invalid type: %s", type(stops))
                     cache_key = self._get_cache_key(self._provider, search_term, "stop")
                     self._search_cache.pop(cache_key, None)
                     self._found_stops = []

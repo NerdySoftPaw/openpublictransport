@@ -29,6 +29,7 @@ rules:
   integration_owner: done
   log_when_unavailable: done
   parallel_updates: done
+  reauthentication_flow: done
   docs_configuration_parameters:
     status: exempt
     comment: Documentation is available at https://docs.openpublictransport.net

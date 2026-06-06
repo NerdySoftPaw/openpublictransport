@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity import DeviceInfo
@@ -211,6 +212,8 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
                     translation_placeholders={"provider": self.provider.upper()},
                 )
                 raise UpdateFailed("Invalid or empty API response")
+        except ConfigEntryAuthFailed:
+            raise
         except UpdateFailed:
             raise
         except Exception as err:

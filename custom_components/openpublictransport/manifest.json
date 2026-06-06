@@ -18,6 +18,5 @@
     "gtfs-realtime-bindings>=1.0.0"
   ],
   "quality_scale": "bronze",
-  "homeassistant": "2026.3.0",
   "version": "2026.6.6"
 }

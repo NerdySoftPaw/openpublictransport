@@ -2,5 +2,6 @@
   "name": "OpenPublicTransport",
   "render_readme": true,
   "zip_release": true,
-  "filename": "openpublictransport.zip"
+  "filename": "openpublictransport.zip",
+  "homeassistant": "2026.3"
 }

@@ -1,0 +1,25 @@
+rules:
+  action_setup: done
+  appropriate_polling: done
+  brands: done
+  common_modules: done
+  config_flow: done
+  config_flow_test_coverage: done
+  dependency_transparency: done
+  docs_actions: done
+  docs_high_level_description:
+    status: exempt
+    comment: Documentation is available at https://docs.openpublictransport.net
+  docs_installation_instructions:
+    status: exempt
+    comment: Documentation is available at https://docs.openpublictransport.net
+  docs_removal_instructions:
+    status: exempt
+    comment: Documentation is available at https://docs.openpublictransport.net
+  entity_event_setup: done
+  entity_unique_id: done
+  has_entity_name: done
+  runtime_data: done
+  test_before_configure: done
+  test_before_setup: done
+  unique_config_entry: done

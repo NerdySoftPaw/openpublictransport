@@ -116,6 +116,20 @@
         "data": {
           "scan_interval": "Update-Intervall (Sekunden)"
         }
+      },
+      "reauth_confirm": {
+        "title": "API-Schlüssel erneuern",
+        "description": "{info}",
+        "data": {
+          "trafiklab_api_key": "Trafiklab API-Schlüssel",
+          "rmv_api_key": "RMV API-Schlüssel",
+          "vbn_api_key": "VBN API-Schlüssel",
+          "nta_api_key": "NTA API-Schlüssel (primär)",
+          "nta_api_key_secondary": "NTA API-Schlüssel (sekundär, optional)",
+          "opt_api_key": "API-Schlüssel",
+          "otp_base_url": "OTP2-Server-URL",
+          "otp_custom_api_key": "API-Schlüssel (optional)"
+        }
       }
     },
     "error": {
@@ -129,6 +143,10 @@
       "nta_api_key_required": "NTA API-Schlüssel ist erforderlich",
       "rmv_api_key_required": "RMV API-Schlüssel ist erforderlich",
       "min_two_entities": "Bitte mindestens 2 Entity-IDs angeben"
+    },
+    "abort": {
+      "reauth_successful": "API-Schlüssel erfolgreich aktualisiert.",
+      "no_reauth_needed": "Dieser Anbieter benötigt keine Authentifizierung."
     }
   },
   "options": {

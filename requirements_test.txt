@@ -5,4 +5,4 @@ pytest-cov>=4.1.0
 pytest-homeassistant-custom-component>=0.13.0
 homeassistant>=2024.1.0
 aiofiles>=23.0.0
-python-openpublictransport>=0.1.2
+python-openpublictransport>=0.1.4

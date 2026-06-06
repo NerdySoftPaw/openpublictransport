@@ -7,13 +7,14 @@ from typing import Any, Dict, List, Optional
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
-from openpublictransport import get_provider
+from openpublictransport import AuthenticationError, get_provider
 
 from .const import (
     API_RATE_LIMIT_PER_DAY,
@@ -35,6 +36,7 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+PARALLEL_UPDATES = 0
 INTEGRATION_VERSION = json.loads((Path(__file__).parent / "manifest.json").read_text()).get("version", "unknown")
 
 
@@ -191,14 +193,15 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
             data = await self._fetch_departures()
             if data and isinstance(data, dict):
                 self._api_calls_today += 1
-                # Clear API error repair issue on successful fetch
+                if not self.last_update_success:
+                    _LOGGER.info("%s: connection re-established", self.provider)
                 ir.async_delete_issue(self.hass, DOMAIN, f"api_error_{self.provider}")
-                # Adjust polling interval based on results
                 has_departures = bool(data.get("stopEvents"))
                 self._adjust_polling_interval(has_departures)
                 return data
             else:
-                # Create repair issue for invalid API response
+                if self.last_update_success:
+                    _LOGGER.warning("%s: invalid or empty API response — will retry", self.provider)
                 ir.async_create_issue(
                     self.hass,
                     DOMAIN,
@@ -206,15 +209,18 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
                     is_fixable=False,
                     severity=ir.IssueSeverity.ERROR,
                     translation_key="api_error",
-                    translation_placeholders={
-                        "provider": self.provider.upper(),
-                    },
+                    translation_placeholders={"provider": self.provider.upper()},
                 )
                 raise UpdateFailed("Invalid or empty API response")
+        except ConfigEntryAuthFailed:
+            raise
+        except AuthenticationError as err:
+            raise ConfigEntryAuthFailed(str(err)) from err
         except UpdateFailed:
             raise
         except Exception as err:
-            # Create repair issue for API errors
+            if self.last_update_success:
+                _LOGGER.warning("%s: unavailable (%s) — will retry", self.provider, err)
             ir.async_create_issue(
                 self.hass,
                 DOMAIN,
@@ -222,9 +228,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
                 is_fixable=False,
                 severity=ir.IssueSeverity.ERROR,
                 translation_key="api_error",
-                translation_placeholders={
-                    "provider": self.provider.upper(),
-                },
+                translation_placeholders={"provider": self.provider.upper()},
             )
             raise UpdateFailed(f"Error fetching data: {err}")
 

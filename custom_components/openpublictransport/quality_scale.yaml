@@ -1,4 +1,5 @@
 rules:
+  action_exceptions: done
   action_setup: done
   appropriate_polling: done
   brands: done
@@ -23,3 +24,15 @@ rules:
   test_before_configure: done
   test_before_setup: done
   unique_config_entry: done
+  config_entry_unloading: done
+  entity_unavailable: done
+  integration_owner: done
+  log_when_unavailable: done
+  parallel_updates: done
+  reauthentication_flow: done
+  docs_configuration_parameters:
+    status: exempt
+    comment: Documentation is available at https://docs.openpublictransport.net
+  docs_installation_parameters:
+    status: exempt
+    comment: Documentation is available at https://docs.openpublictransport.net

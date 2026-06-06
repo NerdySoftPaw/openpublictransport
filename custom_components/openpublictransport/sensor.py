@@ -103,8 +103,9 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
             _LOGGER,
             name=f"{provider.upper()} {place_dm} - {name_dm}",
             update_interval=timedelta(seconds=scan_interval),
-            config_entry=config_entry,
         )
+        # Set config_entry so async_config_entry_first_refresh works (HA 2024.8+)
+        self.config_entry = config_entry
 
     async def async_shutdown(self) -> None:
         """Shutdown the coordinator and cleanup resources.

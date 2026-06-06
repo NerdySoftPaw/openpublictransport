@@ -1,6 +1,6 @@
 """Tests for OpenPublicTransport config flow with simplified 2-step flow."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant import config_entries
@@ -83,7 +83,8 @@ async def test_full_flow_simplified(hass: HomeAssistant):
                 ],
             ),
             patch(
-                "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_refresh",
+                "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_config_entry_first_refresh",
+                new_callable=AsyncMock,
             ),
         ):
             result = await hass.config_entries.flow.async_configure(

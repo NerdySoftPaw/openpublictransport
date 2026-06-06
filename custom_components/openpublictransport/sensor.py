@@ -91,9 +91,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
         if provider == PROVIDER_NTA_IE and config_entry:
             self.api_key_secondary = config_entry.data.get(CONF_NTA_API_KEY_SECONDARY)
         self._nta_secondary_key = (
-            config_entry.data.get(CONF_NTA_API_KEY_SECONDARY)
-            if config_entry and provider == PROVIDER_NTA_IE
-            else None
+            config_entry.data.get(CONF_NTA_API_KEY_SECONDARY) if config_entry and provider == PROVIDER_NTA_IE else None
         )
 
         # Provider is initialized lazily on first update to avoid creating

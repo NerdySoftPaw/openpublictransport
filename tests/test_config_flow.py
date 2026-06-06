@@ -1,6 +1,6 @@
 """Tests for OpenPublicTransport config flow with simplified 2-step flow."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant import config_entries
@@ -14,6 +14,7 @@ from custom_components.openpublictransport.const import (
     CONF_PROVIDER,
     CONF_RMV_API_KEY,
     CONF_SCAN_INTERVAL,
+    CONF_STATION_ID,
     CONF_TRAFIKLAB_API_KEY,
     CONF_TRANSPORTATION_TYPES,
     CONF_VBN_API_KEY,
@@ -275,15 +276,45 @@ async def test_stop_search_api_error(hass: HomeAssistant):
 
 
 async def test_otp_custom_url_flow(hass: HomeAssistant):
-    """OTP Custom provider asks for URL first, then proceeds to stop_search."""
+    """OTP Custom provider asks for URL, health-checks it, then proceeds to stop_search."""
     result = await _init_flow(hass)
     result = await _select_provider(hass, result["flow_id"], provider=PROVIDER_OTP_CUSTOM)
     assert result["step_id"] == "otp_custom_url"
 
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_OTP_BASE_URL: "http://192.168.1.10:8080/otp/routers/default"}
-    )
+    mock_resp = MagicMock()
+    mock_resp.status = 200
+    mock_resp.__aenter__ = AsyncMock(return_value=mock_resp)
+    mock_resp.__aexit__ = AsyncMock(return_value=False)
+
+    with patch(
+        "custom_components.openpublictransport.config_flow.async_get_clientsession"
+    ) as mock_get_session:
+        mock_session = MagicMock()
+        mock_session.get.return_value = mock_resp
+        mock_get_session.return_value = mock_session
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={CONF_OTP_BASE_URL: "http://192.168.1.10:8080/otp/routers/default"}
+        )
     assert result["step_id"] == "stop_search"
+
+
+async def test_otp_custom_url_cannot_connect(hass: HomeAssistant):
+    """OTP Custom URL health-check failure shows cannot_connect error."""
+    result = await _init_flow(hass)
+    result = await _select_provider(hass, result["flow_id"], provider=PROVIDER_OTP_CUSTOM)
+    assert result["step_id"] == "otp_custom_url"
+
+    with patch(
+        "custom_components.openpublictransport.config_flow.async_get_clientsession"
+    ) as mock_get_session:
+        mock_session = MagicMock()
+        mock_session.get.side_effect = Exception("connection refused")
+        mock_get_session.return_value = mock_session
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={CONF_OTP_BASE_URL: "http://192.168.1.10:8080/otp/routers/default"}
+        )
+    assert result["step_id"] == "otp_custom_url"
+    assert result["errors"][CONF_OTP_BASE_URL] == "cannot_connect"
 
 
 async def test_trafiklab_api_key_flow(hass: HomeAssistant):
@@ -331,18 +362,62 @@ async def test_vbn_otp_api_key_flow(hass: HomeAssistant):
 
 
 async def test_nta_api_key_flow(hass: HomeAssistant):
-    """NTA requires primary+optional secondary key, then shows manual stop ID field."""
+    """NTA API key → nta_stop_id step → validate → settings."""
+    with patch("homeassistant.config_entries.ConfigEntries.async_forward_entry_setups", return_value=True):
+        result = await _init_flow(hass)
+        result = await _select_provider(hass, result["flow_id"], provider=PROVIDER_NTA_IE)
+        assert result["step_id"] == "api_key"
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={CONF_NTA_API_KEY: "nta-primary-key"}
+        )
+        assert result["step_id"] == "nta_stop_id"
+
+        # Submit stop ID with mocked validation
+        with (
+            patch(
+                "custom_components.openpublictransport.config_flow.get_provider",
+            ) as mock_get_provider,
+            patch(
+                "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_config_entry_first_refresh",
+                new_callable=AsyncMock,
+            ),
+        ):
+            mock_provider = AsyncMock()
+            mock_provider.fetch_departures = AsyncMock(return_value={"stopEvents": []})
+            mock_get_provider.return_value = mock_provider
+
+            result = await hass.config_entries.flow.async_configure(
+                result["flow_id"], user_input={CONF_STATION_ID: "8250DB002011"}
+            )
+            assert result["step_id"] == "settings"
+
+            result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input=_SETTINGS)
+            assert result["type"] == FlowResultType.CREATE_ENTRY
+            assert result["data"][CONF_STATION_ID] == "8250DB002011"
+
+
+async def test_nta_stop_id_cannot_connect(hass: HomeAssistant):
+    """NTA stop ID validation failure shows cannot_connect error."""
     result = await _init_flow(hass)
     result = await _select_provider(hass, result["flow_id"], provider=PROVIDER_NTA_IE)
-    assert result["step_id"] == "api_key"
-
-    # NTA has primary + secondary key fields
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={CONF_NTA_API_KEY: "nta-primary-key"},
+        result["flow_id"], user_input={CONF_NTA_API_KEY: "nta-bad-key"}
     )
-    # NTA skips stop search (no GTFS Static) → goes to stop_search with manual ID input
-    assert result["step_id"] == "stop_search"
+    assert result["step_id"] == "nta_stop_id"
+
+    with patch(
+        "custom_components.openpublictransport.config_flow.get_provider"
+    ) as mock_get_provider:
+        mock_provider = AsyncMock()
+        mock_provider.fetch_departures = AsyncMock(side_effect=Exception("401 Unauthorized"))
+        mock_get_provider.return_value = mock_provider
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={CONF_STATION_ID: "BADSTOP"}
+        )
+    assert result["step_id"] == "nta_stop_id"
+    assert result["errors"]["base"] == "cannot_connect"
 
 
 async def test_trip_flow_happy_path(hass: HomeAssistant):

@@ -329,12 +329,29 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             if not url:
                 errors[CONF_OTP_BASE_URL] = "otp_url_required"
             else:
-                self._otp_custom_url = url
-                self._api_key = user_input.get(CONF_OTP_CUSTOM_API_KEY, "").strip() or None
-                if self._entry_type == "trip":
-                    self._trip_search_phase = "origin"
-                    return await self.async_step_trip_search()
-                return await self.async_step_stop_search()
+                api_key = user_input.get(CONF_OTP_CUSTOM_API_KEY, "").strip() or None
+                # Health-check: verify the OTP instance is reachable before proceeding
+                try:
+                    session = async_get_clientsession(self.hass)
+                    headers = {"Accept": "application/json"}
+                    if api_key:
+                        headers["X-API-Key"] = api_key
+                    health_url = f"{url.rstrip('/')}/index"
+                    async with session.get(
+                        health_url, headers=headers, timeout=aiohttp.ClientTimeout(total=10)
+                    ) as resp:
+                        if resp.status not in (200, 204):
+                            errors[CONF_OTP_BASE_URL] = "cannot_connect"
+                except Exception:
+                    errors[CONF_OTP_BASE_URL] = "cannot_connect"
+
+                if not errors:
+                    self._otp_custom_url = url
+                    self._api_key = api_key
+                    if self._entry_type == "trip":
+                        self._trip_search_phase = "origin"
+                        return await self.async_step_trip_search()
+                    return await self.async_step_stop_search()
 
         schema = vol.Schema(
             {
@@ -459,7 +476,49 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         if self._entry_type == "trip":
             self._trip_search_phase = "origin"
             return await self.async_step_trip_search()
+        if self._provider == PROVIDER_NTA_IE:
+            return await self.async_step_nta_stop_id()
         return await self.async_step_stop_search()
+
+    async def async_step_nta_stop_id(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+        """NTA: accept manual stop ID and validate connectivity before proceeding."""
+        errors: Dict[str, str] = {}
+
+        if user_input is not None:
+            station_id = user_input.get(CONF_STATION_ID, "").strip()
+            if not station_id:
+                errors[CONF_STATION_ID] = "station_id_required"
+            else:
+                # Validate: attempt a minimal GTFS-RT fetch to confirm key + reachability
+                try:
+                    session = async_get_clientsession(self.hass)
+                    provider_instance = get_provider(
+                        PROVIDER_NTA_IE,
+                        session,
+                        api_key=self._api_key,
+                        api_key_secondary=self._api_key_secondary,
+                    )
+                    if provider_instance:
+                        await provider_instance.fetch_departures(station_id, "", station_id, 1)
+                except Exception:
+                    errors["base"] = "cannot_connect"
+
+                if not errors:
+                    self._selected_stop = {"id": station_id, "name": station_id, "place": ""}
+                    return await self.async_step_settings()
+
+        schema = vol.Schema({vol.Required(CONF_STATION_ID): str})
+        return self.async_show_form(
+            step_id="nta_stop_id",
+            data_schema=schema,
+            errors=errors,
+            description_placeholders={
+                "info": (
+                    "NTA stop IDs look like 8250DB002011. "
+                    "Find your stop ID at developer.nationaltransport.ie or in the GTFS Static feed."
+                )
+            },
+        )
 
     async def async_step_stop_search(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Handle combined stop search and selection step.

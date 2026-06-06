@@ -155,6 +155,33 @@
       }
     }
   },
+  "entity": {
+    "binary_sensor": {
+      "delays": {
+        "name": "Opóźnienia"
+      }
+    },
+    "sensor": {
+      "punctuality": {
+        "name": "Punktualność"
+      }
+    },
+    "calendar": {
+      "schedule": {
+        "name": "Rozkład jazdy"
+      }
+    },
+    "event": {
+      "disruptions": {
+        "name": "Zakłócenia"
+      }
+    },
+    "camera": {
+      "board": {
+        "name": "Tablica odjazdów"
+      }
+    }
+  },
   "issues": {
     "rate_limit_reached": {
       "title": "Osiągnięto limit API",

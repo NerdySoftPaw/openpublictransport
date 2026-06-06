@@ -117,6 +117,11 @@
         }
       }
     },
+    "abort": {
+      "reauth_successful": "API key updated successfully.",
+      "no_reauth_needed": "This provider does not require authentication.",
+      "reconfigure_successful": "Stop changed successfully."
+    },
     "error": {
       "missing_location": "Please provide either a station ID or location and stop name",
       "empty_search": "Please enter a search term",
@@ -152,6 +157,33 @@
           "walking_time": "Walking time to stop in minutes (0 = disabled). Departures that can no longer be reached are hidden",
           "favorite_lines": "Comma-separated lines to show first (e.g. U79, RE5). Empty = no favorites"
         }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "delays": {
+        "name": "Delays"
+      }
+    },
+    "sensor": {
+      "punctuality": {
+        "name": "Punctuality"
+      }
+    },
+    "calendar": {
+      "schedule": {
+        "name": "Schedule"
+      }
+    },
+    "event": {
+      "disruptions": {
+        "name": "Disruptions"
+      }
+    },
+    "camera": {
+      "board": {
+        "name": "Board"
       }
     }
   },

@@ -174,8 +174,10 @@ async def async_setup_entry(
 class DepartureBoardCamera(CoordinatorEntity, Camera):
     """Camera entity rendering a departure board image."""
 
-    _attr_is_streaming = False
+    _attr_entity_registry_enabled_default = False
     _attr_has_entity_name = True
+    _attr_is_streaming = False
+    _attr_translation_key = "board"
 
     def __init__(
         self,
@@ -197,7 +199,6 @@ class DepartureBoardCamera(CoordinatorEntity, Camera):
         self._station_name = f"{place_dm} - {name_dm}" if place_dm else name_dm
         device_name = f"{coordinator.agency_name} - {name_dm}" if coordinator.agency_name else name_dm
         self._attr_unique_id = f"{provider}_{station_key}_board"
-        self._attr_name = "Board"
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"{provider}_{station_key}")},

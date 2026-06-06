@@ -116,7 +116,7 @@ def test_sensor_init():
     sensor = PunctualitySensor(coordinator, entry)
 
     assert sensor._attr_unique_id == "vrr_12345_statistics"
-    assert sensor._attr_name == "Punctuality"
+    assert sensor._attr_translation_key == "punctuality"
     assert sensor._attr_native_unit_of_measurement == "%"
 
 

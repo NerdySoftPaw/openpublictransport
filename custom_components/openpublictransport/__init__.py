@@ -9,6 +9,7 @@ from homeassistant.components.application_credentials import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
 from .const import (
@@ -389,6 +390,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     return True
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    device_entry: dr.DeviceEntry,
+) -> bool:
+    """Allow removal of stale devices not associated with the current config."""
+    provider = config_entry.data.get(CONF_PROVIDER, "")
+    station_id = config_entry.data.get(CONF_STATION_ID)
+    place_dm = config_entry.data.get("place_dm", "")
+    name_dm = config_entry.data.get("name_dm", "")
+    station_key = station_id or f"{place_dm}_{name_dm}".lower().replace(" ", "_")
+    current_identifier = (DOMAIN, f"{provider}_{station_key}")
+    return current_identifier not in device_entry.identifiers
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

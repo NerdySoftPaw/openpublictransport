@@ -10,6 +10,7 @@ from typing import Any, Dict
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -44,8 +45,10 @@ async def async_setup_entry(
 class PunctualitySensor(CoordinatorEntity, SensorEntity):
     """Sensor tracking punctuality statistics per line."""
 
-    _attr_icon = "mdi:chart-line"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_has_entity_name = True
+    _attr_translation_key = "punctuality"
 
     def __init__(
         self,
@@ -64,7 +67,6 @@ class PunctualitySensor(CoordinatorEntity, SensorEntity):
 
         device_name = f"{coordinator.agency_name} - {name_dm}" if coordinator.agency_name else name_dm
         self._attr_unique_id = f"{provider}_{station_key}_statistics"
-        self._attr_name = "Punctuality"
         self._attr_native_unit_of_measurement = "%"
 
         self._attr_device_info = DeviceInfo(

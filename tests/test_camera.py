@@ -115,7 +115,7 @@ def test_camera_init():
     cam = DepartureBoardCamera(coordinator, entry)
 
     assert cam._attr_unique_id == "vrr_12345_board"
-    assert cam._attr_name == "Board"
+    assert cam._attr_translation_key == "board"
     assert cam._attr_is_streaming is False
     assert cam._image is None
 

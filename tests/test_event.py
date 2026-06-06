@@ -111,7 +111,7 @@ def test_event_entity_init():
     entity = DisruptionEventEntity(coordinator, entry)
 
     assert entity._attr_unique_id == "vrr_12345_disruptions"
-    assert entity._attr_name == "Disruptions"
+    assert entity._attr_translation_key == "disruptions"
     assert "disruption" in entity._attr_event_types
     assert "platform_change" in entity._attr_event_types
     assert "info" in entity._attr_event_types

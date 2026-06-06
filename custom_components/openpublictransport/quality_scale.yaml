@@ -1,4 +1,5 @@
 rules:
+  # Bronze
   action_exceptions: done
   action_setup: done
   appropriate_polling: done
@@ -24,16 +25,59 @@ rules:
   test_before_configure: done
   test_before_setup: done
   unique_config_entry: done
+  # Silver
   config_entry_unloading: done
-  entity_unavailable: done
-  integration_owner: done
-  log_when_unavailable: done
-  parallel_updates: done
-  reauthentication_flow: done
-  test_coverage: done
   docs_configuration_parameters:
     status: exempt
     comment: Documentation is available at https://docs.openpublictransport.net
   docs_installation_parameters:
     status: exempt
     comment: Documentation is available at https://docs.openpublictransport.net
+  entity_unavailable: done
+  integration_owner: done
+  log_when_unavailable: done
+  parallel_updates: done
+  reauthentication_flow: done
+  test_coverage: done
+  # Gold
+  devices: done
+  diagnostics: done
+  discovery:
+    status: exempt
+    comment: Cloud polling service — no local hardware to discover
+  discovery_update_info:
+    status: exempt
+    comment: No discovery supported; not applicable
+  docs_data_update:
+    status: exempt
+    comment: Documentation is available at https://docs.openpublictransport.net
+  docs_examples:
+    status: exempt
+    comment: Documentation is available at https://docs.openpublictransport.net
+  docs_known_limitations:
+    status: exempt
+    comment: Documentation is available at https://docs.openpublictransport.net
+  docs_supported_devices:
+    status: exempt
+    comment: Documentation is available at https://docs.openpublictransport.net
+  docs_supported_functions:
+    status: exempt
+    comment: Documentation is available at https://docs.openpublictransport.net
+  docs_troubleshooting:
+    status: exempt
+    comment: Documentation is available at https://docs.openpublictransport.net
+  docs_use_cases:
+    status: exempt
+    comment: Documentation is available at https://docs.openpublictransport.net
+  dynamic_devices:
+    status: exempt
+    comment: One device per config entry; no dynamic device addition after setup
+  entity_category: done
+  entity_device_class: done
+  entity_disabled_by_default: done
+  entity_translations: done
+  exception_translations: done
+  icon_translations: done
+  reconfiguration_flow: done
+  repair_issues: done
+  stale_devices: done

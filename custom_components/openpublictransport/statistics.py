@@ -4,12 +4,14 @@ Tracks delay statistics per line over time and exposes them as sensor attributes
 Uses coordinator data — no additional API calls needed.
 """
 
+import hashlib
 import logging
 from collections import defaultdict
 from typing import Any, Dict
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -44,8 +46,10 @@ async def async_setup_entry(
 class PunctualitySensor(CoordinatorEntity, SensorEntity):
     """Sensor tracking punctuality statistics per line."""
 
-    _attr_icon = "mdi:chart-line"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
     _attr_has_entity_name = True
+    _attr_translation_key = "punctuality"
 
     def __init__(
         self,
@@ -64,7 +68,6 @@ class PunctualitySensor(CoordinatorEntity, SensorEntity):
 
         device_name = f"{coordinator.agency_name} - {name_dm}" if coordinator.agency_name else name_dm
         self._attr_unique_id = f"{provider}_{station_key}_statistics"
-        self._attr_name = "Punctuality"
         self._attr_native_unit_of_measurement = "%"
 
         self._attr_device_info = DeviceInfo(
@@ -73,8 +76,9 @@ class PunctualitySensor(CoordinatorEntity, SensorEntity):
             suggested_area=place_dm,
         )
 
-        # Statistics storage (persisted across restarts via HA Store)
-        self._store = Store(coordinator.hass, 1, f"openpublictransport_stats_{self._attr_unique_id}")
+        # Statistics storage — hash unique_id to keep filename within OS limits
+        uid_hash = hashlib.sha256(self._attr_unique_id.encode()).hexdigest()[:16]
+        self._store = Store(coordinator.hass, 1, f"openpublictransport_stats_{uid_hash}")
         self._total_departures = 0
         self._on_time_departures = 0
         self._line_stats: Dict[str, Dict[str, int]] = defaultdict(lambda: {"total": 0, "on_time": 0, "total_delay": 0})

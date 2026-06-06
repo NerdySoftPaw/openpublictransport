@@ -155,6 +155,33 @@
       }
     }
   },
+  "entity": {
+    "binary_sensor": {
+      "delays": {
+        "name": "Förseningar"
+      }
+    },
+    "sensor": {
+      "punctuality": {
+        "name": "Punktlighet"
+      }
+    },
+    "calendar": {
+      "schedule": {
+        "name": "Tidtabell"
+      }
+    },
+    "event": {
+      "disruptions": {
+        "name": "Störningar"
+      }
+    },
+    "camera": {
+      "board": {
+        "name": "Avgångstavla"
+      }
+    }
+  },
   "issues": {
     "rate_limit_reached": {
       "title": "API-gräns nådd",

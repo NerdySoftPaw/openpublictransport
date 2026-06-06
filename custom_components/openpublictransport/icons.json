@@ -1,0 +1,33 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "delays": {
+        "default": "mdi:check-circle",
+        "state": {
+          "on": "mdi:alert-circle",
+          "off": "mdi:check-circle"
+        }
+      }
+    },
+    "sensor": {
+      "punctuality": {
+        "default": "mdi:chart-line"
+      }
+    },
+    "calendar": {
+      "schedule": {
+        "default": "mdi:calendar-clock"
+      }
+    },
+    "event": {
+      "disruptions": {
+        "default": "mdi:alert-octagon"
+      }
+    },
+    "camera": {
+      "board": {
+        "default": "mdi:monitor-dashboard"
+      }
+    }
+  }
+}

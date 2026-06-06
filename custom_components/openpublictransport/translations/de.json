@@ -155,6 +155,33 @@
       }
     }
   },
+  "entity": {
+    "binary_sensor": {
+      "delays": {
+        "name": "Verspätungen"
+      }
+    },
+    "sensor": {
+      "punctuality": {
+        "name": "Pünktlichkeit"
+      }
+    },
+    "calendar": {
+      "schedule": {
+        "name": "Fahrplan"
+      }
+    },
+    "event": {
+      "disruptions": {
+        "name": "Störungen"
+      }
+    },
+    "camera": {
+      "board": {
+        "name": "Abfahrtstafel"
+      }
+    }
+  },
   "issues": {
     "rate_limit_reached": {
       "title": "API Rate Limit erreicht",

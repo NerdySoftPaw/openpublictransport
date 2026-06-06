@@ -7,6 +7,7 @@ from typing import Any, Callable
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -54,7 +55,9 @@ class PublicTransportDelayBinarySensor(CoordinatorEntity, BinarySensorEntity):
     """Binary sensor for public transport delays."""
 
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_has_entity_name = True
+    _attr_translation_key = "delays"
 
     def __init__(
         self,
@@ -78,7 +81,6 @@ class PublicTransportDelayBinarySensor(CoordinatorEntity, BinarySensorEntity):
         station_key = station_id or f"{place_dm}_{name_dm}".lower().replace(" ", "_")
         device_name = f"{coordinator.agency_name} - {name_dm}" if coordinator.agency_name else name_dm
         self._attr_unique_id = f"{provider}_{station_key}_delays"
-        self._attr_name = "Delays"
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"{provider}_{station_key}")},
@@ -95,13 +97,6 @@ class PublicTransportDelayBinarySensor(CoordinatorEntity, BinarySensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return additional attributes."""
         return self._attributes
-
-    @property
-    def icon(self) -> str:
-        """Return the icon."""
-        if self._attr_is_on:
-            return "mdi:alert-circle"
-        return "mdi:check-circle"
 
     @callback
     def _handle_coordinator_update(self) -> None:

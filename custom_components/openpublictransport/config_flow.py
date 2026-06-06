@@ -82,6 +82,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         # Temp stop results — instance variable instead of hass.data to avoid cross-flow leaks
         self._found_stops: list[dict] = []
 
+        # Reconfigure support
+        self._reconfiguring: bool = False
+        self._reconfigure_entry: Optional[config_entries.ConfigEntry] = None
+
         # API response cache to avoid duplicate requests
         self._search_cache: Dict[str, Dict[str, Any]] = {}
         self._cache_ttl: int = 300  # Cache TTL in seconds (5 minutes)
@@ -737,19 +741,25 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             if self._provider:
                 await self._async_store_credential(self._provider)
 
-            # Create unique ID (self._selected_stop validated above)
-            unique_id = f"{self._provider}_{self._selected_stop['id']}"
-            await self.async_set_unique_id(unique_id)
-            self._abort_if_unique_id_configured()
-
             # Create title (self._selected_stop validated above)
             place = self._selected_stop.get("place", "")
             name = self._selected_stop.get("name", "")
             title = f"{(self._provider or '').upper()} {place} - {name}".strip()
 
-            # Cleanup temp data
-
             self._found_stops = []
+
+            if self._reconfiguring and self._reconfigure_entry:
+                return self.async_update_reload_and_abort(
+                    self._reconfigure_entry,
+                    title=title,
+                    data=data,
+                    reason="reconfigure_successful",
+                )
+
+            # Create unique ID (self._selected_stop validated above)
+            unique_id = f"{self._provider}_{self._selected_stop['id']}"
+            await self.async_set_unique_id(unique_id)
+            self._abort_if_unique_id_configured()
 
             return self.async_create_entry(title=title, data=data)
 
@@ -1614,6 +1624,14 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             data_schema=schema,
             description_placeholders={"hint": hint},
         )
+
+    async def async_step_reconfigure(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+        """Handle reconfiguration — let the user change the monitored stop."""
+        self._reconfiguring = True
+        self._reconfigure_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        if self._reconfigure_entry:
+            self._provider = self._reconfigure_entry.data.get(CONF_PROVIDER)
+        return await self.async_step_stop_search(user_input)
 
     async def async_step_reauth(self, entry_data: dict) -> FlowResult:
         """Handle re-authentication when an API key expires or is rotated."""

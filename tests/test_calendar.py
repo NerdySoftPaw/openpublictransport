@@ -113,7 +113,7 @@ def test_calendar_unique_id_and_name():
     cal = DepartureCalendar(coordinator, entry)
 
     assert cal._attr_unique_id == "vrr_12345_calendar"
-    assert cal._attr_name == "Schedule"
+    assert cal._attr_translation_key == "schedule"
 
 
 def test_calendar_unique_id_without_station_id():

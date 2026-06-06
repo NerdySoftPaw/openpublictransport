@@ -155,6 +155,33 @@
       }
     }
   },
+  "entity": {
+    "binary_sensor": {
+      "delays": {
+        "name": "Vertragingen"
+      }
+    },
+    "sensor": {
+      "punctuality": {
+        "name": "Stiptheid"
+      }
+    },
+    "calendar": {
+      "schedule": {
+        "name": "Dienstregeling"
+      }
+    },
+    "event": {
+      "disruptions": {
+        "name": "Verstoringen"
+      }
+    },
+    "camera": {
+      "board": {
+        "name": "Vertrektijden"
+      }
+    }
+  },
   "issues": {
     "rate_limit_reached": {
       "title": "API-limiet bereikt",

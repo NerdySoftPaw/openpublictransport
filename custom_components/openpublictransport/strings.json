@@ -146,7 +146,8 @@
     },
     "abort": {
       "reauth_successful": "API-Schlüssel erfolgreich aktualisiert.",
-      "no_reauth_needed": "Dieser Anbieter benötigt keine Authentifizierung."
+      "no_reauth_needed": "Dieser Anbieter benötigt keine Authentifizierung.",
+      "reconfigure_successful": "Haltestelle erfolgreich geändert."
     }
   },
   "options": {
@@ -170,6 +171,33 @@
           "walking_time": "Fußweg zur Haltestelle in Minuten (0 = deaktiviert). Abfahrten die nicht mehr erreichbar sind werden ausgeblendet",
           "favorite_lines": "Kommagetrennte Linien, die zuerst angezeigt werden (z.B. U79, RE5). Leer = keine Favoriten"
         }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "delays": {
+        "name": "Delays"
+      }
+    },
+    "sensor": {
+      "punctuality": {
+        "name": "Punctuality"
+      }
+    },
+    "calendar": {
+      "schedule": {
+        "name": "Schedule"
+      }
+    },
+    "event": {
+      "disruptions": {
+        "name": "Disruptions"
+      }
+    },
+    "camera": {
+      "board": {
+        "name": "Board"
       }
     }
   },

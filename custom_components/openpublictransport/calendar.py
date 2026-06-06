@@ -40,7 +40,9 @@ async def async_setup_entry(
 class DepartureCalendar(CoordinatorEntity, CalendarEntity):
     """Calendar entity showing departures as events."""
 
+    _attr_entity_registry_enabled_default = False
     _attr_has_entity_name = True
+    _attr_translation_key = "schedule"
 
     def __init__(
         self,
@@ -60,7 +62,6 @@ class DepartureCalendar(CoordinatorEntity, CalendarEntity):
 
         device_name = f"{coordinator.agency_name} - {name_dm}" if coordinator.agency_name else name_dm
         self._attr_unique_id = f"{provider}_{station_key}_calendar"
-        self._attr_name = "Schedule"
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"{provider}_{station_key}")},

@@ -87,21 +87,23 @@ def test_available_reflects_coordinator(hass: HomeAssistant):
 
 
 def test_icon_no_delay():
-    """Test icon is check-circle when no delays."""
+    """Test icon is resolved from icons.json via translation_key (not hardcoded)."""
     coordinator = _make_coordinator()
     entry = _make_entry()
     sensor = PublicTransportDelayBinarySensor(coordinator, entry, ["tram"])
     sensor._attr_is_on = False
-    assert sensor.icon == "mdi:check-circle"
+    assert sensor._attr_translation_key == "delays"
+    assert sensor.icon is None
 
 
 def test_icon_with_delay():
-    """Test icon is alert-circle when delays present."""
+    """Test icon is resolved from icons.json via translation_key (not hardcoded)."""
     coordinator = _make_coordinator()
     entry = _make_entry()
     sensor = PublicTransportDelayBinarySensor(coordinator, entry, ["tram"])
     sensor._attr_is_on = True
-    assert sensor.icon == "mdi:alert-circle"
+    assert sensor._attr_translation_key == "delays"
+    assert sensor.icon is None
 
 
 def test_extra_state_attributes():

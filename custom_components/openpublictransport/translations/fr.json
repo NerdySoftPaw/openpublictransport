@@ -155,6 +155,33 @@
       }
     }
   },
+  "entity": {
+    "binary_sensor": {
+      "delays": {
+        "name": "Retards"
+      }
+    },
+    "sensor": {
+      "punctuality": {
+        "name": "Ponctualité"
+      }
+    },
+    "calendar": {
+      "schedule": {
+        "name": "Horaire"
+      }
+    },
+    "event": {
+      "disruptions": {
+        "name": "Perturbations"
+      }
+    },
+    "camera": {
+      "board": {
+        "name": "Tableau de départ"
+      }
+    }
+  },
   "issues": {
     "rate_limit_reached": {
       "title": "Limite de requêtes API atteinte",

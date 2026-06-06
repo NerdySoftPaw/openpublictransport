@@ -4,6 +4,7 @@ Tracks delay statistics per line over time and exposes them as sensor attributes
 Uses coordinator data — no additional API calls needed.
 """
 
+import hashlib
 import logging
 from collections import defaultdict
 from typing import Any, Dict
@@ -76,7 +77,6 @@ class PunctualitySensor(CoordinatorEntity, SensorEntity):
         )
 
         # Statistics storage — hash unique_id to keep filename within OS limits
-        import hashlib
         uid_hash = hashlib.sha256(self._attr_unique_id.encode()).hexdigest()[:16]
         self._store = Store(coordinator.hass, 1, f"openpublictransport_stats_{uid_hash}")
         self._total_departures = 0

@@ -7,7 +7,6 @@ from typing import Any
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN
 
@@ -21,26 +20,7 @@ TO_REDACT = {
 async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
 
-    # Get coordinator from hass.data
-    coordinator = None
-
-    # First try to get from entity registry
-    entity_registry = er.async_get(hass)
-    entities = er.async_entries_for_config_entry(entity_registry, entry.entry_id)
-
-    for entity in entities:
-        if entity.platform == DOMAIN:
-            entity_obj = hass.data.get("entity_components", {}).get("sensor")
-            if entity_obj:
-                for ent in entity_obj.entities:
-                    if ent.unique_id == entity.unique_id:
-                        coordinator = ent.coordinator
-                        break
-
-    # Fallback: try to get coordinator directly from hass.data (useful for tests)
-    if not coordinator:
-        coordinator_key = f"{entry.entry_id}_coordinator"
-        coordinator = hass.data.get(DOMAIN, {}).get(coordinator_key)
+    coordinator = getattr(entry, "runtime_data", None)
 
     diagnostics_data = {
         "entry": {

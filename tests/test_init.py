@@ -16,11 +16,8 @@ async def test_async_setup(hass: HomeAssistant):
 
 async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry: ConfigEntry):
     """Test setting up a config entry."""
-    # mock_config_entry already added to hass in fixture
-
-    # Mock the coordinator's first refresh to avoid real API calls
     with patch(
-        "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_refresh",
+        "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_config_entry_first_refresh",
         new_callable=AsyncMock,
     ):
         with patch(
@@ -28,31 +25,30 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry: ConfigE
             new_callable=AsyncMock,
         ):
             assert await async_setup_entry(hass, mock_config_entry) is True
-            assert DOMAIN in hass.data
+            # Coordinator stored in runtime_data, not hass.data
+            assert mock_config_entry.runtime_data is not None
 
 
 async def test_async_unload_entry(hass: HomeAssistant, mock_config_entry: ConfigEntry):
     """Test unloading a config entry."""
-    # mock_config_entry already added to hass in fixture
-    hass.data[DOMAIN] = {f"{mock_config_entry.entry_id}_coordinator": MagicMock()}
+    mock_coordinator = MagicMock()
+    mock_config_entry.runtime_data = mock_coordinator
 
     with patch(
         "homeassistant.config_entries.ConfigEntries.async_unload_platforms",
         return_value=True,
     ):
         assert await async_unload_entry(hass, mock_config_entry) is True
+        # runtime_data is cleared automatically by HA; no hass.data coordinator entry
         assert f"{mock_config_entry.entry_id}_coordinator" not in hass.data.get(DOMAIN, {})
 
 
 async def test_refresh_service(hass: HomeAssistant, mock_config_entry: ConfigEntry):
-    """Test the refresh_departures service."""
-    # mock_config_entry already added to hass in fixture
-
-    # Mock the coordinator's first refresh to avoid real API calls
+    """Test the refresh_departures service is registered in async_setup."""
     await async_setup(hass, {})
 
     with patch(
-        "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_refresh",
+        "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_config_entry_first_refresh",
         new_callable=AsyncMock,
     ):
         with patch(
@@ -60,6 +56,4 @@ async def test_refresh_service(hass: HomeAssistant, mock_config_entry: ConfigEnt
             new_callable=AsyncMock,
         ):
             await async_setup_entry(hass, mock_config_entry)
-
-            # Services are registered in async_setup, not async_setup_entry
             assert hass.services.has_service(DOMAIN, "refresh_departures")

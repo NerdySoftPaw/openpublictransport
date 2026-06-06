@@ -32,8 +32,7 @@ async def async_setup_entry(
     if config_entry.data.get("is_trip"):
         return
 
-    coordinator_key = f"{config_entry.entry_id}_coordinator"
-    coordinator = hass.data[DOMAIN].get(coordinator_key)
+    coordinator = config_entry.runtime_data
 
     if not coordinator:
         return

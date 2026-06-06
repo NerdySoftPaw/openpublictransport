@@ -147,8 +147,8 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             entity_registry = er.async_get(hass)
             entity_entry = entity_registry.async_get(entity_id)
             if entity_entry and entity_entry.platform == DOMAIN:
-                coordinator_key = f"{entity_entry.config_entry_id}_coordinator"
-                coordinator = hass.data[DOMAIN].get(coordinator_key)
+                entry = hass.config_entries.async_get_entry(entity_entry.config_entry_id)
+                coordinator = getattr(entry, "runtime_data", None) if entry else None
                 if coordinator:
                     await coordinator.async_request_refresh()
         else:
@@ -159,8 +159,8 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
                 entry_id = entity_entry.config_entry_id
                 if entry_id and entry_id not in seen_entries:
                     seen_entries.add(entry_id)
-                    coordinator_key = f"{entry_id}_coordinator"
-                    coordinator = hass.data[DOMAIN].get(coordinator_key)
+                    entry = hass.config_entries.async_get_entry(entry_id)
+                    coordinator = getattr(entry, "runtime_data", None) if entry else None
                     if coordinator:
                         await coordinator.async_request_refresh()
 
@@ -371,15 +371,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         custom_url=custom_url,
     )
 
-    # Store coordinator before first refresh
-    coordinator_key = f"{entry.entry_id}_coordinator"
-    hass.data[DOMAIN][coordinator_key] = coordinator
+    entry.runtime_data = coordinator
 
-    # Fetch immediately on startup — async_refresh does not raise on failure so the
-    # entry always sets up. If the API is temporarily unavailable (e.g. OTP still
-    # loading its graph), the sensor shows "unavailable" and retries at the next
-    # normal poll tick instead of blocking entry setup with ConfigEntryNotReady.
-    await coordinator.async_refresh()
+    # Raises ConfigEntryNotReady on failure → HA retries automatically.
+    # OTP providers may be slow to start; HA's retry logic handles that gracefully.
+    await coordinator.async_config_entry_first_refresh()
 
     await hass.config_entries.async_forward_entry_setups(
         entry, ["sensor", "binary_sensor", "calendar", "event", "camera"]
@@ -394,17 +390,14 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry, ["sensor", "binary_sensor", "calendar", "event", "camera"]
     )
 
-    # Remove coordinator from hass.data and call shutdown
-    coordinator_key = f"{entry.entry_id}_coordinator"
-    if coordinator_key in hass.data.get(DOMAIN, {}):
-        coordinator = hass.data[DOMAIN].pop(coordinator_key)
-        # Call coordinator shutdown to release GTFS resources
-        if coordinator and hasattr(coordinator, "async_shutdown"):
-            try:
-                await coordinator.async_shutdown()
-                _LOGGER.debug("Coordinator shutdown completed for entry: %s", entry.entry_id)
-            except Exception as e:
-                _LOGGER.warning("Error during coordinator shutdown: %s", e)
+    # Shutdown coordinator resources (e.g. GTFS data); runtime_data is auto-cleared by HA
+    coordinator = getattr(entry, "runtime_data", None)
+    if coordinator and hasattr(coordinator, "async_shutdown"):
+        try:
+            await coordinator.async_shutdown()
+            _LOGGER.debug("Coordinator shutdown completed for entry: %s", entry.entry_id)
+        except Exception as e:
+            _LOGGER.warning("Error during coordinator shutdown: %s", e)
 
     # Unregister services and cleanup if no more entries
     if not hass.config_entries.async_entries(DOMAIN):

@@ -174,7 +174,7 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry, mock_co
     # mock_config_entry already added to hass in fixture
 
     # Store coordinator in hass.data
-    hass.data[DOMAIN] = {f"{mock_config_entry.entry_id}_coordinator": mock_coordinator}
+    mock_config_entry.runtime_data = mock_coordinator
 
     entities = []
 

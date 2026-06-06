@@ -128,10 +128,9 @@ async def async_setup_trip_entry(
         custom_url=custom_url,
     )
 
-    coordinator_key = f"{config_entry.entry_id}_trip_coordinator"
-    hass.data.setdefault(DOMAIN, {})[coordinator_key] = coordinator
+    config_entry.runtime_data = coordinator
 
-    await coordinator.async_refresh()
+    await coordinator.async_config_entry_first_refresh()
     await hass.config_entries.async_forward_entry_setups(config_entry, ["sensor"])
 
     return True
@@ -146,8 +145,7 @@ async def async_setup_entry(
     if not config_entry.data.get(CONF_IS_TRIP):
         return
 
-    coordinator_key = f"{config_entry.entry_id}_trip_coordinator"
-    coordinator = hass.data.get(DOMAIN, {}).get(coordinator_key)
+    coordinator = config_entry.runtime_data
     if not coordinator:
         return
 

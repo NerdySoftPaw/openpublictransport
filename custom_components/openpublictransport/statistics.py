@@ -44,6 +44,7 @@ class PunctualitySensor(CoordinatorEntity, SensorEntity):
     """Sensor tracking punctuality statistics per line."""
 
     _attr_icon = "mdi:chart-line"
+    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -60,12 +61,14 @@ class PunctualitySensor(CoordinatorEntity, SensorEntity):
         name_dm = coordinator.name_dm
         station_key = station_id or f"{place_dm}_{name_dm}".lower().replace(" ", "_")
 
+        device_name = f"{coordinator.agency_name} - {name_dm}" if coordinator.agency_name else name_dm
         self._attr_unique_id = f"{provider}_{station_key}_statistics"
-        self._attr_name = f"{provider.upper()} {place_dm} - {name_dm} Statistics"
+        self._attr_name = "Punctuality"
         self._attr_native_unit_of_measurement = "%"
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"{provider}_{station_key}")},
+            name=device_name,
             suggested_area=place_dm,
         )
 

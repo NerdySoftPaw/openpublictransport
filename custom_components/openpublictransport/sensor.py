@@ -282,6 +282,7 @@ async def async_setup_entry(
 
 
 class MultiProviderSensor(CoordinatorEntity, SensorEntity):
+    _attr_has_entity_name = True
     """Sensor für VRR/KVV/HVV using DataUpdateCoordinator."""
 
     def __init__(
@@ -330,7 +331,7 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"{provider}_{station_key}"
         agency_name = coordinator.agency_name
         display_name = f"{agency_name} - {name_dm}" if agency_name else name_dm
-        self._attr_name = display_name
+        self._attr_name = None  # device name IS the entity name
 
         # Device info
         self._attr_device_info = DeviceInfo(

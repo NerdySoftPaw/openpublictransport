@@ -347,43 +347,45 @@ async def test_nta_api_key_flow(hass: HomeAssistant):
 
 async def test_trip_flow_happy_path(hass: HomeAssistant):
     """Trip flow: origin search → destination search → settings → entry created."""
-    with patch("homeassistant.config_entries.ConfigEntries.async_forward_entry_setups", return_value=True):
-        result = await _init_flow(hass)
-        result = await _select_provider(hass, result["flow_id"], provider=PROVIDER_VRR, entry_type="trip")
+    result = await _init_flow(hass)
+    result = await _select_provider(hass, result["flow_id"], provider=PROVIDER_VRR, entry_type="trip")
+    assert result["step_id"] == "trip_search"
+
+    origin_stop = [{"id": "de:05111:5650", "name": "Hauptbahnhof", "place": "Düsseldorf"}]
+    dest_stop = [{"id": "de:05315:1001", "name": "Hbf", "place": "Köln"}]
+
+    with patch(
+        "custom_components.openpublictransport.config_flow.OpenPublicTransportConfigFlow._search_stops",
+        return_value=origin_stop,
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={"stop_search": "Hauptbahnhof"}
+        )
         assert result["step_id"] == "trip_search"
 
-        origin_stop = [{"id": "de:05111:5650", "name": "Hauptbahnhof", "place": "Düsseldorf"}]
-        dest_stop = [{"id": "de:05315:1001", "name": "Hbf", "place": "Köln"}]
+    with patch(
+        "custom_components.openpublictransport.config_flow.OpenPublicTransportConfigFlow._search_stops",
+        return_value=dest_stop,
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={"stop_search": "Hbf Köln"}
+        )
+        assert result["step_id"] == "trip_settings"
 
-        with patch(
-            "custom_components.openpublictransport.config_flow.OpenPublicTransportConfigFlow._search_stops",
-            return_value=origin_stop,
-        ):
-            result = await hass.config_entries.flow.async_configure(
-                result["flow_id"], user_input={"stop_search": "Hauptbahnhof"}
-            )
-            # Single origin result → moves to destination phase
-            assert result["step_id"] == "trip_search"
-
-        with patch(
-            "custom_components.openpublictransport.config_flow.OpenPublicTransportConfigFlow._search_stops",
-            return_value=dest_stop,
-        ):
-            result = await hass.config_entries.flow.async_configure(
-                result["flow_id"], user_input={"stop_search": "Hbf Köln"}
-            )
-            assert result["step_id"] == "trip_settings"
-
-        with patch(
-            "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_config_entry_first_refresh",
+    # Mock both the first refresh (trip coordinator) and platform setup to avoid threads
+    with (
+        patch(
+            "custom_components.openpublictransport.trip_sensor.TripDataUpdateCoordinator.async_config_entry_first_refresh",
             new_callable=AsyncMock,
-        ):
-            result = await hass.config_entries.flow.async_configure(
-                result["flow_id"], user_input={CONF_SCAN_INTERVAL: 120}
-            )
-            assert result["type"] == FlowResultType.CREATE_ENTRY
-            assert "Hauptbahnhof" in result["title"]
-            assert "Hbf" in result["title"]
+        ),
+        patch("homeassistant.config_entries.ConfigEntries.async_forward_entry_setups", return_value=True),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={CONF_SCAN_INTERVAL: 120}
+        )
+        assert result["type"] == FlowResultType.CREATE_ENTRY
+        assert "Hauptbahnhof" in result["title"]
+        assert "Hbf" in result["title"]
 
 
 async def test_multi_stop_flow(hass: HomeAssistant):

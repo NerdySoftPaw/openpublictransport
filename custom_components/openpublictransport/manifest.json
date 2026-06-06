@@ -12,7 +12,7 @@
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/NerdySoftPaw/openpublictransport/issues",
-  "quality_scale": "bronze",
+  "quality_scale": "silver",
   "requirements": [
     "python-openpublictransport==0.1.4",
     "aiofiles",

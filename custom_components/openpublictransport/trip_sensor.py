@@ -155,6 +155,8 @@ async def async_setup_entry(
 class TripSensor(CoordinatorEntity, SensorEntity):
     """Sensor showing the next best trip from A to B."""
 
+    _attr_has_entity_name = True
+
     def __init__(
         self,
         coordinator: TripDataUpdateCoordinator,
@@ -172,7 +174,7 @@ class TripSensor(CoordinatorEntity, SensorEntity):
         provider = coordinator.provider
 
         self._attr_unique_id = f"{provider}_trip_{origin_city}_{origin}_{dest_city}_{dest}".lower().replace(" ", "_")
-        self._attr_name = f"{provider.upper()} {origin}, {origin_city} → {dest}, {dest_city}"
+        self._attr_name = None  # device name IS the entity name
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._attr_unique_id)},

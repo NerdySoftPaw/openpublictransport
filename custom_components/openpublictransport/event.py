@@ -39,6 +39,7 @@ class DisruptionEventEntity(CoordinatorEntity, EventEntity):
     """Event entity that fires when new disruption notices appear."""
 
     _attr_event_types = ["disruption", "platform_change", "info"]
+    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -56,11 +57,13 @@ class DisruptionEventEntity(CoordinatorEntity, EventEntity):
         name_dm = coordinator.name_dm
         station_key = station_id or f"{place_dm}_{name_dm}".lower().replace(" ", "_")
 
+        device_name = f"{coordinator.agency_name} - {name_dm}" if coordinator.agency_name else name_dm
         self._attr_unique_id = f"{provider}_{station_key}_disruptions"
-        self._attr_name = f"{provider.upper()} {place_dm} - {name_dm} Disruptions"
+        self._attr_name = "Disruptions"
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"{provider}_{station_key}")},
+            name=device_name,
             suggested_area=place_dm,
         )
 

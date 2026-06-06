@@ -55,6 +55,7 @@ class MultiStopSensor(SensorEntity):
     """Sensor combining departures from multiple stops."""
 
     _attr_icon = "mdi:map-marker-multiple"
+    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -68,7 +69,7 @@ class MultiStopSensor(SensorEntity):
         self._config_entry = config_entry
         self._source_entities = source_entities
         self._attr_unique_id = f"multi_stop_{config_entry.entry_id}"
-        self._attr_name = name
+        self._attr_name = None  # device name IS the entity name
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"multi_stop_{config_entry.entry_id}")},
             name=name,

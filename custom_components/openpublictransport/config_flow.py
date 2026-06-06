@@ -491,7 +491,9 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             description = "VBN API key is required. Request a free key at api@vbn.de"
         elif self._provider == PROVIDER_NATIONAL_RAIL:
             schema = vol.Schema({vol.Required(CONF_NATIONAL_RAIL_API_KEY): str})
-            description = "National Rail API key required. Register for free at opendata.nationalrail.co.uk (100k calls/month)."
+            description = (
+                "National Rail API key required. Register for free at opendata.nationalrail.co.uk (100k calls/month)."
+            )
         elif self._provider == PROVIDER_REJSEPLANEN:
             schema = vol.Schema({vol.Required(CONF_REJSEPLANEN_API_KEY): str})
             description = "Rejseplanen API key required. Register for free at labs.rejseplanen.dk (50k calls/month, non-commercial)."

@@ -81,3 +81,9 @@ rules:
   reconfiguration_flow: done
   repair_issues: done
   stale_devices: done
+  # Platinum (strict_typing deferred)
+  async_dependency: done
+  inject_websession: done
+  strict_typing:
+    status: todo
+    comment: Deferred — HA integration boundary errors require significant effort

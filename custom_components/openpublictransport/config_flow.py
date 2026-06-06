@@ -79,6 +79,9 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         self._trip_destination: Optional[Dict[str, Any]] = None
         self._trip_search_phase: str = "origin"  # "origin" or "destination"
 
+        # Temp stop results — instance variable instead of hass.data to avoid cross-flow leaks
+        self._found_stops: list[dict] = []
+
         # API response cache to avoid duplicate requests
         self._search_cache: Dict[str, Dict[str, Any]] = {}
         self._cache_ttl: int = 300  # Cache TTL in seconds (5 minutes)
@@ -487,7 +490,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             # User selected a stop from dropdown
             selected_id = user_input.get("stop")
             if selected_id:
-                for stop in self.hass.data.get(f"{DOMAIN}_temp_stops", []):
+                for stop in self._found_stops:
                     if isinstance(stop, dict) and stop.get("id") == selected_id:
                         self._selected_stop = stop
                         return await self.async_step_settings()
@@ -503,7 +506,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     _LOGGER.error("Search returned invalid type: %s", type(stops))
                     cache_key = self._get_cache_key(self._provider, search_term, "stop")
                     self._search_cache.pop(cache_key, None)
-                    self.hass.data.pop(f"{DOMAIN}_temp_stops", None)
+                    self._found_stops = []
                     errors["stop_search"] = "api_error"
                 elif not stops:
                     errors["stop_search"] = "no_results"
@@ -512,7 +515,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     return await self.async_step_settings()
                 else:
                     # Store results and show selection step
-                    self.hass.data[f"{DOMAIN}_temp_stops"] = stops
+                    self._found_stops = stops
                     self._last_search_term = search_term
                     return await self.async_step_stop_select()
 
@@ -538,11 +541,11 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             selected_id = user_input.get("stop")
             if selected_id == "__search_again__":
                 # User wants to search again
-                self.hass.data.pop(f"{DOMAIN}_temp_stops", None)
+                self._found_stops = []
                 return await self.async_step_stop_search()
 
             if selected_id:
-                for stop in self.hass.data.get(f"{DOMAIN}_temp_stops", []):
+                for stop in self._found_stops:
                     if isinstance(stop, dict) and stop.get("id") == selected_id:
                         self._selected_stop = stop
                         return await self.async_step_settings()
@@ -550,10 +553,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             return await self.async_step_settings()
 
         # Load stops from temporary storage
-        stops = self.hass.data.get(f"{DOMAIN}_temp_stops", [])
+        stops = self._found_stops
 
         if not isinstance(stops, list) or not stops:
-            self.hass.data.pop(f"{DOMAIN}_temp_stops", None)
+            self._found_stops = []
             return await self.async_step_stop_search()
 
         # Build dropdown: "Haltestellenname, Ort" format
@@ -683,8 +686,8 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             title = f"{(self._provider or '').upper()} {place} - {name}".strip()
 
             # Cleanup temp data
-            self.hass.data.pop(f"{DOMAIN}_temp_locations", None)
-            self.hass.data.pop(f"{DOMAIN}_temp_stops", None)
+
+            self._found_stops = []
 
             return self.async_create_entry(title=title, data=data)
 
@@ -1364,7 +1367,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                         self._trip_destination = stops[0]
                         return await self.async_step_trip_settings()
                 else:
-                    self.hass.data[f"{DOMAIN}_temp_stops"] = stops
+                    self._found_stops = stops
                     self._last_search_term = search_term
                     return await self.async_step_trip_select()
 
@@ -1389,25 +1392,25 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         if user_input is not None:
             selected_id = user_input.get("stop")
             if selected_id == "__search_again__":
-                self.hass.data.pop(f"{DOMAIN}_temp_stops", None)
+                self._found_stops = []
                 return await self.async_step_trip_search()
 
             if selected_id:
-                for stop in self.hass.data.get(f"{DOMAIN}_temp_stops", []):
+                for stop in self._found_stops:
                     if isinstance(stop, dict) and stop.get("id") == selected_id:
                         if self._trip_search_phase == "origin":
                             self._trip_origin = stop
                             self._trip_search_phase = "destination"
-                            self.hass.data.pop(f"{DOMAIN}_temp_stops", None)
+                            self._found_stops = []
                             return await self.async_step_trip_search()
                         else:
                             self._trip_destination = stop
-                            self.hass.data.pop(f"{DOMAIN}_temp_stops", None)
+                            self._found_stops = []
                             return await self.async_step_trip_settings()
 
             return await self.async_step_trip_search()
 
-        stops = self.hass.data.get(f"{DOMAIN}_temp_stops", [])
+        stops = self._found_stops
         if not isinstance(stops, list) or not stops:
             return await self.async_step_trip_search()
 
@@ -1484,7 +1487,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
 
             title = f"{(self._provider or '').upper()} {origin.get('name', '')} → {dest.get('name', '')}"
 
-            self.hass.data.pop(f"{DOMAIN}_temp_stops", None)
+            self._found_stops = []
             return self.async_create_entry(title=title, data=data)
 
         origin_name = self._trip_origin.get("name", "") if self._trip_origin else ""

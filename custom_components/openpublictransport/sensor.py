@@ -14,7 +14,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
-from openpublictransport import get_provider
+from openpublictransport import AuthenticationError, get_provider
 
 from .const import (
     API_RATE_LIMIT_PER_DAY,
@@ -214,6 +214,8 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
                 raise UpdateFailed("Invalid or empty API response")
         except ConfigEntryAuthFailed:
             raise
+        except AuthenticationError as err:
+            raise ConfigEntryAuthFailed(str(err)) from err
         except UpdateFailed:
             raise
         except Exception as err:

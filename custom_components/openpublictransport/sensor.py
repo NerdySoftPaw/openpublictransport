@@ -35,7 +35,7 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-PARALLEL_UPDATES = 1
+PARALLEL_UPDATES = 0
 INTEGRATION_VERSION = json.loads((Path(__file__).parent / "manifest.json").read_text()).get("version", "unknown")
 
 

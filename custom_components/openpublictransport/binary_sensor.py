@@ -27,7 +27,7 @@ from .const import (
 )
 from .sensor import PublicTransportDataUpdateCoordinator
 
-PARALLEL_UPDATES = 1
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(

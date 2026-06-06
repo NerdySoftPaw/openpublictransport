@@ -26,7 +26,7 @@ from .const import (
 )
 from .trip import async_plan_trip
 
-PARALLEL_UPDATES = 1
+PARALLEL_UPDATES = 0
 _LOGGER = logging.getLogger(__name__)
 
 CONF_TRIP_ORIGIN = "trip_origin"

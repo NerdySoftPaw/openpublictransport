@@ -67,11 +67,8 @@ class MultiStopSensor(SensorEntity):
         self.hass = hass
         self._config_entry = config_entry
         self._source_entities = source_entities
-        self._unsub_listeners: list = []
-
         self._attr_unique_id = f"multi_stop_{config_entry.entry_id}"
         self._attr_name = name
-
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"multi_stop_{config_entry.entry_id}")},
             name=name,
@@ -87,17 +84,10 @@ class MultiStopSensor(SensorEntity):
             self._update_from_sources()
             self.async_write_ha_state()
 
-        for entity_id in self._source_entities:
-            self._unsub_listeners.append(async_track_state_change_event(self.hass, entity_id, _state_changed))
+        self.async_on_remove(async_track_state_change_event(self.hass, self._source_entities, _state_changed))
 
         # Initial update
         self._update_from_sources()
-
-    async def async_will_remove_from_hass(self) -> None:
-        """Remove listeners."""
-        for unsub in self._unsub_listeners:
-            unsub()
-        self._unsub_listeners.clear()
 
     def _update_from_sources(self) -> None:
         """Merge departures from all source entities."""

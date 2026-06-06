@@ -49,6 +49,8 @@ async def test_refresh_service(hass: HomeAssistant, mock_config_entry: ConfigEnt
     # mock_config_entry already added to hass in fixture
 
     # Mock the coordinator's first refresh to avoid real API calls
+    await async_setup(hass, {})
+
     with patch(
         "custom_components.openpublictransport.PublicTransportDataUpdateCoordinator.async_refresh",
         new_callable=AsyncMock,
@@ -59,5 +61,5 @@ async def test_refresh_service(hass: HomeAssistant, mock_config_entry: ConfigEnt
         ):
             await async_setup_entry(hass, mock_config_entry)
 
-            # Verify service is registered
+            # Services are registered in async_setup, not async_setup_entry
             assert hass.services.has_service(DOMAIN, "refresh_departures")

@@ -32,7 +32,7 @@ from .const import (
     PROVIDER_NTA_IE,
     TRANSPORTATION_TYPES,
 )
-from .providers import get_provider
+from openpublictransport import get_provider
 
 _LOGGER = logging.getLogger(__name__)
 INTEGRATION_VERSION = json.loads((Path(__file__).parent / "manifest.json").read_text()).get("version", "unknown")

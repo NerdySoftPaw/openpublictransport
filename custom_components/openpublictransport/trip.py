@@ -99,7 +99,7 @@ async def async_plan_trip(
     Uses stop IDs when available (more reliable), falls back to name+place search.
     Returns a list of journey options, each with legs and transfer info.
     """
-    from .providers import get_provider
+    from openpublictransport import get_provider
 
     # OTP2 GraphQL providers (community server + custom instance)
     if provider in ("openpublictransport", "otp_custom"):

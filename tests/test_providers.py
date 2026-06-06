@@ -13,12 +13,12 @@ from custom_components.openpublictransport.const import (
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_VRR,
 )
-from custom_components.openpublictransport.providers import get_provider
-from custom_components.openpublictransport.providers.hvv import HVVProvider
-from custom_components.openpublictransport.providers.kvv import KVVProvider
-from custom_components.openpublictransport.providers.nta import NTAProvider
-from custom_components.openpublictransport.providers.trafiklab import TrafiklabProvider
-from custom_components.openpublictransport.providers.vrr import VRRProvider
+from openpublictransport import get_provider
+from openpublictransport.providers.hvv import HVVProvider
+from openpublictransport.providers.kvv import KVVProvider
+from openpublictransport.providers.nta import NTAProvider
+from openpublictransport.providers.trafiklab import TrafiklabProvider
+from openpublictransport.providers.vrr import VRRProvider
 
 
 @pytest.fixture

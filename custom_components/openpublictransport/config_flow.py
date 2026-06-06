@@ -56,7 +56,7 @@ from .const import (
     PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
-from .providers import get_provider, get_provider_class
+from openpublictransport import get_provider, get_provider_class
 
 _LOGGER = logging.getLogger(__name__)
 

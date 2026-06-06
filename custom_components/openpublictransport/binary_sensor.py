@@ -24,7 +24,7 @@ from .const import (
     PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
-from .data_models import UnifiedDeparture
+from openpublictransport.models import UnifiedDeparture
 from .sensor import PublicTransportDataUpdateCoordinator
 
 

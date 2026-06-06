@@ -19,6 +19,7 @@ from homeassistant.util import dt as dt_util
 from .const import CONF_TRANSPORTATION_TYPES, DOMAIN, TRANSPORTATION_TYPES
 from .sensor import PublicTransportDataUpdateCoordinator
 
+PARALLEL_UPDATES = 1
 _LOGGER = logging.getLogger(__name__)
 
 

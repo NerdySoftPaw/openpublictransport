@@ -21,6 +21,7 @@ from PIL import Image, ImageDraw, ImageFont
 from .const import CONF_TRANSPORTATION_TYPES, DOMAIN, TRANSPORTATION_TYPES
 from .sensor import PublicTransportDataUpdateCoordinator
 
+PARALLEL_UPDATES = 1
 _LOGGER = logging.getLogger(__name__)
 
 # Board styling

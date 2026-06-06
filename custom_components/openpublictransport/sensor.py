@@ -35,6 +35,7 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+PARALLEL_UPDATES = 1
 INTEGRATION_VERSION = json.loads((Path(__file__).parent / "manifest.json").read_text()).get("version", "unknown")
 
 
@@ -191,14 +192,15 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
             data = await self._fetch_departures()
             if data and isinstance(data, dict):
                 self._api_calls_today += 1
-                # Clear API error repair issue on successful fetch
+                if not self.last_update_success:
+                    _LOGGER.info("%s: connection re-established", self.provider)
                 ir.async_delete_issue(self.hass, DOMAIN, f"api_error_{self.provider}")
-                # Adjust polling interval based on results
                 has_departures = bool(data.get("stopEvents"))
                 self._adjust_polling_interval(has_departures)
                 return data
             else:
-                # Create repair issue for invalid API response
+                if self.last_update_success:
+                    _LOGGER.warning("%s: invalid or empty API response — will retry", self.provider)
                 ir.async_create_issue(
                     self.hass,
                     DOMAIN,
@@ -206,15 +208,14 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
                     is_fixable=False,
                     severity=ir.IssueSeverity.ERROR,
                     translation_key="api_error",
-                    translation_placeholders={
-                        "provider": self.provider.upper(),
-                    },
+                    translation_placeholders={"provider": self.provider.upper()},
                 )
                 raise UpdateFailed("Invalid or empty API response")
         except UpdateFailed:
             raise
         except Exception as err:
-            # Create repair issue for API errors
+            if self.last_update_success:
+                _LOGGER.warning("%s: unavailable (%s) — will retry", self.provider, err)
             ir.async_create_issue(
                 self.hass,
                 DOMAIN,
@@ -222,9 +223,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
                 is_fixable=False,
                 severity=ir.IssueSeverity.ERROR,
                 translation_key="api_error",
-                translation_placeholders={
-                    "provider": self.provider.upper(),
-                },
+                translation_placeholders={"provider": self.provider.upper()},
             )
             raise UpdateFailed(f"Error fetching data: {err}")
 

@@ -75,8 +75,10 @@ class PunctualitySensor(CoordinatorEntity, SensorEntity):
             suggested_area=place_dm,
         )
 
-        # Statistics storage (persisted across restarts via HA Store)
-        self._store = Store(coordinator.hass, 1, f"openpublictransport_stats_{self._attr_unique_id}")
+        # Statistics storage — hash unique_id to keep filename within OS limits
+        import hashlib
+        uid_hash = hashlib.sha256(self._attr_unique_id.encode()).hexdigest()[:16]
+        self._store = Store(coordinator.hass, 1, f"openpublictransport_stats_{uid_hash}")
         self._total_departures = 0
         self._on_time_departures = 0
         self._line_stats: Dict[str, Dict[str, int]] = defaultdict(lambda: {"total": 0, "on_time": 0, "total_delay": 0})

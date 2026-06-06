@@ -278,7 +278,7 @@ def _parse_otp_itineraries(itineraries: List[Dict[str, Any]]) -> List[Dict[str, 
     results = []
 
     for itin in itineraries:
-        transit_legs = []
+        transit_legs: List[Dict[str, Any]] = []
         # ms timestamps for transfer gap calculation
         leg_arrival_ms: List[int] = []
         leg_departure_ms: List[int] = []

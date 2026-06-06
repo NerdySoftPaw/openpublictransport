@@ -400,7 +400,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
 
         # Auto-reuse credentials from an existing entry for this provider
         if user_input is None and not self._api_key:
-            creds = self._find_existing_credentials(self._provider)
+            creds = self._find_existing_credentials(self._provider or "")
             if self._provider == PROVIDER_TRAFIKLAB_SE and creds.get(CONF_TRAFIKLAB_API_KEY):
                 self._api_key = creds[CONF_TRAFIKLAB_API_KEY]
                 return await self._async_next_step_after_api_key()

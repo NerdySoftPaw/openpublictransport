@@ -55,6 +55,10 @@ PROVIDER_OTP_CUSTOM = "otp_custom"  # user-provided OTP2 instance
 CONF_OTP_BASE_URL = "otp_base_url"  # custom URL for otp_custom provider
 CONF_OPT_API_KEY = "opt_api_key"  # API key for community OTP server
 CONF_OTP_CUSTOM_API_KEY = "otp_custom_api_key"  # API key for custom OTP instance
+PROVIDER_NATIONAL_RAIL = "national_rail"  # National Rail (UK) via OpenLDBWS
+CONF_NATIONAL_RAIL_API_KEY = "national_rail_api_key"
+PROVIDER_REJSEPLANEN = "rejseplanen"  # Rejseplanen (Denmark) via HAFAS REST API
+CONF_REJSEPLANEN_API_KEY = "rejseplanen_api_key"
 PROVIDERS = [
     PROVIDER_VRR,
     PROVIDER_KVV,
@@ -84,6 +88,8 @@ PROVIDERS = [
     PROVIDER_VBN_TRIAS,
     PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
+    PROVIDER_NATIONAL_RAIL,
+    PROVIDER_REJSEPLANEN,
 ]
 
 # Transportation types mapping
@@ -169,6 +175,8 @@ PROVIDER_ICONS = {
     "vbn_trias": "mdi:bus-clock",
     "openpublictransport": "mdi:train-variant",
     "otp_custom": "mdi:server-network",
+    "national_rail": "mdi:train",
+    "rejseplanen": "mdi:train",
 }
 
 # Provider-specific entity pictures (logos)
@@ -202,4 +210,6 @@ PROVIDER_ENTITY_PICTURES = {
     "vbn_otp": "https://www.vbn.de/favicon.ico",
     "vbn_trias": "https://www.vbn.de/favicon.ico",
     "openpublictransport": "https://openpublictransport.net/favicon.ico",
+    "national_rail": "https://www.nationalrail.co.uk/favicon.ico",
+    "rejseplanen": "https://www.rejseplanen.dk/favicon.ico",
 }

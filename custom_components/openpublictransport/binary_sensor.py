@@ -12,6 +12,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
+from openpublictransport.models import UnifiedDeparture
 
 from .const import (
     CONF_DELAY_THRESHOLD,
@@ -24,7 +25,6 @@ from .const import (
     PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
-from openpublictransport.models import UnifiedDeparture
 from .sensor import PublicTransportDataUpdateCoordinator
 
 

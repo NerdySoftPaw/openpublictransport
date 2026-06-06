@@ -19,31 +19,17 @@ from .const import (
     CONF_DEPARTURES,
     CONF_FAVORITE_LINES,
     CONF_LINE_FILTER,
-    CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
-    CONF_OTP_BASE_URL,
-    CONF_PROVIDER,
     CONF_SCAN_INTERVAL,
-    CONF_STATION_ID,
-    CONF_TRAFIKLAB_API_KEY,
     CONF_TRANSPORTATION_TYPES,
     CONF_USE_PROVIDER_LOGO,
-    CONF_VBN_API_KEY,
     CONF_WALKING_TIME,
     DEFAULT_DEPARTURES,
-    DEFAULT_NAME,
-    DEFAULT_PLACE,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WALKING_TIME,
     DOMAIN,
     PROVIDER_ENTITY_PICTURES,
     PROVIDER_NTA_IE,
-    PROVIDER_OPT,
-    PROVIDER_OTP_CUSTOM,
-    PROVIDER_TRAFIKLAB_SE,
-    PROVIDER_VBN_OTP,
-    PROVIDER_VBN_TRIAS,
-    PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
 from .providers import get_provider
@@ -104,6 +90,8 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
             name=f"{provider.upper()} {place_dm} - {name_dm}",
             update_interval=timedelta(seconds=scan_interval),
         )
+        # Set config_entry so async_config_entry_first_refresh works (HA 2024.8+)
+        self.config_entry = config_entry
 
     async def async_shutdown(self) -> None:
         """Shutdown the coordinator and cleanup resources.
@@ -267,61 +255,7 @@ async def async_setup_entry(
         from .trip_sensor import async_setup_entry as trip_setup
 
         return await trip_setup(hass, config_entry, async_add_entities)
-    # Reuse coordinator created in __init__.py
-    coordinator_key = f"{config_entry.entry_id}_coordinator"
-    coordinator = hass.data[DOMAIN].get(coordinator_key)
-
-    if coordinator is None:
-        # Fallback: create coordinator if not found (shouldn't happen in normal flow)
-        provider = config_entry.data.get(CONF_PROVIDER, PROVIDER_VRR)
-        place_dm = config_entry.data.get("place_dm", DEFAULT_PLACE)
-        name_dm = config_entry.data.get("name_dm", DEFAULT_NAME)
-        station_id = config_entry.data.get(CONF_STATION_ID)
-        trafiklab_api_key = config_entry.data.get(CONF_TRAFIKLAB_API_KEY)
-        nta_api_key = config_entry.data.get(CONF_NTA_API_KEY)
-        vbn_api_key = config_entry.data.get(CONF_VBN_API_KEY)
-
-        # Use appropriate API key based on provider
-        opt_api_key = config_entry.data.get("opt_api_key")
-        otp_custom_api_key = config_entry.data.get("otp_custom_api_key")
-        otp_custom_url = config_entry.data.get(CONF_OTP_BASE_URL)
-
-        api_key = None
-        custom_url = None
-        if provider == PROVIDER_TRAFIKLAB_SE:
-            api_key = trafiklab_api_key
-        elif provider == PROVIDER_NTA_IE:
-            api_key = nta_api_key
-        elif provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
-            api_key = vbn_api_key
-        elif provider == PROVIDER_OPT:
-            api_key = opt_api_key
-        elif provider == PROVIDER_OTP_CUSTOM:
-            api_key = otp_custom_api_key
-            custom_url = otp_custom_url
-
-        departures = config_entry.options.get(
-            CONF_DEPARTURES, config_entry.data.get(CONF_DEPARTURES, DEFAULT_DEPARTURES)
-        )
-        scan_interval = config_entry.options.get(
-            CONF_SCAN_INTERVAL, config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-        )
-
-        coordinator = PublicTransportDataUpdateCoordinator(
-            hass,
-            provider,
-            place_dm,
-            name_dm,
-            station_id,
-            departures,
-            scan_interval,
-            config_entry=config_entry,
-            api_key=api_key,
-            custom_url=custom_url,
-        )
-        hass.data.setdefault(DOMAIN, {})
-        hass.data[DOMAIN][coordinator_key] = coordinator
-        await coordinator.async_refresh()
+    coordinator = config_entry.runtime_data
 
     # Use options if available, otherwise fall back to data
     transportation_types = config_entry.options.get(

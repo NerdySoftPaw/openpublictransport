@@ -170,3 +170,49 @@ async def test_async_setup_entry_calls_coordinator_refresh(hass: HomeAssistant):
             result = await async_setup_entry(hass, entry)
 
     assert result is True
+
+
+async def test_async_remove_config_entry_device_stale(hass: HomeAssistant):
+    """Test stale device (different identifier) can be removed."""
+    from custom_components.openpublictransport import async_remove_config_entry_device
+    from custom_components.openpublictransport.const import CONF_STATION_ID, PROVIDER_VRR
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_PROVIDER: PROVIDER_VRR,
+            CONF_STATION_ID: "de:05111:21",
+            "place_dm": "Düsseldorf",
+            "name_dm": "Hauptbahnhof",
+        },
+    )
+    entry.add_to_hass(hass)
+
+    stale_device = MagicMock()
+    stale_device.identifiers = {(DOMAIN, "vrr_old_station_key")}
+
+    result = await async_remove_config_entry_device(hass, entry, stale_device)
+    assert result is True
+
+
+async def test_async_remove_config_entry_device_current(hass: HomeAssistant):
+    """Test current device cannot be removed."""
+    from custom_components.openpublictransport import async_remove_config_entry_device
+    from custom_components.openpublictransport.const import CONF_STATION_ID, PROVIDER_VRR
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_PROVIDER: PROVIDER_VRR,
+            CONF_STATION_ID: "de:05111:21",
+            "place_dm": "Düsseldorf",
+            "name_dm": "Hauptbahnhof",
+        },
+    )
+    entry.add_to_hass(hass)
+
+    current_device = MagicMock()
+    current_device.identifiers = {(DOMAIN, "vrr_de:05111:21")}
+
+    result = await async_remove_config_entry_device(hass, entry, current_device)
+    assert result is False

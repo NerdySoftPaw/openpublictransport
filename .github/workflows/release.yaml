@@ -7,16 +7,13 @@ on:
 permissions:
   contents: write
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   release:
     runs-on: ubuntu-latest
     name: Prepare Release
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.release.target_commitish }}
 
@@ -26,11 +23,6 @@ jobs:
           zip -r ../../openpublictransport.zip .
 
       - name: Upload release asset
-        uses: actions/upload-release-asset@v1
+        run: gh release upload "${{ github.event.release.tag_name }}" openpublictransport.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./openpublictransport.zip
-          asset_name: openpublictransport.zip
-          asset_content_type: application/zip

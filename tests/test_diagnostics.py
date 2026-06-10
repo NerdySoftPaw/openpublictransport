@@ -26,6 +26,8 @@ async def test_diagnostics(hass: HomeAssistant, mock_config_entry, mock_coordina
     # Verify API stats are included
     assert "api_calls_today" in diagnostics["coordinator"]
     assert "last_update_success" in diagnostics["coordinator"]
+    assert "last_update_success_time" in diagnostics["coordinator"]
+    assert diagnostics["coordinator"]["last_update_success_time"] is None
 
 
 async def test_diagnostics_no_coordinator(hass: HomeAssistant, mock_config_entry):

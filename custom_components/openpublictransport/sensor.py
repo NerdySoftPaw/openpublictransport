@@ -82,6 +82,8 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
             config_entry.data.get(CONF_NTA_API_KEY_SECONDARY) if config_entry and provider == PROVIDER_NTA_IE else None
         )
 
+        self.last_update_success_time: Optional[datetime] = None
+
         # Provider is initialized lazily on first update to avoid creating
         # an aiohttp session (and its thread pool) before any data is fetched.
         self.provider_instance = None
@@ -193,6 +195,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
             data = await self._fetch_departures()
             if data and isinstance(data, dict):
                 self._api_calls_today += 1
+                self.last_update_success_time = dt_util.now()
                 if not self.last_update_success:
                     _LOGGER.info("%s: connection re-established", self.provider)
                 ir.async_delete_issue(self.hass, DOMAIN, f"api_error_{self.provider}")

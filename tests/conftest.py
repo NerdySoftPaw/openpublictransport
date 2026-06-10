@@ -80,6 +80,7 @@ def mock_coordinator(mock_api_response):
     coordinator = MagicMock()
     coordinator.data = mock_api_response
     coordinator.last_update_success = True
+    coordinator.last_update_success_time = None
     coordinator.provider = PROVIDER_VRR
     coordinator.place_dm = "Düsseldorf"
     coordinator.name_dm = "Hauptbahnhof"

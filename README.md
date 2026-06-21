@@ -80,15 +80,13 @@ Real-time public transport departures for Home Assistant — 28 providers across
 ### Install via HACS
 
 1. Open **HACS** → **Integrations**
-2. Click the three dots → **Custom repositories**
-3. Add `https://github.com/NerdySoftPaw/openpublictransport` (category: Integration)
-4. Search for **"Public Transport Departures"** and install
-5. Restart Home Assistant
+2. Search for **"OpenPublicTransport"** and click **Download**
+3. Restart Home Assistant
 
 ### Configure
 
 1. **Settings** → **Devices & Services** → **Add Integration**
-2. Search for **"Public Transport Departures"**
+2. Search for **"OpenPublicTransport"**
 3. Pick your provider, search for your stop, done
 
 No YAML needed. Setup takes under 2 minutes.

@@ -19,6 +19,7 @@ from openpublictransport import AuthenticationError, get_provider
 from .const import (
     API_RATE_LIMIT_PER_DAY,
     CONF_DEPARTURES,
+    CONF_DESTINATION_FILTER,
     CONF_FAVORITE_LINES,
     CONF_LINE_FILTER,
     CONF_NTA_API_KEY_SECONDARY,
@@ -311,6 +312,14 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
             {line.strip().lower() for line in line_filter_str.split(",") if line.strip()} if line_filter_str else set()
         )
 
+        # Get destination filter from options/data (substring match, case-insensitive)
+        dest_filter_str = config_entry.options.get(
+            CONF_DESTINATION_FILTER, config_entry.data.get(CONF_DESTINATION_FILTER, "")
+        )
+        self._destination_filter: list[str] = (
+            [d.strip().lower() for d in dest_filter_str.split(",") if d.strip()] if dest_filter_str else []
+        )
+
         # Get favorite lines from options/data
         fav_str = config_entry.options.get(CONF_FAVORITE_LINES, config_entry.data.get(CONF_FAVORITE_LINES, ""))
         self._favorite_lines: set[str] = (
@@ -507,8 +516,13 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
             dep = provider_instance.parse_departure(stop, tz, now)
             # Filter by configured transportation types and line filter
             if dep and dep.transportation_type in transport_types_set:
-                if not self._line_filter or dep.line.lower() in self._line_filter:
-                    departures.append(dep)
+                if self._line_filter and dep.line.lower() not in self._line_filter:
+                    continue
+                if self._destination_filter and not any(
+                    term in (dep.destination or "").lower() for term in self._destination_filter
+                ):
+                    continue
+                departures.append(dep)
 
         # Sort: favorites first (by time), then rest (by time)
         if self._favorite_lines:

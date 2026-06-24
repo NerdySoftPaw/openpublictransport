@@ -74,6 +74,7 @@
           "use_provider_logo": "Afficher le logo du fournisseur",
           "delay_threshold": "Seuil de retard (minutes)",
           "line_filter": "Filtre de lignes",
+          "destination_filter": "Filtre de destination",
           "walking_time": "Temps de marche (minutes)",
           "favorite_lines": "Lignes favorites"
         },
@@ -84,6 +85,7 @@
           "use_provider_logo": "Afficher le logo du fournisseur au lieu de l'icône du type de transport",
           "delay_threshold": "Retard minimum en minutes pour déclencher le capteur de retard (1-30)",
           "line_filter": "Afficher uniquement certaines lignes, séparées par des virgules (ex. U79, RE5, Bus 42). Vide = toutes les lignes",
+          "destination_filter": "Afficher uniquement les départs dont la destination correspond, séparés par des virgules, correspondance partielle (ex. Duisburg, Aéroport). Vide = toutes les destinations",
           "walking_time": "Temps de marche jusqu'à l'arrêt en minutes (0 = désactivé). Les départs qui ne peuvent plus être atteints sont masqués",
           "favorite_lines": "Lignes à afficher en premier, séparées par des virgules (ex. U79, RE5). Vide = pas de favoris"
         }
@@ -142,6 +144,7 @@
           "use_provider_logo": "Afficher le logo du fournisseur",
           "delay_threshold": "Seuil de retard (minutes)",
           "line_filter": "Filtre de lignes",
+          "destination_filter": "Filtre de destination",
           "walking_time": "Temps de marche (minutes)",
           "favorite_lines": "Lignes favorites"
         },
@@ -149,6 +152,7 @@
           "use_provider_logo": "Afficher le logo du fournisseur au lieu de l'icône du type de transport",
           "delay_threshold": "Retard minimum en minutes pour déclencher le capteur de retard (1-30)",
           "line_filter": "Afficher uniquement certaines lignes, séparées par des virgules (ex. U79, RE5, Bus 42). Vide = toutes les lignes",
+          "destination_filter": "Afficher uniquement les départs dont la destination correspond, séparés par des virgules, correspondance partielle (ex. Duisburg, Aéroport). Vide = toutes les destinations",
           "walking_time": "Temps de marche jusqu'à l'arrêt en minutes (0 = désactivé). Les départs qui ne peuvent plus être atteints sont masqués",
           "favorite_lines": "Lignes à afficher en premier, séparées par des virgules (ex. U79, RE5). Vide = pas de favoris"
         }

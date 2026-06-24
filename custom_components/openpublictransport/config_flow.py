@@ -25,6 +25,7 @@ from openpublictransport import get_provider, get_provider_class
 from .const import (
     CONF_DELAY_THRESHOLD,
     CONF_DEPARTURES,
+    CONF_DESTINATION_FILTER,
     CONF_FAVORITE_LINES,
     CONF_LINE_FILTER,
     CONF_NTA_API_KEY,
@@ -669,6 +670,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     int, vol.Range(min=1, max=30)
                 ),
                 vol.Optional(CONF_LINE_FILTER, default=""): str,
+                vol.Optional(CONF_DESTINATION_FILTER, default=""): str,
                 vol.Optional(CONF_FAVORITE_LINES, default=""): str,
                 vol.Optional(CONF_WALKING_TIME, default=0): vol.All(int, vol.Range(min=0, max=30)),
             }
@@ -1801,6 +1803,10 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
             CONF_LINE_FILTER,
             self.config_entry.data.get(CONF_LINE_FILTER, ""),
         )
+        current_destination_filter = self.config_entry.options.get(
+            CONF_DESTINATION_FILTER,
+            self.config_entry.data.get(CONF_DESTINATION_FILTER, ""),
+        )
         current_walking_time = self.config_entry.options.get(
             CONF_WALKING_TIME,
             self.config_entry.data.get(CONF_WALKING_TIME, 0),
@@ -1820,6 +1826,7 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
                     int, vol.Range(min=1, max=30)
                 ),
                 vol.Optional(CONF_LINE_FILTER, default=current_line_filter): str,
+                vol.Optional(CONF_DESTINATION_FILTER, default=current_destination_filter): str,
                 vol.Optional(
                     CONF_FAVORITE_LINES,
                     default=self.config_entry.options.get(

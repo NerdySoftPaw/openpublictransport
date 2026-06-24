@@ -241,3 +241,79 @@ async def test_sensor_transportation_type_filtering(hass: HomeAssistant, mock_co
     departures = sensor._attributes.get("departures", [])
     assert len(departures) == 1
     assert departures[0]["transportation_type"] == "tram"
+
+
+async def test_sensor_destination_filtering(hass: HomeAssistant):
+    """Test filtering departures by destination (case-insensitive substring)."""
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.openpublictransport.const import (
+        CONF_DESTINATION_FILTER,
+        CONF_PROVIDER,
+        CONF_STATION_ID,
+    )
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Test Station",
+        data={
+            CONF_PROVIDER: PROVIDER_VRR,
+            "place_dm": "Düsseldorf",
+            "name_dm": "Hauptbahnhof",
+            CONF_STATION_ID: None,
+        },
+        options={CONF_DESTINATION_FILTER: "duisburg"},
+        unique_id="vrr_dest_filter",
+    )
+    entry.add_to_hass(hass)
+
+    coordinator = MagicMock()
+    coordinator.data = {
+        "stopEvents": [
+            {
+                "departureTimePlanned": "2025-01-15T10:00:00Z",
+                "departureTimeEstimated": "2025-01-15T10:00:00Z",
+                "transportation": {
+                    "number": "U79",
+                    "destination": {"name": "Duisburg Hbf"},
+                    "description": "Tram",
+                    "product": {"class": 4, "name": "Tram"},
+                },
+                "platform": {"name": "2"},
+                "realtimeStatus": ["MONITORED"],
+            },
+            {
+                "departureTimePlanned": "2025-01-15T10:05:00Z",
+                "departureTimeEstimated": "2025-01-15T10:05:00Z",
+                "transportation": {
+                    "number": "721",
+                    "destination": {"name": "Krefeld"},
+                    "description": "Bus",
+                    "product": {"class": 5, "name": "Bus"},
+                },
+                "platform": {"name": "5"},
+                "realtimeStatus": ["MONITORED"],
+            },
+        ]
+    }
+    coordinator.last_update_success = True
+    coordinator.provider = PROVIDER_VRR
+    coordinator.place_dm = "Düsseldorf"
+    coordinator.name_dm = "Hauptbahnhof"
+    coordinator.station_id = None
+    coordinator.departures_limit = 10
+
+    from openpublictransport import get_provider
+
+    coordinator.provider_instance = get_provider(PROVIDER_VRR, hass)
+
+    sensor = MultiProviderSensor(coordinator, entry, ["bus", "tram"])
+
+    with patch("custom_components.openpublictransport.sensor.dt_util.now") as mock_now:
+        mock_now.return_value = dt_util.parse_datetime("2025-01-15T09:55:00Z")
+        sensor._process_departure_data(coordinator.data)
+
+    # Only the "Duisburg Hbf" departure matches the "duisburg" substring filter
+    departures = sensor._attributes.get("departures", [])
+    assert len(departures) == 1
+    assert departures[0]["destination"] == "Duisburg Hbf"

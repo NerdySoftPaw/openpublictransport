@@ -68,7 +68,7 @@ Real-time public transport departures for Home Assistant — 28 providers across
 - **Reconfigure without re-setup** — change your station anytime via ⚙️ → Reconfigure
 - **Walking time** — hides departures you can't reach on foot
 - **Fuzzy stop search** — handles typos and umlaut variations
-- **Line filtering & favorites** — show only the lines you use
+- **Line & destination filtering & favorites** — show only the lines or directions you use
 - **Departure board camera** — classic yellow-on-black station display
 - **7 languages** — DE, EN, FR, NL, PL, IT, SV
 - **Custom Lovelace card** — [openpublictransport-card](https://github.com/NerdySoftPaw/openpublictransport-card) with table, compact, and trip layouts

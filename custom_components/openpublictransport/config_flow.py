@@ -772,6 +772,22 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                         errors={"base": "vbn_api_key_required"},
                     )
                 data[CONF_VBN_API_KEY] = self._api_key
+            elif self._provider == PROVIDER_NATIONAL_RAIL:
+                if not self._api_key:
+                    return self.async_show_form(
+                        step_id="settings",
+                        data_schema=schema,
+                        errors={"base": "national_rail_api_key_required"},
+                    )
+                data[CONF_NATIONAL_RAIL_API_KEY] = self._api_key
+            elif self._provider == PROVIDER_REJSEPLANEN:
+                if not self._api_key:
+                    return self.async_show_form(
+                        step_id="settings",
+                        data_schema=schema,
+                        errors={"base": "rejseplanen_api_key_required"},
+                    )
+                data[CONF_REJSEPLANEN_API_KEY] = self._api_key
             elif self._provider == PROVIDER_OPT:
                 if self._api_key:
                     data[CONF_OPT_API_KEY] = self._api_key

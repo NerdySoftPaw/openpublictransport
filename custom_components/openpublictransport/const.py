@@ -105,46 +105,8 @@ API_BASE_URL_KVV = "https://projekte.kvv-efa.de/sl3-alone/XSLT_DM_REQUEST"
 API_BASE_URL_HVV = "https://hvv.efa.de/efa/XML_DM_REQUEST"
 API_BASE_URL_TRAFIKLAB = "https://realtime-api.trafiklab.se/v1"
 API_BASE_URL_NTA_GTFSR = "https://api.nationaltransport.ie/gtfsr"
-# Mapping für KVV
-KVV_TRANSPORTATION_TYPES = {
-    1: "train",  # S-Bahn
-    4: "tram",  # Straßenbahn
-    5: "bus",  # Bus
-}
-
-HVV_TRANSPORTATION_TYPES = {
-    0: "train",  # Zug, S-Bahn
-    1: "train",  # U-Bahn
-    2: "subway",  # U-Bahn
-    3: "bus",  # Bus
-    4: "tram",  # Straßenbahn
-    5: "bus",  # Bus, Metrobus
-    6: "ferry",  # Fähre
-    7: "on_demand",  # Rufbus, On-Demand
-    # ... ergänzen je nach Bedarf und API
-}
-
-# Mapping für Trafiklab (Sweden)
-TRAFIKLAB_TRANSPORTATION_TYPES = {
-    "BUS": "bus",
-    "TRAIN": "train",
-    "TRAM": "tram",
-    "METRO": "subway",
-    "FERRY": "ferry",
-}
-
-# Mapping für NTA Ireland (GTFS route_type)
-# GTFS route_type: 0=Tram, 1=Subway, 2=Rail, 3=Bus, 4=Ferry, 5=Cable tram, 6=Gondola, 7=Funicular
-NTA_TRANSPORTATION_TYPES = {
-    0: "tram",  # Tram, Streetcar, Light rail
-    1: "subway",  # Subway, Metro
-    2: "train",  # Rail
-    3: "bus",  # Bus
-    4: "ferry",  # Ferry
-    5: "tram",  # Cable tram
-    6: "tram",  # Gondola, Suspended cable car
-    7: "train",  # Funicular
-}
+# Note: per-provider product-class mappings live in the python-openpublictransport
+# library (each provider's get_transport_type_mapping); they are not duplicated here.
 
 # Provider-specific icons (MDI icons as fallback)
 PROVIDER_ICONS = {

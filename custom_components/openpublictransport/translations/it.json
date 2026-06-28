@@ -74,6 +74,7 @@
           "use_provider_logo": "Mostra il logo del fornitore",
           "delay_threshold": "Soglia di ritardo (minuti)",
           "line_filter": "Filtro linee",
+          "destination_filter": "Filtro destinazione",
           "walking_time": "Tempo a piedi (minuti)",
           "favorite_lines": "Linee preferite"
         },
@@ -84,6 +85,7 @@
           "use_provider_logo": "Mostra il logo del fornitore al posto dell'icona del tipo di trasporto",
           "delay_threshold": "Ritardo minimo in minuti per attivare il sensore di ritardo (1-30)",
           "line_filter": "Mostra solo linee specifiche, separate da virgole (es. U79, RE5, Bus 42). Vuoto = tutte le linee",
+          "destination_filter": "Mostra solo le partenze con destinazione corrispondente, separate da virgola, corrispondenza parziale (es. Duisburg, Aeroporto). Vuoto = tutte le destinazioni",
           "walking_time": "Tempo a piedi fino alla fermata in minuti (0 = disattivato). Le partenze non più raggiungibili vengono nascoste",
           "favorite_lines": "Linee da mostrare per prime, separate da virgole (es. U79, RE5). Vuoto = nessun preferito"
         }
@@ -142,6 +144,7 @@
           "use_provider_logo": "Mostra il logo del fornitore",
           "delay_threshold": "Soglia di ritardo (minuti)",
           "line_filter": "Filtro linee",
+          "destination_filter": "Filtro destinazione",
           "walking_time": "Tempo a piedi (minuti)",
           "favorite_lines": "Linee preferite"
         },
@@ -149,9 +152,37 @@
           "use_provider_logo": "Mostra il logo del fornitore al posto dell'icona del tipo di trasporto",
           "delay_threshold": "Ritardo minimo in minuti per attivare il sensore di ritardo (1-30)",
           "line_filter": "Mostra solo linee specifiche, separate da virgole (es. U79, RE5, Bus 42). Vuoto = tutte le linee",
+          "destination_filter": "Mostra solo le partenze con destinazione corrispondente, separate da virgola, corrispondenza parziale (es. Duisburg, Aeroporto). Vuoto = tutte le destinazioni",
           "walking_time": "Tempo a piedi fino alla fermata in minuti (0 = disattivato). Le partenze non più raggiungibili vengono nascoste",
           "favorite_lines": "Linee da mostrare per prime, separate da virgole (es. U79, RE5). Vuoto = nessun preferito"
         }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "delays": {
+        "name": "Ritardi"
+      }
+    },
+    "sensor": {
+      "punctuality": {
+        "name": "Puntualità"
+      }
+    },
+    "calendar": {
+      "schedule": {
+        "name": "Orario"
+      }
+    },
+    "event": {
+      "disruptions": {
+        "name": "Interruzioni"
+      }
+    },
+    "camera": {
+      "board": {
+        "name": "Tabellone partenze"
       }
     }
   },

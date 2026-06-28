@@ -5,6 +5,12 @@ from unittest.mock import AsyncMock, MagicMock
 import aiohttp
 import pytest
 from homeassistant.util import dt as dt_util
+from openpublictransport import get_provider
+from openpublictransport.providers.hvv import HVVProvider
+from openpublictransport.providers.kvv import KVVProvider
+from openpublictransport.providers.nta import NTAProvider
+from openpublictransport.providers.trafiklab import TrafiklabProvider
+from openpublictransport.providers.vrr import VRRProvider
 
 from custom_components.openpublictransport.const import (
     PROVIDER_HVV,
@@ -13,12 +19,6 @@ from custom_components.openpublictransport.const import (
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_VRR,
 )
-from openpublictransport import get_provider
-from openpublictransport.providers.hvv import HVVProvider
-from openpublictransport.providers.kvv import KVVProvider
-from openpublictransport.providers.nta import NTAProvider
-from openpublictransport.providers.trafiklab import TrafiklabProvider
-from openpublictransport.providers.vrr import VRRProvider
 
 
 @pytest.fixture

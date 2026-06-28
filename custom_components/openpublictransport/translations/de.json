@@ -73,6 +73,7 @@
           "use_provider_logo": "Anbieter-Logo anzeigen",
           "delay_threshold": "Verspätungs-Schwellwert (Minuten)",
           "line_filter": "Linien-Filter",
+          "destination_filter": "Ziel-Filter",
           "walking_time": "Fußweg (Minuten)",
           "favorite_lines": "Favoriten-Linien"
         },
@@ -83,6 +84,7 @@
           "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
           "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)",
           "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien",
+          "destination_filter": "Nur Abfahrten mit passendem Ziel anzeigen, kommagetrennt, Teiltreffer (z.B. Duisburg, Flughafen). Leer = alle Ziele",
           "walking_time": "Fußweg zur Haltestelle in Minuten (0 = deaktiviert). Abfahrten die nicht mehr erreichbar sind werden ausgeblendet",
           "favorite_lines": "Kommagetrennte Linien, die zuerst angezeigt werden (z.B. U79, RE5). Leer = keine Favoriten"
         }
@@ -142,6 +144,7 @@
           "use_provider_logo": "Anbieter-Logo anzeigen",
           "delay_threshold": "Verspätungs-Schwellwert (Minuten)",
           "line_filter": "Linien-Filter",
+          "destination_filter": "Ziel-Filter",
           "walking_time": "Fußweg (Minuten)",
           "favorite_lines": "Favoriten-Linien"
         },
@@ -149,9 +152,37 @@
           "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
           "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)",
           "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien",
+          "destination_filter": "Nur Abfahrten mit passendem Ziel anzeigen, kommagetrennt, Teiltreffer (z.B. Duisburg, Flughafen). Leer = alle Ziele",
           "walking_time": "Fußweg zur Haltestelle in Minuten (0 = deaktiviert). Abfahrten die nicht mehr erreichbar sind werden ausgeblendet",
           "favorite_lines": "Kommagetrennte Linien, die zuerst angezeigt werden (z.B. U79, RE5). Leer = keine Favoriten"
         }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "delays": {
+        "name": "Verspätungen"
+      }
+    },
+    "sensor": {
+      "punctuality": {
+        "name": "Pünktlichkeit"
+      }
+    },
+    "calendar": {
+      "schedule": {
+        "name": "Fahrplan"
+      }
+    },
+    "event": {
+      "disruptions": {
+        "name": "Störungen"
+      }
+    },
+    "camera": {
+      "board": {
+        "name": "Abfahrtstafel"
       }
     }
   },

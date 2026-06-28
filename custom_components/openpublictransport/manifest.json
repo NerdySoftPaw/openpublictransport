@@ -12,11 +12,11 @@
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/NerdySoftPaw/openpublictransport/issues",
-  "quality_scale": "bronze",
+  "quality_scale": "silver",
   "requirements": [
-    "python-openpublictransport==0.1.3",
+    "python-openpublictransport==0.1.6",
     "aiofiles",
     "gtfs-realtime-bindings>=1.0.0"
   ],
-  "version": "2026.6.8"
+  "version": "2026.6.15"
 }

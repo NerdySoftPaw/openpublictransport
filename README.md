@@ -1,4 +1,4 @@
-![logo]
+![openpublictransport logo][logo]
 
 # openpublictransport
 
@@ -18,8 +18,10 @@ Real-time public transport departures for Home Assistant — 28 providers across
 **Website**: [openpublictransport.net](https://openpublictransport.net) | **Docs**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
 > **Coming from VRRAPI-HACS or hacs-publictransport?**
-> The domain changed from `vrr` to `openpublictransport` — entity IDs and services have new names.
+> The domain changed from `vrr` to `openpublictransport` — entity IDs and actions have new names.
 > See the [Migration Guide](https://docs.openpublictransport.net/latest/migration/) for step-by-step instructions.
+
+---
 
 ## Supported Providers (28)
 
@@ -54,37 +56,59 @@ Real-time public transport departures for Home Assistant — 28 providers across
 | **VVO** | Dresden | No | No |
 | **VVS** | Stuttgart | No | Yes |
 
+---
+
 ## Features
 
 - **Real-time departures** with delay tracking, platform changes, and disruption notices
 - **28 transit providers** — most require no API key
 - **Trip planner** — A-to-B routes with transfer risk assessment
-- **7 entity types** — sensor, binary sensor, calendar, event, camera, trip sensor, statistics
-- **4 services** — refresh_departures, plan_trip, check_delays, announce_departure (TTS)
-- **Walking time** — hides departures you can't reach
+- **8 entity types**: sensor, binary sensor, calendar, event, camera, trip sensor, statistics, multi-stop
+- **4 actions** — refresh_departures, plan_trip, check_delays, announce_departure (TTS)
+- **Reconfigure without re-setup** — change your station anytime via ⚙️ → Reconfigure
+- **Walking time** — hides departures you can't reach on foot
 - **Fuzzy stop search** — handles typos and umlaut variations
-- **Line filtering & favorites** — show only the lines you use
-- **Camera departure board** — classic yellow-on-black station display
+- **Line & destination filtering & favorites** — show only the lines or directions you use
+- **Departure board camera** — classic yellow-on-black station display
 - **7 languages** — DE, EN, FR, NL, PL, IT, SV
 - **Custom Lovelace card** — [openpublictransport-card](https://github.com/NerdySoftPaw/openpublictransport-card) with table, compact, and trip layouts
+
+---
 
 ## Quick Start
 
 ### Install via HACS
 
-1. Open **HACS** > **Integrations**
-2. Click the three dots > **Custom repositories**
-3. Add: `https://github.com/NerdySoftPaw/openpublictransport` (category: Integration)
-4. Search for "Public Transport Departures" and install
-5. Restart Home Assistant
+1. Open **HACS** → **Integrations**
+2. Search for **"OpenPublicTransport"** and click **Download**
+3. Restart Home Assistant
 
 ### Configure
 
-1. Go to **Settings** > **Devices & Services** > **Add Integration**
-2. Search for "Public Transport Departures"
+1. **Settings** → **Devices & Services** → **Add Integration**
+2. Search for **"OpenPublicTransport"**
 3. Pick your provider, search for your stop, done
 
 No YAML needed. Setup takes under 2 minutes.
+
+---
+
+## Entities
+
+Each configured stop creates a device with the following entities:
+
+| Entity | Type | Enabled by default |
+|--------|------|--------------------|
+| Departures | Sensor | ✅ |
+| Delays | Binary Sensor (diagnostic) | ✅ |
+| Schedule | Calendar | ❌ |
+| Disruptions | Event | ❌ |
+| Board | Camera | ❌ |
+| Punctuality | Sensor (diagnostic) | ❌ |
+
+Calendar, event, camera, and punctuality entities are **disabled by default** to keep dashboards clean. Enable them individually via **Settings → Devices & Services → [your stop] → entities**.
+
+---
 
 ## Dashboard Card
 
@@ -92,18 +116,20 @@ Install the [openpublictransport-card](https://github.com/NerdySoftPaw/openpubli
 
 ```yaml
 type: custom:openpublictransport-card
-entity: sensor.YOUR_STOP_HERE
+entity: sensor.your_stop_here
 layout: table  # or: compact, trip
 ```
 
-## Services
+---
+
+## Actions
 
 ```yaml
-# Refresh departures
-service: openpublictransport.refresh_departures
+# Refresh departures manually
+action: openpublictransport.refresh_departures
 
-# Plan a trip
-service: openpublictransport.plan_trip
+# Plan a trip (A → B)
+action: openpublictransport.plan_trip
 data:
   provider: vrr
   origin: Hauptbahnhof
@@ -111,18 +137,48 @@ data:
   destination: Hauptbahnhof
   destination_city: Köln
 
-# Check delays
-service: openpublictransport.check_delays
+# Check delays on a stop
+action: openpublictransport.check_delays
 data:
-  entity_id: sensor.YOUR_STOP_HERE
+  entity_id: sensor.your_stop_here
   delay_threshold: 5
 
-# TTS announcement
-service: openpublictransport.announce_departure
+# TTS announcement (reads next departure aloud)
+action: openpublictransport.announce_departure
 data:
-  entity_id: sensor.YOUR_STOP_HERE
+  entity_id: sensor.your_stop_here
   index: 0
 ```
+
+---
+
+## Automation Examples
+
+```yaml
+# Notify when your train is delayed
+automation:
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.hbf_delays
+      to: "on"
+  action:
+    - action: notify.mobile_app_phone
+      data:
+        message: "Delays at Hbf — check the app"
+
+# Announce next departure at 7:30
+automation:
+  trigger:
+    - platform: time
+      at: "07:30:00"
+  action:
+    - action: openpublictransport.announce_departure
+      data:
+        entity_id: sensor.hbf_departures
+        index: 0
+```
+
+---
 
 ## Documentation
 
@@ -131,21 +187,30 @@ Full documentation at **[docs.openpublictransport.net](https://docs.openpublictr
 - [Configuration](https://docs.openpublictransport.net/latest/configuration/)
 - [Providers](https://docs.openpublictransport.net/latest/providers/)
 - [Sensors & Attributes](https://docs.openpublictransport.net/latest/sensors/)
-- [Services](https://docs.openpublictransport.net/latest/services/)
+- [Actions](https://docs.openpublictransport.net/latest/services/)
 - [Trip Planner](https://docs.openpublictransport.net/latest/trip-planner/)
 - [Dashboard Examples](https://docs.openpublictransport.net/latest/dashboard/)
 - [Automations](https://docs.openpublictransport.net/latest/automations/)
 - [Migration Guide](https://docs.openpublictransport.net/latest/migration/)
 
+---
+
 ## Contributing
 
-Contributions welcome! Fork, branch, test, PR. See the [docs](https://docs.openpublictransport.net/) for architecture details.
+Contributions welcome — fork, branch, test, PR.
+
+```bash
+pip install pytest pytest-homeassistant-custom-component pytest-asyncio aiofiles gtfs-realtime-bindings
+pytest tests/ -v
+```
+
+---
 
 ## License
 
 MIT License
 
-<!-- Links -->
+<!-- Badges -->
 [releases-shield]: https://img.shields.io/github/release/NerdySoftPaw/openpublictransport.svg?style=for-the-badge
 [releases]: https://github.com/NerdySoftPaw/openpublictransport/releases
 [commits-shield]: https://img.shields.io/github/commit-activity/y/NerdySoftPaw/openpublictransport.svg?style=for-the-badge
@@ -154,4 +219,4 @@ MIT License
 [maintenance-shield]: https://img.shields.io/badge/maintainer-NerdySoftPaw-blue.svg?style=for-the-badge
 [hacsbadge]: https://img.shields.io/badge/HACS-Default-blue.svg?style=for-the-badge
 [hacs]: https://github.com/hacs/integration
-[logo]: img/logo.png
+[logo]: brand/logo.png

@@ -13,12 +13,8 @@
 
 1. Open HACS in Home Assistant
 2. Go to **Integrations**
-3. Click the three dots in the top right and select **Custom repositories**
-4. Add this repository URL: `https://github.com/NerdySoftPaw/openpublictransport`
-5. Select **Integration** as category
-6. Click **Add**
-7. Search for "Public" and install the integration
-8. Restart Home Assistant
+3. Search for **"OpenPublicTransport"** and click **Download**
+4. Restart Home Assistant
 
 !!! tip
     After installation, the integration will appear in your list of available integrations.
@@ -68,7 +64,7 @@ After restarting Home Assistant:
 
 1. Go to **Settings** > **Devices & Services**
 2. Click **+ Add Integration**
-3. Search for "Public Transport Departures"
+3. Search for "OpenPublicTransport"
 
 If the integration appears in the list, installation was successful.
 

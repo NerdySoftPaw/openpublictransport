@@ -74,6 +74,7 @@
           "use_provider_logo": "Anbieter-Logo anzeigen",
           "delay_threshold": "Verspätungs-Schwellwert (Minuten)",
           "line_filter": "Linien-Filter",
+          "destination_filter": "Ziel-Filter",
           "walking_time": "Fußweg (Minuten)",
           "favorite_lines": "Favoriten-Linien"
         },
@@ -84,6 +85,7 @@
           "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
           "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)",
           "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien",
+          "destination_filter": "Nur Abfahrten mit passendem Ziel anzeigen, kommagetrennt, Teiltreffer (z.B. Duisburg, Flughafen). Leer = alle Ziele",
           "walking_time": "Fußweg zur Haltestelle in Minuten (0 = deaktiviert). Abfahrten die nicht mehr erreichbar sind werden ausgeblendet",
           "favorite_lines": "Kommagetrennte Linien, die zuerst angezeigt werden (z.B. U79, RE5). Leer = keine Favoriten"
         }
@@ -116,6 +118,20 @@
         "data": {
           "scan_interval": "Update-Intervall (Sekunden)"
         }
+      },
+      "reauth_confirm": {
+        "title": "API-Schlüssel erneuern",
+        "description": "{info}",
+        "data": {
+          "trafiklab_api_key": "Trafiklab API-Schlüssel",
+          "rmv_api_key": "RMV API-Schlüssel",
+          "vbn_api_key": "VBN API-Schlüssel",
+          "nta_api_key": "NTA API-Schlüssel (primär)",
+          "nta_api_key_secondary": "NTA API-Schlüssel (sekundär, optional)",
+          "opt_api_key": "API-Schlüssel",
+          "otp_base_url": "OTP2-Server-URL",
+          "otp_custom_api_key": "API-Schlüssel (optional)"
+        }
       }
     },
     "error": {
@@ -129,6 +145,11 @@
       "nta_api_key_required": "NTA API-Schlüssel ist erforderlich",
       "rmv_api_key_required": "RMV API-Schlüssel ist erforderlich",
       "min_two_entities": "Bitte mindestens 2 Entity-IDs angeben"
+    },
+    "abort": {
+      "reauth_successful": "API-Schlüssel erfolgreich aktualisiert.",
+      "no_reauth_needed": "Dieser Anbieter benötigt keine Authentifizierung.",
+      "reconfigure_successful": "Haltestelle erfolgreich geändert."
     }
   },
   "options": {
@@ -142,6 +163,7 @@
           "use_provider_logo": "Anbieter-Logo anzeigen",
           "delay_threshold": "Verspätungs-Schwellwert (Minuten)",
           "line_filter": "Linien-Filter",
+          "destination_filter": "Ziel-Filter",
           "walking_time": "Fußweg (Minuten)",
           "favorite_lines": "Favoriten-Linien"
         },
@@ -149,9 +171,37 @@
           "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
           "delay_threshold": "Ab wie vielen Minuten Verspätung soll der Delay-Sensor auslösen? (1-30)",
           "line_filter": "Nur bestimmte Linien anzeigen, kommagetrennt (z.B. U79, RE5, Bus 42). Leer = alle Linien",
+          "destination_filter": "Nur Abfahrten mit passendem Ziel anzeigen, kommagetrennt, Teiltreffer (z.B. Duisburg, Flughafen). Leer = alle Ziele",
           "walking_time": "Fußweg zur Haltestelle in Minuten (0 = deaktiviert). Abfahrten die nicht mehr erreichbar sind werden ausgeblendet",
           "favorite_lines": "Kommagetrennte Linien, die zuerst angezeigt werden (z.B. U79, RE5). Leer = keine Favoriten"
         }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "delays": {
+        "name": "Delays"
+      }
+    },
+    "sensor": {
+      "punctuality": {
+        "name": "Punctuality"
+      }
+    },
+    "calendar": {
+      "schedule": {
+        "name": "Schedule"
+      }
+    },
+    "event": {
+      "disruptions": {
+        "name": "Disruptions"
+      }
+    },
+    "camera": {
+      "board": {
+        "name": "Board"
       }
     }
   },

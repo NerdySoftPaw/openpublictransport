@@ -18,6 +18,7 @@ from homeassistant.util import dt as dt_util
 from .const import DOMAIN
 from .sensor import PublicTransportDataUpdateCoordinator
 
+PARALLEL_UPDATES = 0
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -38,8 +39,10 @@ async def async_setup_entry(
 class DisruptionEventEntity(CoordinatorEntity, EventEntity):
     """Event entity that fires when new disruption notices appear."""
 
+    _attr_entity_registry_enabled_default = False
     _attr_event_types = ["disruption", "platform_change", "info"]
     _attr_has_entity_name = True
+    _attr_translation_key = "disruptions"
 
     def __init__(
         self,
@@ -59,7 +62,6 @@ class DisruptionEventEntity(CoordinatorEntity, EventEntity):
 
         device_name = f"{coordinator.agency_name} - {name_dm}" if coordinator.agency_name else name_dm
         self._attr_unique_id = f"{provider}_{station_key}_disruptions"
-        self._attr_name = "Disruptions"
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"{provider}_{station_key}")},

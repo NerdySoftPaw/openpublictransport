@@ -8,6 +8,8 @@ from homeassistant.components.application_credentials import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
 from .const import (
@@ -146,11 +148,13 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         if entity_id:
             entity_registry = er.async_get(hass)
             entity_entry = entity_registry.async_get(entity_id)
-            if entity_entry and entity_entry.platform == DOMAIN:
-                entry = hass.config_entries.async_get_entry(entity_entry.config_entry_id)
-                coordinator = getattr(entry, "runtime_data", None) if entry else None
-                if coordinator:
-                    await coordinator.async_request_refresh()
+            if not entity_entry or entity_entry.platform != DOMAIN:
+                raise ServiceValidationError(f"Entity {entity_id} not found or not part of {DOMAIN}")
+            entry = hass.config_entries.async_get_entry(entity_entry.config_entry_id)
+            coordinator = getattr(entry, "runtime_data", None) if entry else None
+            if not coordinator:
+                raise HomeAssistantError(f"No coordinator found for {entity_id}")
+            await coordinator.async_request_refresh()
         else:
             entity_registry = er.async_get(hass)
             entities = [e for e in entity_registry.entities.values() if e.platform == DOMAIN]
@@ -194,7 +198,9 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             api_key=api_key,
             custom_url=custom_url,
         )
-        return {"journeys": journeys or []}
+        if journeys is None:
+            raise HomeAssistantError(f"Trip planning failed for provider '{provider}' — check logs for details")
+        return {"journeys": journeys}
 
     async def handle_check_delays(call: ServiceCall) -> dict:
         """Check delays and return delayed departures."""
@@ -203,7 +209,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         line_filter = call.data.get("line", "").strip().lower()
         state_obj = hass.states.get(entity_id)
         if not state_obj:
-            return {"delayed": [], "count": 0}
+            raise ServiceValidationError(f"Entity {entity_id} not found")
         departures = state_obj.attributes.get("departures", [])
         delayed = []
         for dep in departures:
@@ -236,10 +242,12 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         language = call.data.get("language", "de")
         state_obj = hass.states.get(entity_id)
         if not state_obj:
-            return {"text": "Keine Abfahrtsinformationen verfügbar."}
+            raise ServiceValidationError(f"Entity {entity_id} not found")
         departures = state_obj.attributes.get("departures", [])
-        if not departures or index >= len(departures):
-            return {"text": "Keine Abfahrten verfügbar."}
+        if not departures:
+            raise ServiceValidationError(f"No departure data available for {entity_id}")
+        if index >= len(departures):
+            raise ServiceValidationError(f"Index {index} out of range — only {len(departures)} departure(s) available")
         dep = departures[index]
         line = dep.get("line", "")
         destination = dep.get("destination", "")
@@ -382,6 +390,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     return True
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    device_entry: dr.DeviceEntry,
+) -> bool:
+    """Allow removal of stale devices not associated with the current config."""
+    provider = config_entry.data.get(CONF_PROVIDER, "")
+    station_id = config_entry.data.get(CONF_STATION_ID)
+    place_dm = config_entry.data.get("place_dm", "")
+    name_dm = config_entry.data.get("name_dm", "")
+    station_key = station_id or f"{place_dm}_{name_dm}".lower().replace(" ", "_")
+    current_identifier = (DOMAIN, f"{provider}_{station_key}")
+    return current_identifier not in device_entry.identifiers
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

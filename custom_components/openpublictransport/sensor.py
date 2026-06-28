@@ -7,17 +7,19 @@ from typing import Any, Dict, List, Optional
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
-from openpublictransport import get_provider
+from openpublictransport import AuthenticationError, get_provider
 
 from .const import (
     API_RATE_LIMIT_PER_DAY,
     CONF_DEPARTURES,
+    CONF_DESTINATION_FILTER,
     CONF_FAVORITE_LINES,
     CONF_LINE_FILTER,
     CONF_NTA_API_KEY_SECONDARY,
@@ -35,6 +37,7 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+PARALLEL_UPDATES = 0
 INTEGRATION_VERSION = json.loads((Path(__file__).parent / "manifest.json").read_text()).get("version", "unknown")
 
 
@@ -79,6 +82,8 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
         self._nta_secondary_key = (
             config_entry.data.get(CONF_NTA_API_KEY_SECONDARY) if config_entry and provider == PROVIDER_NTA_IE else None
         )
+
+        self.last_update_success_time: Optional[datetime] = None
 
         # Provider is initialized lazily on first update to avoid creating
         # an aiohttp session (and its thread pool) before any data is fetched.
@@ -191,14 +196,16 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
             data = await self._fetch_departures()
             if data and isinstance(data, dict):
                 self._api_calls_today += 1
-                # Clear API error repair issue on successful fetch
+                self.last_update_success_time = dt_util.now()
+                if not self.last_update_success:
+                    _LOGGER.info("%s: connection re-established", self.provider)
                 ir.async_delete_issue(self.hass, DOMAIN, f"api_error_{self.provider}")
-                # Adjust polling interval based on results
                 has_departures = bool(data.get("stopEvents"))
                 self._adjust_polling_interval(has_departures)
                 return data
             else:
-                # Create repair issue for invalid API response
+                if self.last_update_success:
+                    _LOGGER.warning("%s: invalid or empty API response — will retry", self.provider)
                 ir.async_create_issue(
                     self.hass,
                     DOMAIN,
@@ -206,15 +213,18 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
                     is_fixable=False,
                     severity=ir.IssueSeverity.ERROR,
                     translation_key="api_error",
-                    translation_placeholders={
-                        "provider": self.provider.upper(),
-                    },
+                    translation_placeholders={"provider": self.provider.upper()},
                 )
                 raise UpdateFailed("Invalid or empty API response")
+        except ConfigEntryAuthFailed:
+            raise
+        except AuthenticationError as err:
+            raise ConfigEntryAuthFailed(str(err)) from err
         except UpdateFailed:
             raise
         except Exception as err:
-            # Create repair issue for API errors
+            if self.last_update_success:
+                _LOGGER.warning("%s: unavailable (%s) — will retry", self.provider, err)
             ir.async_create_issue(
                 self.hass,
                 DOMAIN,
@@ -222,9 +232,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
                 is_fixable=False,
                 severity=ir.IssueSeverity.ERROR,
                 translation_key="api_error",
-                translation_placeholders={
-                    "provider": self.provider.upper(),
-                },
+                translation_placeholders={"provider": self.provider.upper()},
             )
             raise UpdateFailed(f"Error fetching data: {err}")
 
@@ -302,6 +310,14 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
         line_filter_str = config_entry.options.get(CONF_LINE_FILTER, config_entry.data.get(CONF_LINE_FILTER, ""))
         self._line_filter: set[str] = (
             {line.strip().lower() for line in line_filter_str.split(",") if line.strip()} if line_filter_str else set()
+        )
+
+        # Get destination filter from options/data (substring match, case-insensitive)
+        dest_filter_str = config_entry.options.get(
+            CONF_DESTINATION_FILTER, config_entry.data.get(CONF_DESTINATION_FILTER, "")
+        )
+        self._destination_filter: list[str] = (
+            [d.strip().lower() for d in dest_filter_str.split(",") if d.strip()] if dest_filter_str else []
         )
 
         # Get favorite lines from options/data
@@ -500,8 +516,13 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
             dep = provider_instance.parse_departure(stop, tz, now)
             # Filter by configured transportation types and line filter
             if dep and dep.transportation_type in transport_types_set:
-                if not self._line_filter or dep.line.lower() in self._line_filter:
-                    departures.append(dep)
+                if self._line_filter and dep.line.lower() not in self._line_filter:
+                    continue
+                if self._destination_filter and not any(
+                    term in (dep.destination or "").lower() for term in self._destination_filter
+                ):
+                    continue
+                departures.append(dep)
 
         # Sort: favorites first (by time), then rest (by time)
         if self._favorite_lines:

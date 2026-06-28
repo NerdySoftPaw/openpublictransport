@@ -74,6 +74,7 @@
           "use_provider_logo": "Visa leverantörens logotyp",
           "delay_threshold": "Försenigströskel (minuter)",
           "line_filter": "Linjefilter",
+          "destination_filter": "Destinationsfilter",
           "walking_time": "Gångtid (minuter)",
           "favorite_lines": "Favoritlinjer"
         },
@@ -84,6 +85,7 @@
           "use_provider_logo": "Visa leverantörens logotyp istället för transporttypens ikon",
           "delay_threshold": "Minsta försening i minuter för att utlösa förseningssensorn (1-30)",
           "line_filter": "Visa bara specifika linjer, kommaseparerade (t.ex. U79, RE5, Bus 42). Tomt = alla linjer",
+          "destination_filter": "Visa endast avgångar med matchande destination, kommaseparerade, delvis matchning (t.ex. Duisburg, Flygplats). Tomt = alla destinationer",
           "walking_time": "Gångtid till hållplatsen i minuter (0 = inaktiverat). Avgångar som inte längre kan nås döljs",
           "favorite_lines": "Linjer som visas först, kommaseparerade (t.ex. U79, RE5). Tomt = inga favoriter"
         }
@@ -142,6 +144,7 @@
           "use_provider_logo": "Visa leverantörens logotyp",
           "delay_threshold": "Försenigströskel (minuter)",
           "line_filter": "Linjefilter",
+          "destination_filter": "Destinationsfilter",
           "walking_time": "Gångtid (minuter)",
           "favorite_lines": "Favoritlinjer"
         },
@@ -149,9 +152,37 @@
           "use_provider_logo": "Visa leverantörens logotyp istället för transporttypens ikon",
           "delay_threshold": "Minsta försening i minuter för att utlösa förseningssensorn (1-30)",
           "line_filter": "Visa bara specifika linjer, kommaseparerade (t.ex. U79, RE5, Bus 42). Tomt = alla linjer",
+          "destination_filter": "Visa endast avgångar med matchande destination, kommaseparerade, delvis matchning (t.ex. Duisburg, Flygplats). Tomt = alla destinationer",
           "walking_time": "Gångtid till hållplatsen i minuter (0 = inaktiverat). Avgångar som inte längre kan nås döljs",
           "favorite_lines": "Linjer som visas först, kommaseparerade (t.ex. U79, RE5). Tomt = inga favoriter"
         }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "delays": {
+        "name": "Förseningar"
+      }
+    },
+    "sensor": {
+      "punctuality": {
+        "name": "Punktlighet"
+      }
+    },
+    "calendar": {
+      "schedule": {
+        "name": "Tidtabell"
+      }
+    },
+    "event": {
+      "disruptions": {
+        "name": "Störningar"
+      }
+    },
+    "camera": {
+      "board": {
+        "name": "Avgångstavla"
       }
     }
   },

@@ -125,20 +125,16 @@ async def test_binary_sensor_delay_threshold(hass: HomeAssistant, mock_config_en
 
 
 async def test_binary_sensor_icon(hass: HomeAssistant, mock_coordinator, mock_config_entry):
-    """Test binary sensor icon changes based on state."""
+    """Test binary sensor uses icon translations via translation_key."""
     binary_sensor = PublicTransportDelayBinarySensor(
         mock_coordinator,
         mock_config_entry,
         ["bus", "train", "tram"],
     )
 
-    # No delay - check icon
-    binary_sensor._attr_is_on = False
-    assert binary_sensor.icon == "mdi:check-circle"
-
-    # With delay - alert icon
-    binary_sensor._attr_is_on = True
-    assert binary_sensor.icon == "mdi:alert-circle"
+    # Icons are now defined in icons.json (icon translations); entity has no hardcoded icon property
+    assert binary_sensor._attr_translation_key == "delays"
+    assert binary_sensor.icon is None
 
 
 async def test_binary_sensor_no_departures(hass: HomeAssistant, mock_config_entry):

@@ -25,6 +25,7 @@ from openpublictransport import get_provider, get_provider_class
 from .const import (
     CONF_DELAY_THRESHOLD,
     CONF_DEPARTURES,
+    CONF_DESTINATION_FILTER,
     CONF_FAVORITE_LINES,
     CONF_LINE_FILTER,
     CONF_NATIONAL_RAIL_API_KEY,
@@ -85,6 +86,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
 
         # Temp stop results — instance variable instead of hass.data to avoid cross-flow leaks
         self._found_stops: list[dict] = []
+
+        # Reconfigure support
+        self._reconfiguring: bool = False
+        self._reconfigure_entry: Optional[config_entries.ConfigEntry] = None
 
         # API response cache to avoid duplicate requests
         self._search_cache: Dict[str, Dict[str, Any]] = {}
@@ -707,6 +712,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     int, vol.Range(min=1, max=30)
                 ),
                 vol.Optional(CONF_LINE_FILTER, default=""): str,
+                vol.Optional(CONF_DESTINATION_FILTER, default=""): str,
                 vol.Optional(CONF_FAVORITE_LINES, default=""): str,
                 vol.Optional(CONF_WALKING_TIME, default=0): vol.All(int, vol.Range(min=0, max=30)),
             }
@@ -779,19 +785,25 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             if self._provider:
                 await self._async_store_credential(self._provider)
 
-            # Create unique ID (self._selected_stop validated above)
-            unique_id = f"{self._provider}_{self._selected_stop['id']}"
-            await self.async_set_unique_id(unique_id)
-            self._abort_if_unique_id_configured()
-
             # Create title (self._selected_stop validated above)
             place = self._selected_stop.get("place", "")
             name = self._selected_stop.get("name", "")
             title = f"{(self._provider or '').upper()} {place} - {name}".strip()
 
-            # Cleanup temp data
-
             self._found_stops = []
+
+            if self._reconfiguring and self._reconfigure_entry:
+                return self.async_update_reload_and_abort(
+                    self._reconfigure_entry,
+                    title=title,
+                    data=data,
+                    reason="reconfigure_successful",
+                )
+
+            # Create unique ID (self._selected_stop validated above)
+            unique_id = f"{self._provider}_{self._selected_stop['id']}"
+            await self.async_set_unique_id(unique_id)
+            self._abort_if_unique_id_configured()
 
             return self.async_create_entry(title=title, data=data)
 
@@ -1657,6 +1669,128 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             description_placeholders={"hint": hint},
         )
 
+    async def async_step_reconfigure(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+        """Handle reconfiguration — let the user change the monitored stop."""
+        self._reconfiguring = True
+        self._reconfigure_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        if self._reconfigure_entry:
+            self._provider = self._reconfigure_entry.data.get(CONF_PROVIDER)
+        return await self.async_step_stop_search(user_input)
+
+    async def async_step_reauth(self, entry_data: dict) -> FlowResult:
+        """Handle re-authentication when an API key expires or is rotated."""
+        self._reauth_entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        self._provider = entry_data.get(CONF_PROVIDER) or entry_data.get("trip_provider")
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+        """Show re-authentication form and update credentials on submit."""
+        errors: Dict[str, str] = {}
+        entry = self._reauth_entry
+
+        if user_input is not None:
+            new_data = dict(entry.data)
+
+            if self._provider == PROVIDER_TRAFIKLAB_SE:
+                api_key = user_input.get(CONF_TRAFIKLAB_API_KEY, "").strip()
+                if not api_key:
+                    errors[CONF_TRAFIKLAB_API_KEY] = "trafiklab_api_key_required"
+                else:
+                    new_data[CONF_TRAFIKLAB_API_KEY] = api_key
+                    self._api_key = api_key
+            elif self._provider == PROVIDER_RMV:
+                api_key = user_input.get(CONF_RMV_API_KEY, "").strip()
+                if not api_key:
+                    errors[CONF_RMV_API_KEY] = "rmv_api_key_required"
+                else:
+                    new_data[CONF_RMV_API_KEY] = api_key
+                    self._api_key = api_key
+            elif self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
+                api_key = user_input.get(CONF_VBN_API_KEY, "").strip()
+                if not api_key:
+                    errors[CONF_VBN_API_KEY] = "vbn_api_key_required"
+                else:
+                    new_data[CONF_VBN_API_KEY] = api_key
+                    self._api_key = api_key
+            elif self._provider == PROVIDER_NTA_IE:
+                api_key = user_input.get(CONF_NTA_API_KEY, "").strip()
+                secondary = user_input.get(CONF_NTA_API_KEY_SECONDARY, "").strip()
+                if not api_key:
+                    errors[CONF_NTA_API_KEY] = "nta_api_key_required"
+                else:
+                    new_data[CONF_NTA_API_KEY] = api_key
+                    if secondary:
+                        new_data[CONF_NTA_API_KEY_SECONDARY] = secondary
+                    self._api_key = api_key
+                    self._api_key_secondary = secondary or None
+            elif self._provider == PROVIDER_OPT:
+                api_key = user_input.get(CONF_OPT_API_KEY, "").strip()
+                if not api_key:
+                    errors[CONF_OPT_API_KEY] = "opt_api_key_required"
+                else:
+                    new_data[CONF_OPT_API_KEY] = api_key
+                    self._api_key = api_key
+            elif self._provider == PROVIDER_OTP_CUSTOM:
+                api_key = user_input.get(CONF_OTP_CUSTOM_API_KEY, "").strip()
+                base_url = user_input.get(CONF_OTP_BASE_URL, "").strip()
+                if base_url:
+                    new_data[CONF_OTP_BASE_URL] = base_url
+                if api_key:
+                    new_data[CONF_OTP_CUSTOM_API_KEY] = api_key
+                self._api_key = api_key or None
+
+            if not errors:
+                if self._api_key:
+                    await self._async_store_credential(self._provider)
+                return self.async_update_reload_and_abort(
+                    entry,
+                    data=new_data,
+                    reason="reauth_successful",
+                )
+
+        # Build provider-specific schema pre-filled with current key
+        if self._provider == PROVIDER_TRAFIKLAB_SE:
+            schema = vol.Schema(
+                {vol.Required(CONF_TRAFIKLAB_API_KEY, default=entry.data.get(CONF_TRAFIKLAB_API_KEY, "")): str}
+            )
+            description = "Trafiklab API key expired or invalid. Get a new one at trafiklab.se."
+        elif self._provider == PROVIDER_RMV:
+            schema = vol.Schema({vol.Required(CONF_RMV_API_KEY, default=entry.data.get(CONF_RMV_API_KEY, "")): str})
+            description = "RMV API key expired or invalid. Request a new one at opendata.rmv.de."
+        elif self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
+            schema = vol.Schema({vol.Required(CONF_VBN_API_KEY, default=entry.data.get(CONF_VBN_API_KEY, "")): str})
+            description = "VBN API key expired or invalid. Request a new key at api@vbn.de."
+        elif self._provider == PROVIDER_NTA_IE:
+            schema = vol.Schema(
+                {
+                    vol.Required(CONF_NTA_API_KEY, default=entry.data.get(CONF_NTA_API_KEY, "")): str,
+                    vol.Optional(
+                        CONF_NTA_API_KEY_SECONDARY, default=entry.data.get(CONF_NTA_API_KEY_SECONDARY, "")
+                    ): str,
+                }
+            )
+            description = "NTA API key expired or invalid. Get new keys at developer.nationaltransport.ie."
+        elif self._provider == PROVIDER_OPT:
+            schema = vol.Schema({vol.Required(CONF_OPT_API_KEY, default=entry.data.get(CONF_OPT_API_KEY, "")): str})
+            description = "openpublictransport.net API key expired or invalid. Request a new key at openpublictransport.net/api-key."
+        elif self._provider == PROVIDER_OTP_CUSTOM:
+            schema = vol.Schema(
+                {
+                    vol.Required(CONF_OTP_BASE_URL, default=entry.data.get(CONF_OTP_BASE_URL, "")): str,
+                    vol.Optional(CONF_OTP_CUSTOM_API_KEY, default=entry.data.get(CONF_OTP_CUSTOM_API_KEY, "")): str,
+                }
+            )
+            description = "OTP2 server URL or API key changed. Enter the new values."
+        else:
+            return self.async_abort(reason="no_reauth_needed")
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=schema,
+            errors=errors,
+            description_placeholders={"info": description},
+        )
+
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
@@ -1711,6 +1845,10 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
             CONF_LINE_FILTER,
             self.config_entry.data.get(CONF_LINE_FILTER, ""),
         )
+        current_destination_filter = self.config_entry.options.get(
+            CONF_DESTINATION_FILTER,
+            self.config_entry.data.get(CONF_DESTINATION_FILTER, ""),
+        )
         current_walking_time = self.config_entry.options.get(
             CONF_WALKING_TIME,
             self.config_entry.data.get(CONF_WALKING_TIME, 0),
@@ -1730,6 +1868,7 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
                     int, vol.Range(min=1, max=30)
                 ),
                 vol.Optional(CONF_LINE_FILTER, default=current_line_filter): str,
+                vol.Optional(CONF_DESTINATION_FILTER, default=current_destination_filter): str,
                 vol.Optional(
                     CONF_FAVORITE_LINES,
                     default=self.config_entry.options.get(

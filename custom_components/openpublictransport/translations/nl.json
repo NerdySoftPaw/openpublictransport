@@ -74,6 +74,7 @@
           "use_provider_logo": "Logo van aanbieder tonen",
           "delay_threshold": "Vertragingsdrempel (minuten)",
           "line_filter": "Lijnfilter",
+          "destination_filter": "Bestemmingsfilter",
           "walking_time": "Looptijd (minuten)",
           "favorite_lines": "Favoriete lijnen"
         },
@@ -84,6 +85,7 @@
           "use_provider_logo": "Toon het logo van de aanbieder in plaats van het vervoerstypepictogram",
           "delay_threshold": "Minimale vertraging in minuten om de vertragingssensor te activeren (1-30)",
           "line_filter": "Toon alleen specifieke lijnen, gescheiden door komma's (bijv. U79, RE5, Bus 42). Leeg = alle lijnen",
+          "destination_filter": "Toon alleen vertrekken met overeenkomende bestemming, kommagescheiden, gedeeltelijke overeenkomst (bijv. Duisburg, Luchthaven). Leeg = alle bestemmingen",
           "walking_time": "Looptijd naar de halte in minuten (0 = uitgeschakeld). Vertrekken die niet meer gehaald kunnen worden, worden verborgen",
           "favorite_lines": "Lijnen die als eerste worden getoond, gescheiden door komma's (bijv. U79, RE5). Leeg = geen favorieten"
         }
@@ -142,6 +144,7 @@
           "use_provider_logo": "Logo van aanbieder tonen",
           "delay_threshold": "Vertragingsdrempel (minuten)",
           "line_filter": "Lijnfilter",
+          "destination_filter": "Bestemmingsfilter",
           "walking_time": "Looptijd (minuten)",
           "favorite_lines": "Favoriete lijnen"
         },
@@ -149,9 +152,37 @@
           "use_provider_logo": "Toon het logo van de aanbieder in plaats van het vervoerstypepictogram",
           "delay_threshold": "Minimale vertraging in minuten om de vertragingssensor te activeren (1-30)",
           "line_filter": "Toon alleen specifieke lijnen, gescheiden door komma's (bijv. U79, RE5, Bus 42). Leeg = alle lijnen",
+          "destination_filter": "Toon alleen vertrekken met overeenkomende bestemming, kommagescheiden, gedeeltelijke overeenkomst (bijv. Duisburg, Luchthaven). Leeg = alle bestemmingen",
           "walking_time": "Looptijd naar de halte in minuten (0 = uitgeschakeld). Vertrekken die niet meer gehaald kunnen worden, worden verborgen",
           "favorite_lines": "Lijnen die als eerste worden getoond, gescheiden door komma's (bijv. U79, RE5). Leeg = geen favorieten"
         }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "delays": {
+        "name": "Vertragingen"
+      }
+    },
+    "sensor": {
+      "punctuality": {
+        "name": "Stiptheid"
+      }
+    },
+    "calendar": {
+      "schedule": {
+        "name": "Dienstregeling"
+      }
+    },
+    "event": {
+      "disruptions": {
+        "name": "Verstoringen"
+      }
+    },
+    "camera": {
+      "board": {
+        "name": "Vertrektijden"
       }
     }
   },

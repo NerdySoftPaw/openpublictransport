@@ -167,7 +167,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
 
         new_td = timedelta(seconds=new_interval)
         if self.update_interval != new_td:
-            self.update_interval = new_td
+            self.update_interval: timedelta = new_td
             _LOGGER.debug("Adjusted polling interval to %ss for %s", new_interval, self.provider)
 
     def _ensure_provider(self) -> None:

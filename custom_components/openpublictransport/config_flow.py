@@ -28,12 +28,14 @@ from .const import (
     CONF_DESTINATION_FILTER,
     CONF_FAVORITE_LINES,
     CONF_LINE_FILTER,
+    CONF_NATIONAL_RAIL_API_KEY,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
     CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_PROVIDER,
+    CONF_REJSEPLANEN_API_KEY,
     CONF_RMV_API_KEY,
     CONF_SCAN_INTERVAL,
     CONF_STATION_ID,
@@ -48,9 +50,11 @@ from .const import (
     DOMAIN,
     PROVIDER_HVV,
     PROVIDER_KVV,
+    PROVIDER_NATIONAL_RAIL,
     PROVIDER_NTA_IE,
     PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
+    PROVIDER_REJSEPLANEN,
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_VBN_OTP,
@@ -104,10 +108,12 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             {"value": "hvv", "label": "HVV — Hamburg"},
             {"value": "kvv", "label": "KVV — Karlsruhe"},
             {"value": "mvv", "label": "MVV — München"},
+            {"value": "national_rail", "label": "National Rail — Großbritannien (API Key)"},
             {"value": "nta_ie", "label": "NTA — Irland (API Key)"},
             {"value": "nvbw", "label": "NVBW — Baden-Württemberg"},
             {"value": "nwl", "label": "NWL — Westfalen-Lippe"},
             {"value": "oebb", "label": "ÖBB — Österreich"},
+            {"value": "rejseplanen", "label": "Rejseplanen — Dänemark (API Key)"},
             {"value": "rmv", "label": "RMV — Frankfurt / Rhein-Main (API Key)"},
             {"value": "rvv", "label": "RVV — Regensburg"},
             {"value": "sbb", "label": "SBB — Schweiz"},
@@ -195,6 +201,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 return {CONF_TRAFIKLAB_API_KEY: api_key}
             if provider == PROVIDER_RMV:
                 return {CONF_RMV_API_KEY: api_key}
+            if provider == PROVIDER_NATIONAL_RAIL:
+                return {CONF_NATIONAL_RAIL_API_KEY: api_key}
+            if provider == PROVIDER_REJSEPLANEN:
+                return {CONF_REJSEPLANEN_API_KEY: api_key}
             if provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
                 return {CONF_VBN_API_KEY: api_key}
             if provider == PROVIDER_NTA_IE:
@@ -231,6 +241,8 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             PROVIDER_TRAFIKLAB_SE: [CONF_TRAFIKLAB_API_KEY],
             PROVIDER_NTA_IE: [CONF_NTA_API_KEY, CONF_NTA_API_KEY_SECONDARY],
             PROVIDER_RMV: [CONF_RMV_API_KEY],
+            PROVIDER_NATIONAL_RAIL: [CONF_NATIONAL_RAIL_API_KEY],
+            PROVIDER_REJSEPLANEN: [CONF_REJSEPLANEN_API_KEY],
         }
         keys = key_map.get(provider, [])
         if not keys:
@@ -251,6 +263,8 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         PROVIDER_VBN_OTP: "VBN (Bremen/Niedersachsen) — OTP",
         PROVIDER_VBN_TRIAS: "VBN (Bremen/Niedersachsen) — TRIAS",
         PROVIDER_NTA_IE: "NTA (Irland)",
+        PROVIDER_NATIONAL_RAIL: "National Rail (Großbritannien)",
+        PROVIDER_REJSEPLANEN: "Rejseplanen (Dänemark)",
     }
 
     async def _async_store_credential(self, provider: str) -> None:
@@ -391,7 +405,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
 
         # Auto-reuse credentials from an existing entry for this provider
         if user_input is None and not self._api_key:
-            creds = self._find_existing_credentials(self._provider)
+            creds = self._find_existing_credentials(self._provider or "")
             if self._provider == PROVIDER_TRAFIKLAB_SE and creds.get(CONF_TRAFIKLAB_API_KEY):
                 self._api_key = creds[CONF_TRAFIKLAB_API_KEY]
                 return await self._async_next_step_after_api_key()
@@ -404,6 +418,12 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             elif self._provider == PROVIDER_NTA_IE and creds.get(CONF_NTA_API_KEY):
                 self._api_key = creds[CONF_NTA_API_KEY]
                 self._api_key_secondary = creds.get(CONF_NTA_API_KEY_SECONDARY)
+                return await self._async_next_step_after_api_key()
+            elif self._provider == PROVIDER_NATIONAL_RAIL and creds.get(CONF_NATIONAL_RAIL_API_KEY):
+                self._api_key = creds[CONF_NATIONAL_RAIL_API_KEY]
+                return await self._async_next_step_after_api_key()
+            elif self._provider == PROVIDER_REJSEPLANEN and creds.get(CONF_REJSEPLANEN_API_KEY):
+                self._api_key = creds[CONF_REJSEPLANEN_API_KEY]
                 return await self._async_next_step_after_api_key()
 
         if user_input is not None:
@@ -437,6 +457,20 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 else:
                     self._api_key = api_key
                     return await self._async_next_step_after_api_key()
+            elif self._provider == PROVIDER_NATIONAL_RAIL:
+                api_key = user_input.get(CONF_NATIONAL_RAIL_API_KEY, "").strip()
+                if not api_key:
+                    errors[CONF_NATIONAL_RAIL_API_KEY] = "national_rail_api_key_required"
+                else:
+                    self._api_key = api_key
+                    return await self._async_next_step_after_api_key()
+            elif self._provider == PROVIDER_REJSEPLANEN:
+                api_key = user_input.get(CONF_REJSEPLANEN_API_KEY, "").strip()
+                if not api_key:
+                    errors[CONF_REJSEPLANEN_API_KEY] = "rejseplanen_api_key_required"
+                else:
+                    self._api_key = api_key
+                    return await self._async_next_step_after_api_key()
 
         # Show appropriate schema based on provider
         if self._provider == PROVIDER_TRAFIKLAB_SE:
@@ -460,6 +494,14 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 }
             )
             description = "VBN API key is required. Request a free key at api@vbn.de"
+        elif self._provider == PROVIDER_NATIONAL_RAIL:
+            schema = vol.Schema({vol.Required(CONF_NATIONAL_RAIL_API_KEY): str})
+            description = (
+                "National Rail API key required. Register for free at opendata.nationalrail.co.uk (100k calls/month)."
+            )
+        elif self._provider == PROVIDER_REJSEPLANEN:
+            schema = vol.Schema({vol.Required(CONF_REJSEPLANEN_API_KEY): str})
+            description = "Rejseplanen API key required. Register for free at labs.rejseplanen.dk (50k calls/month, non-commercial)."
         else:  # NTA
             schema = vol.Schema(
                 {

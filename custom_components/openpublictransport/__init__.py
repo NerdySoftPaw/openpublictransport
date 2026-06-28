@@ -14,12 +14,14 @@ from homeassistant.helpers import entity_registry as er
 
 from .const import (
     CONF_DEPARTURES,
+    CONF_NATIONAL_RAIL_API_KEY,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
     CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_PROVIDER,
+    CONF_REJSEPLANEN_API_KEY,
     CONF_RMV_API_KEY,
     CONF_SCAN_INTERVAL,
     CONF_STATION_ID,
@@ -28,9 +30,11 @@ from .const import (
     DEFAULT_DEPARTURES,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    PROVIDER_NATIONAL_RAIL,
     PROVIDER_NTA_IE,
     PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
+    PROVIDER_REJSEPLANEN,
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_VBN_OTP,
@@ -113,6 +117,8 @@ async def _async_migrate_credential(hass: HomeAssistant, entry: ConfigEntry) -> 
         PROVIDER_VBN_OTP: (CONF_VBN_API_KEY, ""),
         PROVIDER_VBN_TRIAS: (CONF_VBN_API_KEY, ""),
         PROVIDER_NTA_IE: (CONF_NTA_API_KEY, CONF_NTA_API_KEY_SECONDARY),
+        PROVIDER_REJSEPLANEN: (CONF_REJSEPLANEN_API_KEY, ""),
+        PROVIDER_NATIONAL_RAIL: (CONF_NATIONAL_RAIL_API_KEY, ""),
     }
 
     if provider not in key_map:
@@ -344,6 +350,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     vbn_api_key = entry.data.get(CONF_VBN_API_KEY)  # For VBN (OTP + TRIAS)
     opt_api_key = entry.data.get(CONF_OPT_API_KEY)  # For community OTP server
     otp_custom_api_key = entry.data.get(CONF_OTP_CUSTOM_API_KEY)  # For custom OTP instance
+    rejseplanen_api_key = entry.data.get(CONF_REJSEPLANEN_API_KEY)  # For Rejseplanen (DK)
+    national_rail_api_key = entry.data.get(CONF_NATIONAL_RAIL_API_KEY)  # For National Rail (UK)
     otp_custom_url = entry.data.get(CONF_OTP_BASE_URL)  # For custom OTP instance
 
     # Use appropriate API key (and URL) based on provider
@@ -362,6 +370,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     elif provider == PROVIDER_OTP_CUSTOM:
         api_key = otp_custom_api_key
         custom_url = otp_custom_url
+    elif provider == PROVIDER_REJSEPLANEN:
+        api_key = rejseplanen_api_key
+    elif provider == PROVIDER_NATIONAL_RAIL:
+        api_key = national_rail_api_key
 
     departures = entry.options.get(CONF_DEPARTURES, entry.data.get(CONF_DEPARTURES, DEFAULT_DEPARTURES))
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))

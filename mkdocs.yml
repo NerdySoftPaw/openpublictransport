@@ -79,6 +79,7 @@ nav:
       - ÖBB (Österreich): providers/oebb.md
       - Trafiklab (Sweden): providers/trafiklab.md
       - NTA (Ireland): providers/nta.md
+      - National Rail (UK): providers/national_rail.md
       - Transitous (Worldwide): providers/transitous.md
       - openpublictransport (Deutschland): providers/openpublictransport.md
       - OTP2 Custom Instance: providers/otp-custom.md

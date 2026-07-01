@@ -210,6 +210,9 @@ pytest tests/ -v
 
 MIT License
 
+## 💰 You can help me by Donating
+  [![BuyMeACoffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/nerdysoftpaw) [![Ko-Fi](https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/nerdysoftpaw90) 
+
 <!-- Badges -->
 [releases-shield]: https://img.shields.io/github/release/NerdySoftPaw/openpublictransport.svg?style=for-the-badge
 [releases]: https://github.com/NerdySoftPaw/openpublictransport/releases

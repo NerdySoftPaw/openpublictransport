@@ -86,6 +86,16 @@ partial). Direct CRS-code search requires **integration v2026.7.1 or newer**.
     If a name is ambiguous, add the city (e.g. `Manchester Piccadilly` rather
     than `Piccadilly`).
 
+!!! note "Offline fallback (v2026.7.3+)"
+    The Overpass API is occasionally rate-limited, which can make a search
+    return nothing on the first try. When that happens, the integration falls
+    back to a **bundled offline list** of UK stations so search still works.
+    This snapshot is a point-in-time extract and is **not continuously
+    updated** — a very new or recently renamed station may be missing until
+    the snapshot is refreshed. It is used **only** when the live lookup is
+    unavailable; normally Overpass is queried directly. If a search comes up
+    empty, simply try again in a moment.
+
 ## Transport Types
 
 National Rail is a **train-only** provider — every departure is classified as

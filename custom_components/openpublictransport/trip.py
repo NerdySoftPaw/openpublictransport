@@ -168,6 +168,21 @@ async def async_plan_trip(
         return None
 
 
+_GRAPHQL_PARENT = '{ stop(id: "%s") { parentStation { gtfsId } } }'
+
+
+async def _resolve_station_id(provider_instance, stop_id: str) -> str:
+    """Return a stop's parent-station id, or the stop id itself if it has none.
+
+    A multi-platform station (e.g. a Hauptbahnhof) has one stop id per platform.
+    Routing from the parent station lets OTP consider every platform; pinning an
+    arbitrary single platform can yield a slower or wrong-direction journey.
+    """
+    body = await provider_instance._graphql(_GRAPHQL_PARENT % stop_id.replace('"', '\\"'))
+    parent = (((body or {}).get("data") or {}).get("stop") or {}).get("parentStation") or {}
+    return parent.get("gtfsId") or stop_id
+
+
 async def _async_plan_trip_otp2_graphql(
     origin_id: str,
     dest_id: str,
@@ -185,6 +200,13 @@ async def _async_plan_trip_otp2_graphql(
     # Compound stop IDs are pipe-separated — use the first platform ID
     from_id = origin_id.split("|")[0]
     to_id = dest_id.split("|")[0]
+
+    # Route from the parent station rather than a single platform, so OTP
+    # considers every platform of a multi-platform station.
+    from_id, to_id = await asyncio.gather(
+        _resolve_station_id(provider_instance, from_id),
+        _resolve_station_id(provider_instance, to_id),
+    )
 
     # Only pin the departure time when the caller asked for one; otherwise let
     # OTP default to "now" (a live server tracks the clock better than we do).

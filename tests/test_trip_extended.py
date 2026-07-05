@@ -146,6 +146,24 @@ async def test_otp2_graphql_multileg_transfer(hass: HomeAssistant):
     assert result[0]["transfer_risk"] == "medium"  # 4-minute gap
 
 
+async def test_otp2_graphql_uses_parent_station(hass: HomeAssistant):
+    """A platform id is resolved to its parent station in the plan query."""
+    captured = {}
+
+    async def fake_graphql(query):
+        if "parentStation" in query:
+            return {"data": {"stop": {"parentStation": {"gtfsId": "station:PARENT"}}}}
+        captured["plan"] = query
+        return _pc_response([_make_pc_node()])
+
+    provider = MagicMock()
+    provider._graphql = fake_graphql
+
+    result = await _async_plan_trip_otp2_graphql("plat:1", "plat:2", None, provider)
+    assert result is not None
+    assert 'stopLocationId: "station:PARENT"' in captured["plan"]
+
+
 async def test_otp2_graphql_pipe_separated_stop_id(hass: HomeAssistant):
     """Compound pipe-separated stop IDs use only the first platform."""
     provider = MagicMock()

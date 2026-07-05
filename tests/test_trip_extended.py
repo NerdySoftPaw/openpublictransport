@@ -237,12 +237,13 @@ async def test_otp_rest_plan_data_none(hass: HomeAssistant):
 
 async def test_plan_trip_otp2_with_ids(hass: HomeAssistant):
     """Test async_plan_trip dispatches to OTP2 path when stop IDs provided."""
-    from_data = {"data": {"stop": {"lat": 51.2, "lon": 6.7, "name": "A"}}}
-    to_data = {"data": {"stop": {"lat": 50.9, "lon": 6.9, "name": "B"}}}
-    plan_data = {"data": {"plan": {"itineraries": [_make_otp_itinerary()]}}}
+    # OTP2 path now does: 2 parentStation lookups (fall back to the stop id) +
+    # the planConnection query.
+    parent_resp = {"data": {"stop": {"parentStation": None}}}
+    plan_data = _pc_response([_make_pc_node()])
 
     mock_provider = MagicMock()
-    mock_provider._graphql = AsyncMock(side_effect=[from_data, to_data, plan_data])
+    mock_provider._graphql = AsyncMock(side_effect=[parent_resp, parent_resp, plan_data])
 
     with patch("openpublictransport.get_provider", return_value=mock_provider):
         with patch("custom_components.openpublictransport.trip.async_get_clientsession"):

@@ -39,8 +39,8 @@ _GRAPHQL_STOP_COORDS = '{ stop(id: "%s") { lat lon name } }'
 
 _GRAPHQL_PLAN = """{
   plan(
-    from: { lat: %f, lon: %f }
-    to: { lat: %f, lon: %f }
+    from: { lat: %f, lon: %f, place: "%s" }
+    to: { lat: %f, lon: %f, place: "%s" }
     date: "%s"
     time: "%s"
     numItineraries: 3
@@ -177,15 +177,18 @@ async def _async_plan_trip_otp2_graphql(
 ) -> Optional[List[Dict[str, Any]]]:
     """Plan a trip via OTP2 GraphQL plan query (community server + custom instances).
 
-    lat/lon are required by the plan API; stopId is passed alongside so OTP2
-    uses the exact transit stop without needing a street-network snap.
+    Routes stop-to-stop: `place` is set to the GTFS stop id so OTP2 uses the
+    transit stop directly as origin/egress — no street-network access/egress.
+    This is what allows the graph to be built transit-only (no OSM). lat/lon are
+    still sent because InputCoordinates requires them; when `place` resolves to a
+    stop they only serve as a fallback.
     """
     now = departure_time or dt_util.now()
     # Compound stop IDs are pipe-separated — use the first platform ID
     from_id = origin_id.split("|")[0]
     to_id = dest_id.split("|")[0]
 
-    # Fetch stop coordinates — required by the plan API alongside stopId
+    # Fetch stop coordinates — InputCoordinates requires lat/lon alongside place
     from_body, to_body = await asyncio.gather(
         provider_instance._graphql(_GRAPHQL_STOP_COORDS % from_id.replace('"', '\\"')),
         provider_instance._graphql(_GRAPHQL_STOP_COORDS % to_id.replace('"', '\\"')),
@@ -200,8 +203,10 @@ async def _async_plan_trip_otp2_graphql(
     query = _GRAPHQL_PLAN % (
         from_stop["lat"],
         from_stop["lon"],
+        from_id.replace('"', '\\"'),
         to_stop["lat"],
         to_stop["lon"],
+        to_id.replace('"', '\\"'),
         now.strftime("%Y-%m-%d"),
         now.strftime("%H:%M:%S"),
     )

@@ -35,32 +35,31 @@ EFA_TRIP_ENDPOINTS = {
     "nwl": "https://westfalenfahrplan.de/nwl-efa/XML_TRIP_REQUEST2",
 }
 
-_GRAPHQL_STOP_COORDS = '{ stop(id: "%s") { lat lon name } }'
-
-_GRAPHQL_PLAN = """{
-  plan(
-    from: { lat: %f, lon: %f, place: "%s" }
-    to: { lat: %f, lon: %f, place: "%s" }
-    date: "%s"
-    time: "%s"
-    numItineraries: 3
+# OTP 2.x planConnection query — routes stop-to-stop via stopLocationId, so no
+# coordinates and no street-network access/egress are needed (works on a
+# transit-only graph). %s = origin id, dest id, optional dateTime clause.
+_GRAPHQL_PLAN_CONNECTION = """{
+  planConnection(
+    origin:      { location: { stopLocation: { stopLocationId: "%s" } } }
+    destination: { location: { stopLocation: { stopLocationId: "%s" } } }
+    %s
+    first: 3
   ) {
-    itineraries {
+    edges { node {
       duration
       numberOfTransfers
       legs {
         mode
-        startTime
-        endTime
+        transitLeg
+        duration
         from { name }
         to   { name }
-        departureDelay
-        arrivalDelay
-        transitLeg
+        start { scheduledTime estimated { time delay } }
+        end   { scheduledTime estimated { time delay } }
         trip { route { shortName } }
-        duration
+        route { shortName }
       }
-    }
+    } }
   }
 }"""
 
@@ -175,60 +174,42 @@ async def _async_plan_trip_otp2_graphql(
     departure_time: Optional[datetime],
     provider_instance,
 ) -> Optional[List[Dict[str, Any]]]:
-    """Plan a trip via OTP2 GraphQL plan query (community server + custom instances).
+    """Plan a trip via the OTP2 planConnection query (community server + custom instances).
 
-    Routes stop-to-stop: `place` is set to the GTFS stop id so OTP2 uses the
-    transit stop directly as origin/egress — no street-network access/egress.
-    This is what allows the graph to be built transit-only (no OSM). lat/lon are
-    still sent because InputCoordinates requires them; when `place` resolves to a
-    stop they only serve as a fallback.
+    Routes stop-to-stop using `stopLocationId`, so OTP takes the transit stops
+    directly as origin/destination — no coordinates, no street-network
+    access/egress. This is what lets the OTP graph be built transit-only (no
+    OSM). Requires an OTP 2.x server exposing the planConnection API.
     """
     now = departure_time or dt_util.now()
     # Compound stop IDs are pipe-separated — use the first platform ID
     from_id = origin_id.split("|")[0]
     to_id = dest_id.split("|")[0]
 
-    # Fetch stop coordinates — InputCoordinates requires lat/lon alongside place
-    from_body, to_body = await asyncio.gather(
-        provider_instance._graphql(_GRAPHQL_STOP_COORDS % from_id.replace('"', '\\"')),
-        provider_instance._graphql(_GRAPHQL_STOP_COORDS % to_id.replace('"', '\\"')),
-    )
-    from_stop = ((from_body or {}).get("data") or {}).get("stop") or {}
-    to_stop = ((to_body or {}).get("data") or {}).get("stop") or {}
+    # Only pin the departure time when the caller asked for one; otherwise let
+    # OTP default to "now" (a live server tracks the clock better than we do).
+    dt_clause = ""
+    if departure_time is not None:
+        dt_clause = 'dateTime: { earliestDeparture: "%s" }' % now.isoformat()
 
-    if not from_stop.get("lat") or not to_stop.get("lat"):
-        _LOGGER.warning("OTP2 plan: could not resolve stop coordinates for %s / %s", from_id, to_id)
-        return None
-
-    query = _GRAPHQL_PLAN % (
-        from_stop["lat"],
-        from_stop["lon"],
+    query = _GRAPHQL_PLAN_CONNECTION % (
         from_id.replace('"', '\\"'),
-        to_stop["lat"],
-        to_stop["lon"],
         to_id.replace('"', '\\"'),
-        now.strftime("%Y-%m-%d"),
-        now.strftime("%H:%M:%S"),
+        dt_clause,
     )
     body = await provider_instance._graphql(query)
     if body is None:
         return None
 
     if body.get("errors"):
-        _LOGGER.warning("OTP2 plan GraphQL errors: %s", body["errors"])
+        _LOGGER.warning("OTP2 planConnection GraphQL errors: %s", body["errors"])
 
-    itineraries = ((body.get("data") or {}).get("plan") or {}).get("itineraries") or []
-    if not itineraries:
-        _LOGGER.warning(
-            "OTP2 plan: no itineraries for %s (%s) → %s (%s)",
-            from_stop.get("name", from_id),
-            from_id,
-            to_stop.get("name", to_id),
-            to_id,
-        )
+    edges = (((body.get("data") or {}).get("planConnection") or {}).get("edges")) or []
+    if not edges:
+        _LOGGER.warning("OTP2 planConnection: no itineraries for %s → %s", from_id, to_id)
         return None
 
-    return _parse_otp_itineraries(itineraries)
+    return _parse_otp_plan_connection([e["node"] for e in edges if e.get("node")])
 
 
 async def _async_plan_trip_otp(
@@ -388,6 +369,102 @@ def _ms_to_hhmm(ms: int) -> str:
         return dt_util.as_local(dt).strftime("%H:%M")
     except (ValueError, OSError):
         return ""
+
+
+def _iso_to_hhmm(iso: Optional[str]) -> str:
+    """Convert an ISO-8601 datetime string to HH:MM in local time."""
+    if not iso:
+        return ""
+    dt = dt_util.parse_datetime(iso)
+    return dt_util.as_local(dt).strftime("%H:%M") if dt else ""
+
+
+def _iso_to_epoch(iso: Optional[str]) -> float:
+    """Convert an ISO-8601 datetime string to a Unix timestamp (seconds)."""
+    if not iso:
+        return 0.0
+    dt = dt_util.parse_datetime(iso)
+    return dt.timestamp() if dt else 0.0
+
+
+def _parse_otp_plan_connection(nodes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Parse OTP2 planConnection nodes into the unified journey dict format."""
+    results = []
+
+    for node in nodes:
+        transit_legs = []
+        for leg in node.get("legs", []):
+            if not leg.get("transitLeg", False):
+                continue
+
+            start = leg.get("start") or {}
+            end = leg.get("end") or {}
+            dep_planned = start.get("scheduledTime")
+            dep_estimated = ((start.get("estimated") or {}).get("time")) or dep_planned
+            arr_planned = end.get("scheduledTime")
+            arr_estimated = ((end.get("estimated") or {}).get("time")) or arr_planned
+            delay_s = (start.get("estimated") or {}).get("delay") or 0
+            route = (leg.get("trip") or {}).get("route") or leg.get("route") or {}
+
+            transit_legs.append(
+                {
+                    "origin": (leg.get("from") or {}).get("name", ""),
+                    "destination": (leg.get("to") or {}).get("name", ""),
+                    "line": route.get("shortName") or "",
+                    "product": _OTP_MODE_TO_PRODUCT.get(leg.get("mode", ""), (leg.get("mode") or "").lower()),
+                    "departure_planned": _iso_to_hhmm(dep_planned),
+                    "departure_estimated": _iso_to_hhmm(dep_estimated),
+                    "arrival_planned": _iso_to_hhmm(arr_planned),
+                    "arrival_estimated": _iso_to_hhmm(arr_estimated),
+                    "delay": int(delay_s // 60),
+                    "duration_minutes": round((leg.get("duration") or 0) / 60),
+                    "platform": "",
+                    # Internal epoch seconds for transfer-gap calculation
+                    "_arrival_s": _iso_to_epoch(arr_estimated),
+                    "_departure_s": _iso_to_epoch(dep_estimated),
+                }
+            )
+
+        if not transit_legs:
+            continue
+
+        connection_feasible = True
+        transfer_risk = "low"
+        min_transfer_time: Optional[int] = None
+
+        for i in range(len(transit_legs) - 1):
+            gap_min = int((transit_legs[i + 1]["_departure_s"] - transit_legs[i]["_arrival_s"]) // 60)
+            if min_transfer_time is None or gap_min < min_transfer_time:
+                min_transfer_time = gap_min
+            if gap_min <= 0:
+                connection_feasible = False
+                transfer_risk = "missed"
+            elif gap_min <= 3 and transfer_risk != "missed":
+                transfer_risk = "high"
+            elif gap_min <= 5 and transfer_risk not in ("missed", "high"):
+                transfer_risk = "medium"
+
+        for leg in transit_legs:
+            leg.pop("_arrival_s", None)
+            leg.pop("_departure_s", None)
+
+        first_dep = transit_legs[0].get("departure_estimated") or transit_legs[0].get("departure_planned", "")
+        last_arr = transit_legs[-1].get("arrival_estimated") or transit_legs[-1].get("arrival_planned", "")
+
+        results.append(
+            {
+                "departure": first_dep,
+                "arrival": last_arr,
+                "duration_minutes": round((node.get("duration") or 0) / 60),
+                "transfers": node.get("numberOfTransfers", len(transit_legs) - 1),
+                "connection_feasible": connection_feasible,
+                "transfer_risk": transfer_risk,
+                "min_transfer_time": min_transfer_time,
+                "legs": transit_legs,
+            }
+        )
+
+    return results
 
 
 def _parse_journeys(journeys: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

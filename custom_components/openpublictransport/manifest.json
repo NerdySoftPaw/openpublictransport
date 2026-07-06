@@ -14,9 +14,9 @@
   "issue_tracker": "https://github.com/NerdySoftPaw/openpublictransport/issues",
   "quality_scale": "silver",
   "requirements": [
-    "python-openpublictransport==0.1.11",
+    "python-openpublictransport==0.1.12",
     "aiofiles",
     "gtfs-realtime-bindings>=1.0.0"
   ],
-  "version": "2026.7.3"
+  "version": "2026.7.4"
 }

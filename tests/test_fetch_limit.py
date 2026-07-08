@@ -1,0 +1,85 @@
+"""Tests for the departures over-fetch behaviour (issue #43).
+
+When a line/destination filter is active, the coordinator must request a larger
+raw board from the API so client-side filtering isn't starved before the list is
+truncated to the user's display count.
+"""
+
+from unittest.mock import AsyncMock, MagicMock
+
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.openpublictransport.const import (
+    CONF_DESTINATION_FILTER,
+    CONF_LINE_FILTER,
+    DOMAIN,
+    FILTERED_FETCH_LIMIT,
+    PROVIDER_VRR,
+)
+from custom_components.openpublictransport.sensor import (
+    PublicTransportDataUpdateCoordinator,
+)
+
+
+def _coordinator(hass, entry=None, departures_limit=20):
+    return PublicTransportDataUpdateCoordinator(
+        hass,
+        provider=PROVIDER_VRR,
+        place_dm="Düsseldorf",
+        name_dm="Hauptbahnhof",
+        station_id=None,
+        departures_limit=departures_limit,
+        scan_interval=60,
+        config_entry=entry,
+    )
+
+
+def _entry(hass, **options):
+    entry = MockConfigEntry(domain=DOMAIN, data={}, options=options)
+    entry.add_to_hass(hass)
+    return entry
+
+
+async def test_no_config_entry_uses_display_limit(hass):
+    coordinator = _coordinator(hass, entry=None, departures_limit=20)
+    assert coordinator._compute_fetch_limit() == 20
+
+
+async def test_no_filter_uses_display_limit(hass):
+    entry = _entry(hass, **{CONF_LINE_FILTER: "", CONF_DESTINATION_FILTER: ""})
+    coordinator = _coordinator(hass, entry=entry, departures_limit=20)
+    assert coordinator._compute_fetch_limit() == 20
+
+
+async def test_line_filter_triggers_overfetch(hass):
+    entry = _entry(hass, **{CONF_LINE_FILTER: "U79,708"})
+    coordinator = _coordinator(hass, entry=entry, departures_limit=20)
+    assert coordinator._compute_fetch_limit() == FILTERED_FETCH_LIMIT
+
+
+async def test_destination_filter_triggers_overfetch(hass):
+    entry = _entry(hass, **{CONF_DESTINATION_FILTER: "Airport"})
+    coordinator = _coordinator(hass, entry=entry, departures_limit=20)
+    assert coordinator._compute_fetch_limit() == FILTERED_FETCH_LIMIT
+
+
+async def test_overfetch_never_below_display_limit(hass):
+    """A display count above the over-fetch constant is preserved."""
+    entry = _entry(hass, **{CONF_LINE_FILTER: "U79"})
+    coordinator = _coordinator(hass, entry=entry, departures_limit=150)
+    assert coordinator._compute_fetch_limit() == 150
+
+
+async def test_fetch_departures_passes_overfetch_limit(hass):
+    """With a filter set, the API is queried with the larger board size."""
+    entry = _entry(hass, **{CONF_LINE_FILTER: "U79"})
+    coordinator = _coordinator(hass, entry=entry, departures_limit=20)
+
+    provider = MagicMock()
+    provider.fetch_departures = AsyncMock(return_value={"stopEvents": []})
+    coordinator.provider_instance = provider  # pre-set so _ensure_provider is a no-op
+
+    await coordinator._fetch_departures()
+
+    _, _, _, limit = provider.fetch_departures.await_args.args
+    assert limit == FILTERED_FETCH_LIMIT

@@ -4,6 +4,10 @@ DEFAULT_NAME = "Elbruchstrasse"
 DEFAULT_DEPARTURES = 10
 DEFAULT_SCAN_INTERVAL = 60
 
+# When a line/destination filter is active, fetch a larger raw board from the API
+# so client-side filtering isn't starved before truncating to the display count (issue #43).
+FILTERED_FETCH_LIMIT = 100
+
 # Configuration keys
 CONF_PROVIDER = "provider"  # NEU
 CONF_STATION_ID = "station_id"

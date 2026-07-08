@@ -31,6 +31,7 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WALKING_TIME,
     DOMAIN,
+    FILTERED_FETCH_LIMIT,
     PROVIDER_ENTITY_PICTURES,
     PROVIDER_NTA_IE,
     TRANSPORTATION_TYPES,
@@ -236,6 +237,22 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
             )
             raise UpdateFailed(f"Error fetching data: {err}")
 
+    def _compute_fetch_limit(self) -> int:
+        """Over-fetch a larger board when a line/destination filter is active.
+
+        Filters are applied client-side after the fetch, so requesting only
+        ``departures_limit`` starves filtered results at busy stops (issue #43).
+        The display count is unchanged — the sensor still truncates to
+        ``departures_limit`` after filtering.
+        """
+        entry = self._config_entry
+        if entry is not None:
+            line = entry.options.get(CONF_LINE_FILTER, entry.data.get(CONF_LINE_FILTER, ""))
+            dest = entry.options.get(CONF_DESTINATION_FILTER, entry.data.get(CONF_DESTINATION_FILTER, ""))
+            if (line or "").strip() or (dest or "").strip():
+                return max(self.departures_limit, FILTERED_FETCH_LIMIT)
+        return self.departures_limit
+
     async def _fetch_departures(self) -> Optional[Dict[str, Any]]:
         """Fetch departure data from the API."""
         self._ensure_provider()
@@ -243,7 +260,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(f"No provider instance for {self.provider}")
 
         return await self.provider_instance.fetch_departures(
-            self.station_id, self.place_dm, self.name_dm, self.departures_limit
+            self.station_id, self.place_dm, self.name_dm, self._compute_fetch_limit()
         )
 
 

@@ -76,10 +76,17 @@ nav:
       - NVBW (Baden-Württemberg): providers/nvbw.md
       - BEG (Bayern): providers/beg.md
       - SBB (Schweiz): providers/sbb.md
+      - TPG (Genève): providers/tpg.md
       - ÖBB (Österreich): providers/oebb.md
+      - NS (Nederland): providers/ns.md
+      - mobilitéit.lu (Luxembourg): providers/mobiliteit_lu.md
+      - Entur (Norway): providers/entur.md
       - Trafiklab (Sweden): providers/trafiklab.md
       - NTA (Ireland): providers/nta.md
+      - Irish Rail (Ireland): providers/irishrail.md
       - National Rail (UK): providers/national_rail.md
+      - BART (USA · San Francisco): providers/bart.md
+      - DART (USA · Des Moines): providers/dart.md
       - Transitous (Worldwide): providers/transitous.md
       - openpublictransport (Deutschland): providers/openpublictransport.md
       - OTP2 Custom Instance: providers/otp-custom.md

@@ -1,6 +1,9 @@
 # ÖBB (Austrian Federal Railways)
 
-ÖBB (Österreichische Bundesbahnen) provides access to Austrian public transport data through a FPTF-compatible REST API.
+ÖBB (Österreichische Bundesbahnen) provides Austrian public transport departures through ÖBB's own "Scotty" HAFAS web interface.
+
+!!! note
+    Earlier versions used a third-party REST backend (`oebb.macistry.com`) which was permanently suspended by its operator. Since `python-openpublictransport` 0.1.13 the provider talks to ÖBB's official infrastructure at `fahrplan.oebb.at` instead. See [issue #50](https://github.com/NerdySoftPaw/openpublictransport/issues/50).
 
 ## Coverage Area
 
@@ -13,24 +16,22 @@
 
 | Property | Value |
 |----------|-------|
-| **Base URL** | `https://oebb.macistry.com/api` |
+| **Base URL** | `https://fahrplan.oebb.at/bin` |
 | **API Key** | Not required |
 | **Timezone** | Europe/Vienna |
-| **Data Format** | FPTF (Friendly Public Transport Format) |
+| **Data Format** | HAFAS Scotty (`ajax-getstop.exe` + `stboard.exe`) |
 
 ## Transport Types
 
-| Product | Type | Description |
-|---------|------|-------------|
-| nationalExpress | train | Railjet, ICE |
-| national | train | IC, EC |
-| interregional | train | IR trains |
-| regional | train | REX, R trains |
-| suburban | train | S-Bahn |
-| subway | subway | U-Bahn (Vienna) |
-| tram | tram | Tram/Straßenbahn |
-| bus | bus | Bus services |
-| ferry | ferry | Ferry |
+| Category | Type | Description |
+|----------|------|-------------|
+| RJ / RJX / ICE | train | Railjet, ICE |
+| IC / EC / NJ / EN | train | InterCity, EuroCity, Nightjet |
+| REX / CJX / R | train | Regional express / regional |
+| S | train | S-Bahn |
+| U | subway | U-Bahn (Vienna) |
+| Tram | tram | Tram/Straßenbahn |
+| Bus / O-Bus | bus | Bus / trolleybus |
 
 ## Configuration
 
@@ -43,7 +44,7 @@
 
 ### Example Stops
 
-- Wien Hauptbahnhof
+- Wien Hbf
 - Graz Hauptbahnhof
 - Salzburg Hbf
 - Linz Hbf
@@ -51,23 +52,7 @@
 
 ## Features
 
-- Realtime departure data with prognosis
-- Delay information in minutes
+- Realtime departure data with delay in minutes
 - Platform information with change detection
-- Service disruption notices from remarks
-- Agency/operator info per departure
+- Cancellations and service disruption notices (HIM messages)
 - No API key required
-
-## API URLs
-
-### Stop Search
-
-```
-https://oebb.macistry.com/api/locations?query=Wien%20Hauptbahnhof&results=15
-```
-
-### Departures
-
-```
-https://oebb.macistry.com/api/stops/STATION_ID/departures?results=10&duration=120
-```

@@ -13,7 +13,7 @@
 [![Code Quality](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml)
 [![Tests](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml)
 
-Real-time public transport departures for Home Assistant — 28 providers across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide.
+Real-time public transport departures for Home Assistant — 35 providers across Germany, Austria, Switzerland, the Netherlands, Luxembourg, Norway, Sweden, Ireland, the USA, and worldwide.
 
 **Website**: [openpublictransport.net](https://openpublictransport.net) | **Docs**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
@@ -23,19 +23,25 @@ Real-time public transport departures for Home Assistant — 28 providers across
 
 ---
 
-## Supported Providers (28)
+## Supported Providers (35)
 
 | Provider | Region | API Key | Trip Planner |
 |----------|--------|---------|--------------|
 | **AVV** | Augsburg | No | Yes |
+| **BART** | San Francisco, USA | No | No |
 | **BEG** | Bavaria | No | Yes |
 | **BSVG** | Braunschweig | No | No |
 | **BVG** | Berlin / Brandenburg | No | No |
+| **DART** | Des Moines, USA | No | No |
 | **DB** | Germany (nationwide, community API) | No | No |
 | **DING** | Ulm | No | Yes |
+| **Entur** | Norway (nationwide) | No | No |
 | **HVV** | Hamburg | No | Yes |
+| **Irish Rail** | Ireland (nationwide) | No | No |
 | **KVV** | Karlsruhe | No | Yes |
+| **mobilitéit.lu** | Luxembourg (nationwide) | No | No |
 | **MVV** | Munich | No | Yes |
+| **NS** | Netherlands (nationwide) | No | No |
 | **NTA** | Ireland (nationwide) | Yes (free) | No |
 | **NVBW** | Baden-Württemberg | No | No |
 | **NWL** | Westfalen-Lippe | No | No |
@@ -45,6 +51,7 @@ Real-time public transport departures for Home Assistant — 28 providers across
 | **RMV** | Frankfurt / Rhein-Main | Yes (free) | No |
 | **RVV** | Regensburg | No | No |
 | **SBB** | Switzerland (nationwide) | No | No |
+| **TPG** | Geneva, Switzerland | No | No |
 | **Trafiklab** | Sweden (nationwide) | Yes (free) | No |
 | **Transitous** | Worldwide (community) | No | No |
 | **VAG** | Freiburg | No | Yes |
@@ -61,7 +68,7 @@ Real-time public transport departures for Home Assistant — 28 providers across
 ## Features
 
 - **Real-time departures** with delay tracking, platform changes, and disruption notices
-- **28 transit providers** — most require no API key
+- **35 transit providers** — most require no API key
 - **Trip planner** — A-to-B routes with transfer risk assessment
 - **8 entity types**: sensor, binary sensor, calendar, event, camera, trip sensor, statistics, multi-stop
 - **4 actions** — refresh_departures, plan_trip, check_delays, announce_departure (TTS)

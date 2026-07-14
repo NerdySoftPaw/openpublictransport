@@ -1,6 +1,6 @@
 # Providers Overview
 
-The Public Transport Integration supports multiple transit providers across Europe. Each provider has its own API and data format, but the integration normalizes all data into a consistent format.
+The Public Transport Integration supports multiple transit providers across Europe, plus Norway and the USA. Each provider has its own API and data format, but the integration normalizes all data into a consistent format.
 
 ## Provider Comparison
 
@@ -20,6 +20,20 @@ The Public Transport Integration supports multiple transit providers across Euro
 ¹ VBN OTP has no native name-based stop search. The integration geocodes your search term via Nominatim (OpenStreetMap) and finds stops within 500 m of the resolved coordinates.
 
 ² API key for the community server is free — [request it here](https://openpublictransport.net/api-key).
+
+### Providers added in 0.1.14
+
+These use the HAFAS "Scotty", HAFAS `mgate.exe`, or Entur transmodel interfaces. None require an API key.
+
+| Provider | Region | API Type | Real-time | Platform | Notices | Stop Search |
+|----------|--------|----------|-----------|----------|---------|-------------|
+| **NS** | Netherlands | HAFAS Scotty | Yes | Yes | Yes (HIM) | Autocomplete |
+| **mobilitéit.lu** | Luxembourg | HAFAS Scotty | Yes | Yes | Yes (HIM) | Autocomplete |
+| **Entur** | Norway | OTP transmodel GraphQL | Yes | Yes (quay) | Cancellations | Geocoder |
+| **BART** | San Francisco, USA | HAFAS mgate | Yes | Yes | Cancellations | Autocomplete |
+| **DART** | Des Moines, USA | HAFAS mgate | Yes | Limited | Cancellations | Autocomplete |
+| **Irish Rail** | Ireland | HAFAS mgate | Yes | Yes | Cancellations | Autocomplete |
+| **TPG** | Geneva, Switzerland | HAFAS mgate | Yes | Yes | Cancellations | Autocomplete |
 
 ## Timezone Handling
 
@@ -48,7 +62,14 @@ Each provider uses its local timezone for departure times:
 | NVBW | Europe/Berlin |
 | BEG | Europe/Berlin |
 | SBB | Europe/Zurich |
+| TPG | Europe/Zurich |
 | ÖBB | Europe/Vienna |
+| NS | Europe/Amsterdam |
+| mobilitéit.lu | Europe/Luxembourg |
+| Entur | Europe/Oslo |
+| Irish Rail | Europe/Dublin |
+| BART | America/Los_Angeles |
+| DART | America/Chicago |
 | Trafiklab | Europe/Stockholm |
 | NTA | Europe/Dublin |
 | Transitous | Per-stop (automatic) |
@@ -166,6 +187,45 @@ VBN is available as two separate provider variants. Both use `Authorization: <ke
 | 2, 7 | train | Rail |
 | 3 | bus | Bus |
 | 4 | ferry | Ferry |
+
+### HAFAS Scotty Categories (NS, mobilitéit.lu, ÖBB)
+
+Mapped from the product category (the token after `#` in the board's `prod` attribute), with the HAFAS product-class bitmask as a fallback.
+
+| Category | Type | Description |
+|----------|------|-------------|
+| ICE / RJ / RJX / TGV | train | High-speed |
+| IC / EC / EN / NJ / D | train | Long-distance |
+| IR / IRE / RE / REX / CJX | train | Regional express |
+| R / RB / S / SB / SPR / TER | train | Regional / suburban |
+| U | subway | U-Bahn / metro |
+| Tram / STR | tram | Tram |
+| Bus / O-Bus | bus | Bus / trolleybus |
+| F / Schiff / Fähre | ferry | Ferry |
+
+### HAFAS mgate Categories (BART, DART, Irish Rail, TPG)
+
+Mapped from the product `prodCtx.catOut` label (the `cls` bitmask is intentionally **not** used — its meaning differs per deployment, e.g. `128` is a ferry for ÖBB but *Metro* for BART).
+
+| catOut | Type | Description |
+|--------|------|-------------|
+| Metro | subway | Metro (e.g. BART) |
+| Train / DART / Commuter / InterCity / TER | train | Rail services |
+| Tram / T | tram | Tram |
+| Bus / B | bus | Bus |
+| Ferry / Ship / Boat | ferry | Ferry |
+
+### Entur Transport Modes (Norway)
+
+Mapped from the transmodel `transportMode` of each departure's line.
+
+| transportMode | Type |
+|---------------|------|
+| rail | train |
+| metro | subway |
+| tram | tram |
+| bus / coach | bus |
+| water | ferry |
 
 ## API Rate Limiting
 

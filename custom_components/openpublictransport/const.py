@@ -64,6 +64,13 @@ PROVIDER_NATIONAL_RAIL = "national_rail"  # National Rail (UK) via OpenLDBWS
 CONF_NATIONAL_RAIL_API_KEY = "national_rail_api_key"
 PROVIDER_REJSEPLANEN = "rejseplanen"  # Rejseplanen (Denmark) via HAFAS REST API
 CONF_REJSEPLANEN_API_KEY = "rejseplanen_api_key"
+PROVIDER_NS_NL = "ns_nl"  # NS (Netherlands) via HAFAS Scotty
+PROVIDER_MOBILITEIT_LU = "mobiliteit_lu"  # mobilitéit.lu (Luxembourg) via HAFAS Scotty
+PROVIDER_ENTUR_NO = "entur_no"  # Entur (Norway) via OTP transmodel GraphQL
+PROVIDER_BART_US = "bart_us"  # BART (San Francisco) via HAFAS mgate
+PROVIDER_DART_US = "dart_us"  # DART (Des Moines) via HAFAS mgate
+PROVIDER_IRISHRAIL_IE = "irishrail_ie"  # Iarnród Éireann / Irish Rail via HAFAS mgate
+PROVIDER_TPG_CH = "tpg_ch"  # TPG (Geneva) via HAFAS mgate
 PROVIDERS = [
     PROVIDER_VRR,
     PROVIDER_KVV,
@@ -95,6 +102,13 @@ PROVIDERS = [
     PROVIDER_OTP_CUSTOM,
     PROVIDER_NATIONAL_RAIL,
     PROVIDER_REJSEPLANEN,
+    PROVIDER_NS_NL,
+    PROVIDER_MOBILITEIT_LU,
+    PROVIDER_ENTUR_NO,
+    PROVIDER_BART_US,
+    PROVIDER_DART_US,
+    PROVIDER_IRISHRAIL_IE,
+    PROVIDER_TPG_CH,
 ]
 
 # Transportation types mapping

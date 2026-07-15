@@ -6,6 +6,7 @@ route planning from A to B with connections and transfers.
 
 import asyncio
 import logging
+import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
@@ -409,6 +410,47 @@ def _iso_to_epoch(iso: Optional[str]) -> float:
     return dt.timestamp() if dt else 0.0
 
 
+_ISO_DURATION_RE = re.compile(
+    r"^(?P<sign>-)?P(?:(?P<days>\d+)D)?T(?:(?P<h>\d+)H)?(?:(?P<m>\d+)M)?(?:(?P<s>\d+(?:\.\d+)?)S)?$",
+    re.IGNORECASE,
+)
+
+
+def _duration_to_seconds(value: Any) -> int:
+    """Coerce an OTP2 ``Duration`` value to whole seconds.
+
+    OTP2's ``planConnection`` returns durations (leg/itinerary ``duration`` and
+    realtime ``delay``) as the ``Duration`` scalar, serialised as an ISO-8601
+    string like ``"PT3M"`` / ``"-PT90S"``. Older/other schemas return a plain
+    number of seconds. Handle both (and ``None``) so a real-time delay no longer
+    crashes the trip planner.
+    """
+    if value is None:
+        return 0
+    if isinstance(value, bool):
+        return 0
+    if isinstance(value, (int, float)):
+        return int(value)
+    text = str(value).strip()
+    if not text:
+        return 0
+    try:
+        return int(float(text))  # plain numeric string (seconds)
+    except ValueError:
+        pass
+    match = _ISO_DURATION_RE.match(text)
+    if not match:
+        return 0
+    parts = match.groupdict()
+    total = (
+        int(parts["days"] or 0) * 86400
+        + int(parts["h"] or 0) * 3600
+        + int(parts["m"] or 0) * 60
+        + int(float(parts["s"] or 0))
+    )
+    return -total if parts["sign"] else total
+
+
 def _parse_otp_plan_connection(nodes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Parse OTP2 planConnection nodes into the unified journey dict format."""
     results = []
@@ -425,7 +467,7 @@ def _parse_otp_plan_connection(nodes: List[Dict[str, Any]]) -> List[Dict[str, An
             dep_estimated = ((start.get("estimated") or {}).get("time")) or dep_planned
             arr_planned = end.get("scheduledTime")
             arr_estimated = ((end.get("estimated") or {}).get("time")) or arr_planned
-            delay_s = (start.get("estimated") or {}).get("delay") or 0
+            delay_s = (start.get("estimated") or {}).get("delay")
             route = (leg.get("trip") or {}).get("route") or leg.get("route") or {}
 
             transit_legs.append(
@@ -438,8 +480,8 @@ def _parse_otp_plan_connection(nodes: List[Dict[str, Any]]) -> List[Dict[str, An
                     "departure_estimated": _iso_to_hhmm(dep_estimated),
                     "arrival_planned": _iso_to_hhmm(arr_planned),
                     "arrival_estimated": _iso_to_hhmm(arr_estimated),
-                    "delay": int(delay_s // 60),
-                    "duration_minutes": round((leg.get("duration") or 0) / 60),
+                    "delay": _duration_to_seconds(delay_s) // 60,
+                    "duration_minutes": round(_duration_to_seconds(leg.get("duration")) / 60),
                     "platform": "",
                     # Internal epoch seconds for transfer-gap calculation
                     "_arrival_s": _iso_to_epoch(arr_estimated),
@@ -477,7 +519,7 @@ def _parse_otp_plan_connection(nodes: List[Dict[str, Any]]) -> List[Dict[str, An
             {
                 "departure": first_dep,
                 "arrival": last_arr,
-                "duration_minutes": round((node.get("duration") or 0) / 60),
+                "duration_minutes": round(_duration_to_seconds(node.get("duration")) / 60),
                 "transfers": node.get("numberOfTransfers", len(transit_legs) - 1),
                 "connection_feasible": connection_feasible,
                 "transfer_risk": transfer_risk,

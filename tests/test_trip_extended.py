@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant
 from custom_components.openpublictransport.trip import (
     _async_plan_trip_otp,
     _async_plan_trip_otp2_graphql,
+    _duration_to_seconds,
     async_plan_trip,
 )
 
@@ -112,6 +113,38 @@ async def test_otp2_graphql_itineraries_returned(hass: HomeAssistant):
     assert result is not None
     assert len(result) == 1
     assert result[0]["legs"][0]["line"] == "ICE 1"
+
+
+def test_duration_to_seconds_variants():
+    """OTP2 Duration scalar (ISO-8601 string), numbers and None all coerce."""
+    assert _duration_to_seconds(None) == 0
+    assert _duration_to_seconds(0) == 0
+    assert _duration_to_seconds(180) == 180
+    assert _duration_to_seconds(90.0) == 90
+    assert _duration_to_seconds("120") == 120          # numeric string
+    assert _duration_to_seconds("PT3M") == 180
+    assert _duration_to_seconds("PT1H2M3S") == 3723
+    assert _duration_to_seconds("-PT90S") == -90       # running early
+    assert _duration_to_seconds("PT0S") == 0
+    assert _duration_to_seconds("garbage") == 0
+
+
+async def test_otp2_graphql_iso8601_delay_does_not_crash(hass: HomeAssistant):
+    """Regression: a real-time delay comes back as an ISO-8601 Duration string
+    (e.g. "PT3M"), which used to crash with `str // int`. See issue #50 follow-up."""
+    node = _make_pc_node()
+    node["duration"] = "PT1H"
+    node["legs"][0]["duration"] = "PT1H"
+    node["legs"][0]["start"]["estimated"]["delay"] = "PT3M"
+
+    provider = MagicMock()
+    provider._graphql = AsyncMock(return_value=_pc_response([node]))
+
+    result = await _async_plan_trip_otp2_graphql("stop:1", "stop:2", None, provider)
+    assert result is not None and len(result) == 1
+    assert result[0]["legs"][0]["delay"] == 3
+    assert result[0]["legs"][0]["duration_minutes"] == 60
+    assert result[0]["duration_minutes"] == 60
 
 
 async def test_otp2_graphql_no_edges(hass: HomeAssistant):

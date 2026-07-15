@@ -10,10 +10,14 @@ from typing import Any, Dict, List, Optional
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
+
+from .sensor import _RESTORE_SKIP_ATTRS
 
 from .const import (
     CONF_OPT_API_KEY,
@@ -153,7 +157,7 @@ async def async_setup_entry(
     async_add_entities([TripSensor(coordinator, config_entry)])
 
 
-class TripSensor(CoordinatorEntity, SensorEntity):
+class TripSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
     """Sensor showing the next best trip from A to B."""
 
     _attr_has_entity_name = True
@@ -167,6 +171,8 @@ class TripSensor(CoordinatorEntity, SensorEntity):
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._attr_icon = "mdi:routes"
+        self._restored_state: str | None = None
+        self._restored_attributes: dict[str, Any] = {}
 
         origin = coordinator.origin
         origin_city = coordinator.origin_city
@@ -184,10 +190,32 @@ class TripSensor(CoordinatorEntity, SensorEntity):
             model="Trip Planner",
         )
 
+    async def async_added_to_hass(self) -> None:
+        """Restore the last trip so the sensor isn't blank right after a restart.
+
+        Only used while the coordinator has no data yet (``data is None``); a
+        valid empty result (``[]``) still shows "No connections" rather than a
+        stale connection.
+        """
+        await super().async_added_to_hass()
+        if self.coordinator.data is not None:
+            return
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state not in (None, STATE_UNKNOWN, STATE_UNAVAILABLE):
+            self._restored_state = last_state.state
+            self._restored_attributes = {
+                key: value
+                for key, value in last_state.attributes.items()
+                if key not in _RESTORE_SKIP_ATTRS
+            }
+            self.async_write_ha_state()
+
     @property
     def native_value(self) -> str | None:
         """Return the next trip as state."""
         journeys = self.coordinator.data
+        if journeys is None and self._restored_state is not None:
+            return self._restored_state
         if not journeys:
             return "No connections"
 
@@ -205,6 +233,8 @@ class TripSensor(CoordinatorEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return trip details as attributes."""
         journeys = self.coordinator.data
+        if journeys is None and self._restored_attributes:
+            return self._restored_attributes
         if not journeys:
             return {}
 

@@ -217,6 +217,12 @@ class DepartureBoardCamera(CoordinatorEntity, Camera):
         """Return the departure board image."""
         return self._image
 
+    async def async_added_to_hass(self) -> None:
+        """Render the board on add so it isn't blank after a restart."""
+        await super().async_added_to_hass()
+        if self.coordinator.data:
+            self._handle_coordinator_update()
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Re-render the board when data updates."""

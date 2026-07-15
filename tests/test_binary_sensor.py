@@ -182,3 +182,41 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry, mock_co
 
     assert len(entities) == 1
     assert isinstance(entities[0], PublicTransportDelayBinarySensor)
+
+
+# ── restore state across restart ──────────────────────────────────────────────
+
+from homeassistant.core import State
+from pytest_homeassistant_custom_component.common import mock_restore_cache
+
+
+def _delay_coordinator():
+    coordinator = MagicMock()
+    coordinator.data = None
+    coordinator.last_update_success = True
+    coordinator.provider = PROVIDER_VRR
+    coordinator.place_dm = "Düsseldorf"
+    coordinator.name_dm = "Hauptbahnhof"
+    coordinator.station_id = None
+    coordinator.agency_name = "VRR"
+    return coordinator
+
+
+async def test_binary_sensor_restores_last_state(hass: HomeAssistant, mock_config_entry):
+    """With no coordinator data yet, restore is_on and attributes from disk."""
+    coordinator = _delay_coordinator()
+    entity_id = "binary_sensor.opt_delays_restore"
+    mock_restore_cache(
+        hass,
+        (State(entity_id, "on", {"max_delay": 12, "delayed_departures": 2, "friendly_name": "X"}),),
+    )
+    sensor = PublicTransportDelayBinarySensor(coordinator, mock_config_entry, ["bus", "train", "tram"])
+    sensor.hass = hass
+    sensor.entity_id = entity_id
+    sensor.async_write_ha_state = MagicMock()
+
+    await sensor.async_added_to_hass()
+
+    assert sensor.is_on is True
+    assert sensor.extra_state_attributes["max_delay"] == 12
+    assert "friendly_name" not in sensor.extra_state_attributes

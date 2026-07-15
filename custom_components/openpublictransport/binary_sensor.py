@@ -7,10 +7,11 @@ from typing import Any, Callable
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory
+from homeassistant.const import EntityCategory, STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 from openpublictransport.models import UnifiedDeparture
@@ -26,7 +27,7 @@ from .const import (
     PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
-from .sensor import PublicTransportDataUpdateCoordinator
+from .sensor import PublicTransportDataUpdateCoordinator, _RESTORE_SKIP_ATTRS
 
 PARALLEL_UPDATES = 0
 
@@ -51,7 +52,7 @@ async def async_setup_entry(
     async_add_entities([PublicTransportDelayBinarySensor(coordinator, config_entry, transportation_types)])
 
 
-class PublicTransportDelayBinarySensor(CoordinatorEntity, BinarySensorEntity):
+class PublicTransportDelayBinarySensor(CoordinatorEntity, RestoreEntity, BinarySensorEntity):
     """Binary sensor for public transport delays."""
 
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
@@ -97,6 +98,22 @@ class PublicTransportDelayBinarySensor(CoordinatorEntity, BinarySensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return additional attributes."""
         return self._attributes
+
+    async def async_added_to_hass(self) -> None:
+        """Show state immediately on add, restoring from disk if needed."""
+        await super().async_added_to_hass()
+        if self.coordinator.data:
+            self._handle_coordinator_update()
+            return
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state not in (None, STATE_UNKNOWN, STATE_UNAVAILABLE):
+            self._attr_is_on = last_state.state == "on"
+            self._attributes = {
+                key: value
+                for key, value in last_state.attributes.items()
+                if key not in _RESTORE_SKIP_ATTRS
+            }
+            self.async_write_ha_state()
 
     @callback
     def _handle_coordinator_update(self) -> None:

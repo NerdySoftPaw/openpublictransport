@@ -271,3 +271,50 @@ def test_trip_sensor_extra_attributes_multiple_journeys(hass: HomeAssistant):
     assert attrs["alternative_journeys"] == 2
     assert "next_journeys" in attrs
     assert len(attrs["next_journeys"]) == 2
+
+
+# ── restore state across restart ──────────────────────────────────────────────
+
+from homeassistant.core import State
+from pytest_homeassistant_custom_component.common import mock_restore_cache
+
+
+async def test_trip_sensor_restores_last_state_when_no_data(hass: HomeAssistant):
+    """With coordinator.data None, native_value/attrs fall back to the restored trip."""
+    coordinator = _make_trip_coordinator(hass)
+    # coordinator.data defaults to None before any refresh
+    entry = _make_trip_entry()
+    entity_id = "sensor.opt_trip_restore"
+    mock_restore_cache(
+        hass,
+        (State(entity_id, "10:00 → 11:00 (60 min, 0 transfers)", {"transfers": 0, "duration_minutes": 60}),),
+    )
+    sensor = TripSensor(coordinator, entry)
+    sensor.hass = hass
+    sensor.entity_id = entity_id
+    sensor.async_write_ha_state = MagicMock()
+
+    await sensor.async_added_to_hass()
+
+    assert sensor.native_value == "10:00 → 11:00 (60 min, 0 transfers)"
+    assert sensor.extra_state_attributes["duration_minutes"] == 60
+
+
+async def test_trip_sensor_empty_result_not_stale(hass: HomeAssistant):
+    """A valid empty result ([]) shows 'No connections', never the restored trip."""
+    coordinator = _make_trip_coordinator(hass)
+    entry = _make_trip_entry()
+    entity_id = "sensor.opt_trip_empty"
+    mock_restore_cache(
+        hass,
+        (State(entity_id, "10:00 → 11:00 (60 min, 0 transfers)", {"transfers": 0}),),
+    )
+    sensor = TripSensor(coordinator, entry)
+    sensor.hass = hass
+    sensor.entity_id = entity_id
+    sensor.async_write_ha_state = MagicMock()
+
+    await sensor.async_added_to_hass()          # restores (data is None)
+    coordinator.data = []                        # valid empty result arrives
+    assert sensor.native_value == "No connections"
+    assert sensor.extra_state_attributes == {}

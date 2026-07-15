@@ -279,10 +279,22 @@ from homeassistant.core import State
 from pytest_homeassistant_custom_component.common import mock_restore_cache
 
 
+def _mock_trip_coordinator(data=None):
+    """A MagicMock trip coordinator (no real refresh timer to leave lingering)."""
+    coordinator = MagicMock()
+    coordinator.data = data
+    coordinator.last_update_success = True
+    coordinator.provider = "vrr"
+    coordinator.origin = "Düsseldorf Hbf"
+    coordinator.origin_city = "Düsseldorf"
+    coordinator.destination = "Köln Hbf"
+    coordinator.destination_city = "Köln"
+    return coordinator
+
+
 async def test_trip_sensor_restores_last_state_when_no_data(hass: HomeAssistant):
     """With coordinator.data None, native_value/attrs fall back to the restored trip."""
-    coordinator = _make_trip_coordinator(hass)
-    # coordinator.data defaults to None before any refresh
+    coordinator = _mock_trip_coordinator(data=None)
     entry = _make_trip_entry()
     entity_id = "sensor.opt_trip_restore"
     mock_restore_cache(
@@ -302,7 +314,7 @@ async def test_trip_sensor_restores_last_state_when_no_data(hass: HomeAssistant)
 
 async def test_trip_sensor_empty_result_not_stale(hass: HomeAssistant):
     """A valid empty result ([]) shows 'No connections', never the restored trip."""
-    coordinator = _make_trip_coordinator(hass)
+    coordinator = _mock_trip_coordinator(data=None)
     entry = _make_trip_entry()
     entity_id = "sensor.opt_trip_empty"
     mock_restore_cache(
@@ -314,7 +326,7 @@ async def test_trip_sensor_empty_result_not_stale(hass: HomeAssistant):
     sensor.entity_id = entity_id
     sensor.async_write_ha_state = MagicMock()
 
-    await sensor.async_added_to_hass()          # restores (data is None)
-    coordinator.data = []                        # valid empty result arrives
+    await sensor.async_added_to_hass()  # restores (data is None)
+    coordinator.data = []  # valid empty result arrives
     assert sensor.native_value == "No connections"
     assert sensor.extra_state_attributes == {}

@@ -317,3 +317,58 @@ async def test_sensor_destination_filtering(hass: HomeAssistant):
     departures = sensor._attributes.get("departures", [])
     assert len(departures) == 1
     assert departures[0]["destination"] == "Duisburg Hbf"
+
+
+# ── restore state across restart ──────────────────────────────────────────────
+# Regression: after a restart the push-style sensor showed `unknown` until the
+# next poll. It should now populate on add — from fresh coordinator data if
+# present, else from the last persisted state.
+
+from homeassistant.core import State
+from pytest_homeassistant_custom_component.common import mock_restore_cache
+
+from openpublictransport import get_provider
+
+
+def _build_sensor(hass, coordinator, mock_config_entry, entity_id="sensor.opt_test"):
+    coordinator.agency_name = "VRR"
+    sensor = MultiProviderSensor(coordinator, mock_config_entry, ["bus", "train", "tram"])
+    sensor.hass = hass
+    sensor.entity_id = entity_id
+    sensor.async_write_ha_state = MagicMock()
+    return sensor
+
+
+async def test_sensor_hydrates_on_add_from_coordinator(hass, mock_coordinator, mock_config_entry):
+    """With fresh coordinator data present, state is set immediately on add
+    (no waiting for the next poll)."""
+    mock_coordinator.provider_instance = get_provider(PROVIDER_VRR, hass)
+    sensor = _build_sensor(hass, mock_coordinator, mock_config_entry)
+
+    await sensor.async_added_to_hass()
+
+    assert sensor.state is not None          # was None (unknown) before the fix
+    assert isinstance(sensor.extra_state_attributes, dict)
+    assert "total_departures" in sensor.extra_state_attributes
+
+
+async def test_sensor_restores_last_state_when_no_data(hass, mock_coordinator, mock_config_entry):
+    """With no coordinator data yet, the last persisted state/attributes are restored."""
+    mock_coordinator.data = None
+    entity_id = "sensor.opt_restore"
+    mock_restore_cache(
+        hass,
+        (State(entity_id, "14:37", {"departures": [{"line": "U1"}], "total_departures": 3, "friendly_name": "X"}),),
+    )
+    sensor = _build_sensor(hass, mock_coordinator, mock_config_entry, entity_id)
+
+    await sensor.async_added_to_hass()
+
+    assert sensor.state == "14:37"
+    assert sensor.extra_state_attributes["total_departures"] == 3
+    assert "friendly_name" not in sensor.extra_state_attributes   # HA-managed key dropped
+
+    # A subsequent coordinator update overwrites the restored value.
+    mock_coordinator.data = {"stopEvents": []}
+    sensor._handle_coordinator_update()
+    assert sensor.state == "No departures"

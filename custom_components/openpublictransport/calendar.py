@@ -92,6 +92,12 @@ class DepartureCalendar(CoordinatorEntity, CalendarEntity):
         """Return events in a specific time range."""
         return [e for e in self._events if e.start >= start_date and e.start <= end_date]
 
+    async def async_added_to_hass(self) -> None:
+        """Populate events on add so the calendar isn't empty after a restart."""
+        await super().async_added_to_hass()
+        if self.coordinator.data:
+            self._handle_coordinator_update()
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""

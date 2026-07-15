@@ -6,12 +6,14 @@ from typing import Any, Dict, List, Optional
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 from openpublictransport import AuthenticationError, get_provider
@@ -39,6 +41,21 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 PARALLEL_UPDATES = 0
+
+# HA-managed attribute keys to drop when restoring our own extra_state_attributes
+# from a persisted state (they are re-derived by HA / our properties).
+_RESTORE_SKIP_ATTRS = frozenset(
+    {
+        "friendly_name",
+        "icon",
+        "entity_picture",
+        "attribution",
+        "device_class",
+        "unit_of_measurement",
+        "state_class",
+        "supported_features",
+    }
+)
 INTEGRATION_VERSION = json.loads((Path(__file__).parent / "manifest.json").read_text()).get("version", "unknown")
 
 
@@ -306,7 +323,7 @@ async def async_setup_entry(
     )
 
 
-class MultiProviderSensor(CoordinatorEntity, SensorEntity):
+class MultiProviderSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
     _attr_has_entity_name = True
     """Sensor für VRR/KVV/HVV using DataUpdateCoordinator."""
 
@@ -429,6 +446,30 @@ class MultiProviderSensor(CoordinatorEntity, SensorEntity):
         if self._use_provider_logo:
             return PROVIDER_ENTITY_PICTURES.get(self._provider)
         return None
+
+    async def async_added_to_hass(self) -> None:
+        """Populate state immediately on add, restoring from disk if needed.
+
+        Chains CoordinatorEntity (registers the coordinator listener) and
+        RestoreEntity (state persistence). Without this, the push-style entity
+        would show ``unknown`` after a restart until the next poll (up to
+        ``scan_interval``), even though ``coordinator.data`` is already populated
+        by the blocking first refresh.
+        """
+        await super().async_added_to_hass()
+        if self.coordinator.data:
+            # Fresh data was already fetched during setup — show it now.
+            self._handle_coordinator_update()
+            return
+        # No data yet (e.g. degraded startup): fall back to the last known state
+        # so the sensor isn't empty until the first successful fetch.
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state not in (None, STATE_UNKNOWN, STATE_UNAVAILABLE):
+            self._state = last_state.state
+            self._attributes = {
+                key: value for key, value in last_state.attributes.items() if key not in _RESTORE_SKIP_ATTRS
+            }
+            self.async_write_ha_state()
 
     @callback
     def _handle_coordinator_update(self) -> None:

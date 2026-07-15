@@ -17,8 +17,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
 
-from .sensor import _RESTORE_SKIP_ATTRS
-
 from .const import (
     CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
@@ -28,6 +26,7 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
+from .sensor import _RESTORE_SKIP_ATTRS
 from .trip import async_plan_trip
 
 PARALLEL_UPDATES = 0
@@ -204,9 +203,7 @@ class TripSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
         if last_state and last_state.state not in (None, STATE_UNKNOWN, STATE_UNAVAILABLE):
             self._restored_state = last_state.state
             self._restored_attributes = {
-                key: value
-                for key, value in last_state.attributes.items()
-                if key not in _RESTORE_SKIP_ATTRS
+                key: value for key, value in last_state.attributes.items() if key not in _RESTORE_SKIP_ATTRS
             }
             self.async_write_ha_state()
 

@@ -467,9 +467,7 @@ class MultiProviderSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
         if last_state and last_state.state not in (None, STATE_UNKNOWN, STATE_UNAVAILABLE):
             self._state = last_state.state
             self._attributes = {
-                key: value
-                for key, value in last_state.attributes.items()
-                if key not in _RESTORE_SKIP_ATTRS
+                key: value for key, value in last_state.attributes.items() if key not in _RESTORE_SKIP_ATTRS
             }
             self.async_write_ha_state()
 

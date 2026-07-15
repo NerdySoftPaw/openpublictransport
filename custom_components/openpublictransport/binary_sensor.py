@@ -7,7 +7,7 @@ from typing import Any, Callable
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory, STATE_UNAVAILABLE, STATE_UNKNOWN
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -27,7 +27,7 @@ from .const import (
     PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
-from .sensor import PublicTransportDataUpdateCoordinator, _RESTORE_SKIP_ATTRS
+from .sensor import _RESTORE_SKIP_ATTRS, PublicTransportDataUpdateCoordinator
 
 PARALLEL_UPDATES = 0
 
@@ -109,9 +109,7 @@ class PublicTransportDelayBinarySensor(CoordinatorEntity, RestoreEntity, BinaryS
         if last_state and last_state.state not in (None, STATE_UNKNOWN, STATE_UNAVAILABLE):
             self._attr_is_on = last_state.state == "on"
             self._attributes = {
-                key: value
-                for key, value in last_state.attributes.items()
-                if key not in _RESTORE_SKIP_ATTRS
+                key: value for key, value in last_state.attributes.items() if key not in _RESTORE_SKIP_ATTRS
             }
             self.async_write_ha_state()
 

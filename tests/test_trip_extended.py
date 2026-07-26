@@ -216,7 +216,7 @@ async def test_otp_rest_no_stop_data(hass: HomeAssistant):
     provider.otp_base_url = "http://otp.local"
     provider._get = AsyncMock(return_value=None)
 
-    result = await _async_plan_trip_otp(hass, "stop:1", "stop:2", None, provider)
+    result = await _async_plan_trip_otp("stop:1", "stop:2", None, provider)
     assert result is None
 
 
@@ -232,7 +232,7 @@ async def test_otp_rest_no_itineraries(hass: HomeAssistant):
         {"plan": {"itineraries": []}},
     ])
 
-    result = await _async_plan_trip_otp(hass, "stop:1", "stop:2", None, provider)
+    result = await _async_plan_trip_otp("stop:1", "stop:2", None, provider)
     assert result is None
 
 
@@ -248,9 +248,17 @@ async def test_otp_rest_with_itineraries(hass: HomeAssistant):
         {"plan": {"itineraries": [_make_otp_itinerary()]}},
     ])
 
-    result = await _async_plan_trip_otp(hass, "stop:1", "stop:2", None, provider)
+    result = await _async_plan_trip_otp("stop:1", "stop:2", None, provider)
     assert result is not None
     assert len(result) == 1
+
+    # Regression test for the issue #59 bug: a stray `session` positional
+    # argument used to shift into `_get`'s `url` parameter (real signature is
+    # `_get(self, url, params=None)` — the session is injected once via the
+    # constructor, not per-call).
+    for call in provider._get.call_args_list:
+        assert 1 <= len(call.args) <= 2
+        assert isinstance(call.args[0], str)
 
 
 async def test_otp_rest_plan_data_none(hass: HomeAssistant):
@@ -262,7 +270,7 @@ async def test_otp_rest_plan_data_none(hass: HomeAssistant):
     provider.otp_base_url = "http://otp.local"
     provider._get = AsyncMock(side_effect=[origin_stop, dest_stop, None])
 
-    result = await _async_plan_trip_otp(hass, "stop:1", "stop:2", None, provider)
+    result = await _async_plan_trip_otp("stop:1", "stop:2", None, provider)
     assert result is None
 
 

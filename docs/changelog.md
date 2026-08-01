@@ -1,5 +1,60 @@
 # Changelog
 
+## v2026.8.0 — Platform data, filters, two entries per station, official HVV API
+
+Requires `python-openpublictransport` 0.1.16.
+
+### Breaking Changes
+
+- **KVV platform values changed** from the readable `"Gleis 3"` to the technical `"3"`, matching
+  every other EFA provider. The readable string is still available as the new `platform_name`
+  attribute. Update any template or card that compares `platform` against `"Gleis 3"`.
+
+### New Providers
+
+- **HVV Geofox GTI** ([#61](https://github.com/NerdySoftPaw/openpublictransport/issues/61)) —
+  HOCHBAHN's official API on behalf of the HVV, alongside the existing keyless `hvv` provider.
+  It exposes explicit delays, cancellations and platform changes that the public EFA endpoint
+  does not. Credentials are free by email to api@hochbahn.de. Trip planning is not supported on
+  GTI yet — use the `hvv` provider for trip entries.
+
+### New Features
+
+- **Platform/track filter** ([#57](https://github.com/NerdySoftPaw/openpublictransport/issues/57)) —
+  a third filter next to line and destination, in both the setup wizard and the options flow.
+  At many stops the track is a more stable direction selector than the destination name.
+  Matching ignores the label, so `3`, `Gleis 3` and `gleis 3` all select the same track.
+- **The same station can be added twice** ([#55](https://github.com/NerdySoftPaw/openpublictransport/issues/55)) —
+  for example one entry per direction — as long as the two differ in at least one filter. The
+  filter is shown in the entry title and device name. Existing entries keep their entity IDs
+  and device names exactly as they were.
+- **New departure attributes**: `platform_name` (readable label), plus `planned_platform` and
+  `platform_changed`, which now actually fire for EFA providers.
+
+### Fixes
+
+- **Platform/track was always empty on EFA providers**
+  ([#56](https://github.com/NerdySoftPaw/openpublictransport/issues/56)) — affected VVS, VRR,
+  MVV, VGN, VRN, VVO, DING, AVV, RVV, BSVG, NWL and VAG, which all reported `platform: ''`
+  while the API had the value.
+- **VBN OTP trip planner permanently showed "No connections"**
+  ([#59](https://github.com/NerdySoftPaw/openpublictransport/issues/59)) — a leftover argument
+  made every stop-coordinate lookup fail. Thanks to @rayphi for finding and fixing this.
+- **Diagnostics download failed for Trip Planner entries**
+  ([#58](https://github.com/NerdySoftPaw/openpublictransport/issues/58)) with an
+  `AttributeError`. Diagnostics are now shape-aware, and trip origin/destination names and API
+  keys are redacted.
+- **Filters set during setup were silently discarded** — the wizard offered the delay
+  threshold, line filter, destination filter, favourite lines and walking time, then dropped
+  all five. Until now a filter only took effect if entered again under **Configure**.
+- **Reconfigure silently reset every other setting** — moving an entry to a different stop
+  reset departures, scan interval, transport types, delay threshold, provider logo and walking
+  time to their defaults. The form is now prefilled with the entry's current values.
+- **False platform-change events** are no longer emitted from comparing `"3"` against
+  `"Gleis 3"`.
+
+---
+
 ## v2026.6.2 — Line Colors, Agency Sensor Name, Stop Search Fixes
 
 ### New Features

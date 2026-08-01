@@ -74,6 +74,7 @@
           "delay_threshold": "Delay threshold (minutes)",
           "line_filter": "Line filter",
           "destination_filter": "Destination filter",
+          "platform_filter": "Platform filter",
           "walking_time": "Walking time (minutes)",
           "favorite_lines": "Favorite lines"
         },
@@ -85,6 +86,7 @@
           "delay_threshold": "Minimum delay in minutes to trigger the delay sensor (1-30)",
           "line_filter": "Only show specific lines, comma-separated (e.g. U79, RE5, Bus 42). Empty = all lines",
           "destination_filter": "Show only departures whose destination matches, comma-separated, partial match (e.g. Duisburg, Airport). Empty = all destinations",
+          "platform_filter": "Show only departures from specific platforms/tracks, comma-separated (e.g. 3, 4 or Gleis 3). Empty = all platforms",
           "walking_time": "Walking time to stop in minutes (0 = disabled). Departures that can no longer be reached are hidden",
           "favorite_lines": "Comma-separated lines to show first (e.g. U79, RE5). Empty = no favorites"
         }
@@ -150,6 +152,7 @@
           "delay_threshold": "Delay threshold (minutes)",
           "line_filter": "Line filter",
           "destination_filter": "Destination filter",
+          "platform_filter": "Platform filter",
           "walking_time": "Walking time (minutes)",
           "favorite_lines": "Favorite lines"
         },
@@ -158,6 +161,7 @@
           "delay_threshold": "Minimum delay in minutes to trigger the delay sensor (1-30)",
           "line_filter": "Only show specific lines, comma-separated (e.g. U79, RE5, Bus 42). Empty = all lines",
           "destination_filter": "Show only departures whose destination matches, comma-separated, partial match (e.g. Duisburg, Airport). Empty = all destinations",
+          "platform_filter": "Show only departures from specific platforms/tracks, comma-separated (e.g. 3, 4 or Gleis 3). Empty = all platforms",
           "walking_time": "Walking time to stop in minutes (0 = disabled). Departures that can no longer be reached are hidden",
           "favorite_lines": "Comma-separated lines to show first (e.g. U79, RE5). Empty = no favorites"
         }

@@ -397,6 +397,167 @@ async def test_sensor_exposes_efa_platform(hass: HomeAssistant):
     assert "platform_changed" not in departures[0]
 
 
+def _multi_platform_board() -> dict:
+    """Three departures from tracks 3, 4 and a bus stop position A."""
+    return {
+        "stopEvents": [
+            {
+                "location": {"properties": {"platform": "3", "platformName": "Gleis 3"}},
+                "departureTimePlanned": "2026-07-18T18:25:00Z",
+                "departureTimeEstimated": "2026-07-18T18:25:00Z",
+                "transportation": {
+                    "number": "S1",
+                    "destination": {"name": "Plochingen"},
+                    "product": {"class": 1, "name": "S-Bahn"},
+                },
+            },
+            {
+                "location": {"properties": {"platform": "4", "platformName": "Gleis 4"}},
+                "departureTimePlanned": "2026-07-18T18:27:00Z",
+                "departureTimeEstimated": "2026-07-18T18:27:00Z",
+                "transportation": {
+                    "number": "S1",
+                    "destination": {"name": "Herrenberg"},
+                    "product": {"class": 1, "name": "S-Bahn"},
+                },
+            },
+            {
+                "location": {"properties": {"platform": "A"}},
+                "departureTimePlanned": "2026-07-18T18:29:00Z",
+                "departureTimeEstimated": "2026-07-18T18:29:00Z",
+                "transportation": {
+                    "number": "92",
+                    "destination": {"name": "Rohr"},
+                    "product": {"class": 5, "name": "Stadtbus"},
+                },
+            },
+        ]
+    }
+
+
+def _platform_filter_sensor(hass, entry_kwargs) -> MultiProviderSensor:
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.openpublictransport.const import CONF_PROVIDER, CONF_STATION_ID, PROVIDER_VVS
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="VVS Stuttgart - Vaihingen",
+        data={
+            CONF_PROVIDER: PROVIDER_VVS,
+            "place_dm": "Stuttgart",
+            "name_dm": "Vaihingen",
+            CONF_STATION_ID: "de:08111:6002",
+        },
+        **entry_kwargs,
+    )
+    entry.add_to_hass(hass)
+
+    coordinator = MagicMock()
+    coordinator.data = _multi_platform_board()
+    coordinator.last_update_success = True
+    coordinator.provider = PROVIDER_VVS
+    coordinator.place_dm = "Stuttgart"
+    coordinator.name_dm = "Vaihingen"
+    coordinator.station_id = "de:08111:6002"
+    coordinator.departures_limit = 10
+
+    from openpublictransport import get_provider
+
+    coordinator.provider_instance = get_provider(PROVIDER_VVS, hass)
+
+    sensor = MultiProviderSensor(coordinator, entry, ["train", "bus"])
+    with patch("custom_components.openpublictransport.sensor.dt_util.now") as mock_now:
+        mock_now.return_value = dt_util.parse_datetime("2026-07-18T18:08:00Z")
+        sensor._process_departure_data(coordinator.data)
+    return sensor
+
+
+@pytest.mark.parametrize(
+    ("configured", "expected_platforms"),
+    [
+        ("3", ["3"]),
+        ("Gleis 3", ["3"]),  # readable label accepted
+        ("gleis 3", ["3"]),  # case-insensitive
+        (" 3 ", ["3"]),  # whitespace tolerated
+        ("3,4", ["3", "4"]),
+        ("3, A", ["3", "A"]),
+        ("a", ["A"]),  # bus stop position, case-insensitive
+        ("", ["3", "4", "A"]),  # empty = no filtering
+        ("9", []),  # no match = no departures
+    ],
+)
+async def test_sensor_platform_filtering(hass: HomeAssistant, configured, expected_platforms):
+    """Departures are filtered by platform/track (issue #57)."""
+    from custom_components.openpublictransport.const import CONF_PLATFORM_FILTER
+
+    sensor = _platform_filter_sensor(hass, {"options": {CONF_PLATFORM_FILTER: configured}})
+
+    departures = sensor._attributes.get("departures", [])
+    assert [d["platform"] for d in departures] == expected_platforms
+
+
+async def test_platform_filter_from_entry_data(hass: HomeAssistant):
+    """A platform filter set during setup (entry.data) is honoured."""
+    from custom_components.openpublictransport.const import (
+        CONF_PLATFORM_FILTER,
+        CONF_PROVIDER,
+        CONF_STATION_ID,
+        PROVIDER_VVS,
+    )
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="VVS Stuttgart - Vaihingen",
+        data={
+            CONF_PROVIDER: PROVIDER_VVS,
+            "place_dm": "Stuttgart",
+            "name_dm": "Vaihingen",
+            CONF_STATION_ID: "de:08111:6002",
+            CONF_PLATFORM_FILTER: "4",
+        },
+        unique_id="vvs_platform_data",
+    )
+    entry.add_to_hass(hass)
+
+    coordinator = MagicMock()
+    coordinator.data = _multi_platform_board()
+    coordinator.last_update_success = True
+    coordinator.provider = PROVIDER_VVS
+    coordinator.place_dm = "Stuttgart"
+    coordinator.name_dm = "Vaihingen"
+    coordinator.station_id = "de:08111:6002"
+    coordinator.departures_limit = 10
+
+    from openpublictransport import get_provider
+
+    coordinator.provider_instance = get_provider(PROVIDER_VVS, hass)
+
+    sensor = MultiProviderSensor(coordinator, entry, ["train", "bus"])
+    with patch("custom_components.openpublictransport.sensor.dt_util.now") as mock_now:
+        mock_now.return_value = dt_util.parse_datetime("2026-07-18T18:08:00Z")
+        sensor._process_departure_data(coordinator.data)
+
+    departures = sensor._attributes.get("departures", [])
+    assert [d["platform"] for d in departures] == ["4"]
+
+
+async def test_platform_filter_combines_with_destination_filter(hass: HomeAssistant):
+    """Platform and destination filters are ANDed, not ORed."""
+    from custom_components.openpublictransport.const import CONF_DESTINATION_FILTER, CONF_PLATFORM_FILTER
+
+    sensor = _platform_filter_sensor(
+        hass,
+        {"options": {CONF_PLATFORM_FILTER: "3,4", CONF_DESTINATION_FILTER: "herrenberg"}},
+    )
+
+    departures = sensor._attributes.get("departures", [])
+    assert len(departures) == 1
+    assert departures[0]["platform"] == "4"
+    assert departures[0]["destination"] == "Herrenberg"
+
+
 # ── restore state across restart ──────────────────────────────────────────────
 # Regression: after a restart the push-style sensor showed `unknown` until the
 # next poll. It should now populate on add — from fresh coordinator data if

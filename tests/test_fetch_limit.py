@@ -1,8 +1,8 @@
 """Tests for the departures over-fetch behaviour (issue #43).
 
-When a line/destination filter is active, the coordinator must request a larger
-raw board from the API so client-side filtering isn't starved before the list is
-truncated to the user's display count.
+When a line/destination/platform filter is active, the coordinator must request a
+larger raw board from the API so client-side filtering isn't starved before the
+list is truncated to the user's display count.
 """
 
 from unittest.mock import AsyncMock, MagicMock
@@ -12,6 +12,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.openpublictransport.const import (
     CONF_DESTINATION_FILTER,
     CONF_LINE_FILTER,
+    CONF_PLATFORM_FILTER,
     DOMAIN,
     FILTERED_FETCH_LIMIT,
     PROVIDER_VRR,
@@ -46,7 +47,7 @@ async def test_no_config_entry_uses_display_limit(hass):
 
 
 async def test_no_filter_uses_display_limit(hass):
-    entry = _entry(hass, **{CONF_LINE_FILTER: "", CONF_DESTINATION_FILTER: ""})
+    entry = _entry(hass, **{CONF_LINE_FILTER: "", CONF_DESTINATION_FILTER: "", CONF_PLATFORM_FILTER: ""})
     coordinator = _coordinator(hass, entry=entry, departures_limit=20)
     assert coordinator._compute_fetch_limit() == 20
 
@@ -59,6 +60,20 @@ async def test_line_filter_triggers_overfetch(hass):
 
 async def test_destination_filter_triggers_overfetch(hass):
     entry = _entry(hass, **{CONF_DESTINATION_FILTER: "Airport"})
+    coordinator = _coordinator(hass, entry=entry, departures_limit=20)
+    assert coordinator._compute_fetch_limit() == FILTERED_FETCH_LIMIT
+
+
+async def test_platform_filter_triggers_overfetch(hass):
+    entry = _entry(hass, **{CONF_PLATFORM_FILTER: "3"})
+    coordinator = _coordinator(hass, entry=entry, departures_limit=20)
+    assert coordinator._compute_fetch_limit() == FILTERED_FETCH_LIMIT
+
+
+async def test_platform_filter_from_entry_data_triggers_overfetch(hass):
+    """A filter stored in entry.data (set during setup) counts too."""
+    entry = MockConfigEntry(domain=DOMAIN, data={CONF_PLATFORM_FILTER: "3"}, options={})
+    entry.add_to_hass(hass)
     coordinator = _coordinator(hass, entry=entry, departures_limit=20)
     assert coordinator._compute_fetch_limit() == FILTERED_FETCH_LIMIT
 

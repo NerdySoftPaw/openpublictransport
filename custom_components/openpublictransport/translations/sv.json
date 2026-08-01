@@ -75,6 +75,7 @@
           "delay_threshold": "Försenigströskel (minuter)",
           "line_filter": "Linjefilter",
           "destination_filter": "Destinationsfilter",
+          "platform_filter": "Plattformsfilter",
           "walking_time": "Gångtid (minuter)",
           "favorite_lines": "Favoritlinjer"
         },
@@ -86,6 +87,7 @@
           "delay_threshold": "Minsta försening i minuter för att utlösa förseningssensorn (1-30)",
           "line_filter": "Visa bara specifika linjer, kommaseparerade (t.ex. U79, RE5, Bus 42). Tomt = alla linjer",
           "destination_filter": "Visa endast avgångar med matchande destination, kommaseparerade, delvis matchning (t.ex. Duisburg, Flygplats). Tomt = alla destinationer",
+          "platform_filter": "Visa endast avgångar från specifika plattformar/spår, kommaseparerade (t.ex. 3, 4). Tomt = alla plattformar",
           "walking_time": "Gångtid till hållplatsen i minuter (0 = inaktiverat). Avgångar som inte längre kan nås döljs",
           "favorite_lines": "Linjer som visas först, kommaseparerade (t.ex. U79, RE5). Tomt = inga favoriter"
         }
@@ -145,6 +147,7 @@
           "delay_threshold": "Försenigströskel (minuter)",
           "line_filter": "Linjefilter",
           "destination_filter": "Destinationsfilter",
+          "platform_filter": "Plattformsfilter",
           "walking_time": "Gångtid (minuter)",
           "favorite_lines": "Favoritlinjer"
         },
@@ -153,6 +156,7 @@
           "delay_threshold": "Minsta försening i minuter för att utlösa förseningssensorn (1-30)",
           "line_filter": "Visa bara specifika linjer, kommaseparerade (t.ex. U79, RE5, Bus 42). Tomt = alla linjer",
           "destination_filter": "Visa endast avgångar med matchande destination, kommaseparerade, delvis matchning (t.ex. Duisburg, Flygplats). Tomt = alla destinationer",
+          "platform_filter": "Visa endast avgångar från specifika plattformar/spår, kommaseparerade (t.ex. 3, 4). Tomt = alla plattformar",
           "walking_time": "Gångtid till hållplatsen i minuter (0 = inaktiverat). Avgångar som inte längre kan nås döljs",
           "favorite_lines": "Linjer som visas först, kommaseparerade (t.ex. U79, RE5). Tomt = inga favoriter"
         }

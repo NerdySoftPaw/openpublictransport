@@ -35,6 +35,17 @@ These use the HAFAS "Scotty", HAFAS `mgate.exe`, or Entur transmodel interfaces.
 | **Irish Rail** | Ireland | HAFAS mgate | Yes | Yes | Cancellations | Autocomplete |
 | **TPG** | Geneva, Switzerland | HAFAS mgate | Yes | Yes | Cancellations | Autocomplete |
 
+### Providers added in 0.1.16
+
+| Provider | Region | API Type | Real-time | Platform | Notices | Stop Search |
+|----------|--------|----------|-----------|----------|---------|-------------|
+| **[HVV Geofox GTI](hvv-gti.md)** | Hamburg, Germany | GTI (HMAC-signed JSON) | Yes (explicit delay) | Yes, incl. changes | Cancellations, attributes | Autocomplete |
+
+HOCHBAHN's official API on behalf of the HVV. Free credentials, requested by email at
+api@hochbahn.de. It exposes delays, cancellations and platform changes that the keyless
+[HVV](hvv.md) EFA provider does not — both providers remain available.
+Trip planning is not supported on GTI yet; use the EFA `hvv` provider for trip entries.
+
 ## Timezone Handling
 
 Each provider uses its local timezone for departure times:
@@ -44,6 +55,7 @@ Each provider uses its local timezone for departure times:
 | VRR | Europe/Berlin |
 | KVV | Europe/Berlin |
 | HVV | Europe/Berlin |
+| HVV Geofox GTI | Europe/Berlin |
 | MVV | Europe/Berlin |
 | VVS | Europe/Berlin |
 | VGN | Europe/Berlin |

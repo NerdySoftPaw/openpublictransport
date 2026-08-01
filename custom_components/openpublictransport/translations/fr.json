@@ -55,13 +55,17 @@
           "trafiklab_api_key": "Clé API Trafiklab",
           "nta_api_key": "Clé API primaire NTA",
           "nta_api_key_secondary": "Clé API secondaire NTA (facultatif)",
-          "rmv_api_key": "Clé API RMV"
+          "rmv_api_key": "Clé API RMV",
+          "hvv_gti_user": "Nom d'utilisateur GTI (ID application)",
+          "hvv_gti_password": "Mot de passe GTI"
         },
         "data_description": {
           "trafiklab_api_key": "Clé API Trafiklab (disponible sur trafiklab.se)",
           "nta_api_key": "Clé API primaire NTA (requise, disponible sur developer.nationaltransport.ie)",
           "nta_api_key_secondary": "Clé API secondaire NTA (facultatif, utilisée en secours)",
-          "rmv_api_key": "Clé API RMV (à demander sur opendata.rmv.de)"
+          "rmv_api_key": "Clé API RMV (à demander sur opendata.rmv.de)",
+          "hvv_gti_user": "Nom d'utilisateur de vos identifiants Geofox GTI (geofox-auth-user)",
+          "hvv_gti_password": "Mot de passe de vos identifiants Geofox GTI. Sert à signer chaque requête et n'est jamais transmis"
         }
       },
       "settings": {
@@ -132,7 +136,8 @@
       "trafiklab_api_key_required": "La clé API Trafiklab est requise",
       "nta_api_key_required": "La clé API NTA est requise",
       "rmv_api_key_required": "La clé API RMV est requise",
-      "min_two_entities": "Veuillez fournir au moins 2 identifiants d'entités"
+      "min_two_entities": "Veuillez fournir au moins 2 identifiants d'entités",
+      "hvv_gti_credentials_required": "Le nom d'utilisateur et le mot de passe GTI sont tous deux requis (gratuits par e-mail à api@hochbahn.de)"
     }
   },
   "options": {

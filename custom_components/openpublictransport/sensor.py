@@ -26,6 +26,7 @@ from .const import (
     CONF_ENTRY_LABEL,
     CONF_ENTRY_SUFFIX,
     CONF_FAVORITE_LINES,
+    CONF_HVV_GTI_PASSWORD,
     CONF_LINE_FILTER,
     CONF_NTA_API_KEY_SECONDARY,
     CONF_PLATFORM_FILTER,
@@ -39,6 +40,7 @@ from .const import (
     DOMAIN,
     FILTERED_FETCH_LIMIT,
     PROVIDER_ENTITY_PICTURES,
+    PROVIDER_HVV_GTI,
     PROVIDER_NTA_IE,
     TRANSPORTATION_TYPES,
 )
@@ -128,7 +130,8 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
         self._api_calls_today = 0
         self._last_api_reset = datetime.now().date()
         self.api_key = api_key  # For Trafiklab API or NTA API (Primary)
-        self.api_key_secondary: Optional[str] = None  # For NTA API (Secondary, optional fallback)
+        # NTA's optional fallback key, and HVV GTI's password (its HMAC key)
+        self.api_key_secondary: Optional[str] = None
         self.custom_url = custom_url  # For otp_custom provider
 
         # Note: config_entry parameter was added in HA 2024.11+
@@ -138,12 +141,14 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
         self._empty_result_count = 0
         self.agency_name = config_entry.data.get("agency_name", "") if config_entry else ""
 
-        # Store secondary key for NTA
-        if provider == PROVIDER_NTA_IE and config_entry:
-            self.api_key_secondary = config_entry.data.get(CONF_NTA_API_KEY_SECONDARY)
-        self._nta_secondary_key = (
-            config_entry.data.get(CONF_NTA_API_KEY_SECONDARY) if config_entry and provider == PROVIDER_NTA_IE else None
-        )
+        # Providers whose second credential lives in entry.data rather than
+        # being threaded through the constructor.
+        secondary_key_conf = {
+            PROVIDER_NTA_IE: CONF_NTA_API_KEY_SECONDARY,
+            PROVIDER_HVV_GTI: CONF_HVV_GTI_PASSWORD,
+        }.get(provider)
+        if secondary_key_conf and config_entry:
+            self.api_key_secondary = config_entry.data.get(secondary_key_conf)
 
         self.last_update_success_time: Optional[datetime] = None
 
@@ -240,7 +245,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
                 self.provider,
                 session,
                 api_key=self.api_key,
-                api_key_secondary=self._nta_secondary_key,
+                api_key_secondary=self.api_key_secondary,
                 custom_url=self.custom_url,
             )
             if not self.provider_instance:

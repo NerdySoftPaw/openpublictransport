@@ -53,14 +53,18 @@
           "nta_api_key": "NTA Primary API Key",
           "nta_api_key_secondary": "NTA Secondary API Key (optional)",
           "rmv_api_key": "RMV API Key",
-          "vbn_api_key": "VBN API Key"
+          "vbn_api_key": "VBN API Key",
+          "hvv_gti_user": "GTI username (application ID)",
+          "hvv_gti_password": "GTI password"
         },
         "data_description": {
           "trafiklab_api_key": "Trafiklab API key (available at trafiklab.se)",
           "nta_api_key": "NTA Primary API key (required, available at developer.nationaltransport.ie)",
           "nta_api_key_secondary": "NTA Secondary API key (optional, used as fallback)",
           "rmv_api_key": "RMV API key (request at opendata.rmv.de)",
-          "vbn_api_key": "VBN API key — works for both OTP and TRIAS. Free for non-commercial use, request by e-mail at api@vbn.de"
+          "vbn_api_key": "VBN API key — works for both OTP and TRIAS. Free for non-commercial use, request by e-mail at api@vbn.de",
+          "hvv_gti_user": "Username from your Geofox GTI credentials (geofox-auth-user)",
+          "hvv_gti_password": "Password from your Geofox GTI credentials. Used to sign each request; it is never transmitted"
         }
       },
       "settings": {
@@ -137,7 +141,8 @@
       "nta_api_key_required": "NTA API key is required",
       "rmv_api_key_required": "RMV API key is required",
       "vbn_api_key_required": "VBN API key is required",
-      "min_two_entities": "Please provide at least 2 entity IDs"
+      "min_two_entities": "Please provide at least 2 entity IDs",
+      "hvv_gti_credentials_required": "Both the GTI username and password are required (request them free by email at api@hochbahn.de)"
     }
   },
   "options": {

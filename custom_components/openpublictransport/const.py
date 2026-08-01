@@ -36,6 +36,9 @@ DEFAULT_WALKING_TIME = 0
 PROVIDER_VRR = "vrr"
 PROVIDER_KVV = "kvv"
 PROVIDER_HVV = "hvv"
+PROVIDER_HVV_GTI = "hvv_gti"  # HVV via the official Geofox GTI API (credentials required)
+CONF_HVV_GTI_USER = "hvv_gti_user"  # GTI application ID (geofox-auth-user)
+CONF_HVV_GTI_PASSWORD = "hvv_gti_password"  # GTI password, used as the HMAC-SHA1 key
 PROVIDER_BVG = "bvg"
 PROVIDER_MVV = "mvv"
 PROVIDER_VVS = "vvs"
@@ -81,6 +84,7 @@ PROVIDERS = [
     PROVIDER_VRR,
     PROVIDER_KVV,
     PROVIDER_HVV,
+    PROVIDER_HVV_GTI,
     PROVIDER_BVG,
     PROVIDER_MVV,
     PROVIDER_VVS,
@@ -137,6 +141,7 @@ PROVIDER_ICONS = {
     "vrr": "mdi:bus-clock",
     "kvv": "mdi:tram",
     "hvv": "mdi:ferry",
+    "hvv_gti": "mdi:ferry",
     "bvg": "mdi:subway-variant",
     "mvv": "mdi:tram",
     "vvs": "mdi:train",
@@ -173,6 +178,7 @@ PROVIDER_ENTITY_PICTURES = {
     "vrr": "https://www.vrr.de/favicon.ico",
     "kvv": "https://www.kvv.de/favicon.ico",
     "hvv": "https://www.hvv.de/favicon.ico",
+    "hvv_gti": "https://www.hvv.de/favicon.ico",
     "bvg": "https://www.bvg.de/favicon.ico",
     "mvv": "https://www.mvv-muenchen.de/favicon.ico",
     "vvs": "https://www.vvs.de/favicon.ico",

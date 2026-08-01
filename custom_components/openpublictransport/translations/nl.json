@@ -55,13 +55,17 @@
           "trafiklab_api_key": "Trafiklab API Key",
           "nta_api_key": "NTA primaire API Key",
           "nta_api_key_secondary": "NTA secundaire API Key (optioneel)",
-          "rmv_api_key": "RMV API Key"
+          "rmv_api_key": "RMV API Key",
+          "hvv_gti_user": "GTI-gebruikersnaam (application ID)",
+          "hvv_gti_password": "GTI-wachtwoord"
         },
         "data_description": {
           "trafiklab_api_key": "Trafiklab API Key (beschikbaar op trafiklab.se)",
           "nta_api_key": "NTA primaire API Key (vereist, beschikbaar op developer.nationaltransport.ie)",
           "nta_api_key_secondary": "NTA secundaire API Key (optioneel, gebruikt als terugval)",
-          "rmv_api_key": "RMV API Key (aan te vragen op opendata.rmv.de)"
+          "rmv_api_key": "RMV API Key (aan te vragen op opendata.rmv.de)",
+          "hvv_gti_user": "Gebruikersnaam uit je Geofox GTI-gegevens (geofox-auth-user)",
+          "hvv_gti_password": "Wachtwoord uit je Geofox GTI-gegevens. Wordt gebruikt om elk verzoek te ondertekenen en nooit verzonden"
         }
       },
       "settings": {
@@ -132,7 +136,8 @@
       "trafiklab_api_key_required": "Trafiklab API Key is vereist",
       "nta_api_key_required": "NTA API Key is vereist",
       "rmv_api_key_required": "RMV API Key is vereist",
-      "min_two_entities": "Geef ten minste 2 entiteits-ID's op"
+      "min_two_entities": "Geef ten minste 2 entiteits-ID's op",
+      "hvv_gti_credentials_required": "GTI-gebruikersnaam én wachtwoord zijn vereist (gratis aan te vragen per e-mail via api@hochbahn.de)"
     }
   },
   "options": {

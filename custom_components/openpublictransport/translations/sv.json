@@ -55,13 +55,17 @@
           "trafiklab_api_key": "Trafiklab API-nyckel",
           "nta_api_key": "NTA primär API-nyckel",
           "nta_api_key_secondary": "NTA sekundär API-nyckel (valfritt)",
-          "rmv_api_key": "RMV API-nyckel"
+          "rmv_api_key": "RMV API-nyckel",
+          "hvv_gti_user": "GTI-användarnamn (applikations-ID)",
+          "hvv_gti_password": "GTI-lösenord"
         },
         "data_description": {
           "trafiklab_api_key": "Trafiklab API-nyckel (tillgänglig på trafiklab.se)",
           "nta_api_key": "NTA primär API-nyckel (obligatorisk, tillgänglig på developer.nationaltransport.ie)",
           "nta_api_key_secondary": "NTA sekundär API-nyckel (valfritt, används som reserv)",
-          "rmv_api_key": "RMV API-nyckel (begär på opendata.rmv.de)"
+          "rmv_api_key": "RMV API-nyckel (begär på opendata.rmv.de)",
+          "hvv_gti_user": "Användarnamn från dina Geofox GTI-uppgifter (geofox-auth-user)",
+          "hvv_gti_password": "Lösenord från dina Geofox GTI-uppgifter. Används för att signera varje begäran och skickas aldrig"
         }
       },
       "settings": {
@@ -132,7 +136,8 @@
       "trafiklab_api_key_required": "Trafiklab API-nyckel krävs",
       "nta_api_key_required": "NTA API-nyckel krävs",
       "rmv_api_key_required": "RMV API-nyckel krävs",
-      "min_two_entities": "Ange minst 2 entitets-ID:n"
+      "min_two_entities": "Ange minst 2 entitets-ID:n",
+      "hvv_gti_credentials_required": "Både GTI-användarnamn och lösenord krävs (begär dem gratis via e-post till api@hochbahn.de)"
     }
   },
   "options": {

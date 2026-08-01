@@ -29,6 +29,8 @@ from .const import (
     CONF_ENTRY_LABEL,
     CONF_ENTRY_SUFFIX,
     CONF_FAVORITE_LINES,
+    CONF_HVV_GTI_PASSWORD,
+    CONF_HVV_GTI_USER,
     CONF_LINE_FILTER,
     CONF_NATIONAL_RAIL_API_KEY,
     CONF_NTA_API_KEY,
@@ -53,6 +55,7 @@ from .const import (
     DEFAULT_WALKING_TIME,
     DOMAIN,
     PROVIDER_HVV,
+    PROVIDER_HVV_GTI,
     PROVIDER_KVV,
     PROVIDER_NATIONAL_RAIL,
     PROVIDER_NTA_IE,
@@ -114,6 +117,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             {"value": "ding", "label": "DING — Ulm / Donau-Iller"},
             {"value": "entur_no", "label": "Entur — Norwegen"},
             {"value": "hvv", "label": "HVV — Hamburg"},
+            {"value": "hvv_gti", "label": "HVV — Hamburg (Geofox GTI, Zugangsdaten)"},
             {"value": "irishrail_ie", "label": "Irish Rail — Irland"},
             {"value": "kvv", "label": "KVV — Karlsruhe"},
             {"value": "mobiliteit_lu", "label": "mobilitéit.lu — Luxemburg"},
@@ -224,6 +228,11 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 if secondary_key:
                     result[CONF_NTA_API_KEY_SECONDARY] = secondary_key
                 return result
+            if provider == PROVIDER_HVV_GTI:
+                # GTI needs both halves; without the password nothing can be signed.
+                if not secondary_key:
+                    return {}
+                return {CONF_HVV_GTI_USER: api_key, CONF_HVV_GTI_PASSWORD: secondary_key}
         except Exception as exc:
             _LOGGER.debug("Could not read from application_credentials: %s", exc)
         return {}
@@ -255,6 +264,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             PROVIDER_RMV: [CONF_RMV_API_KEY],
             PROVIDER_NATIONAL_RAIL: [CONF_NATIONAL_RAIL_API_KEY],
             PROVIDER_REJSEPLANEN: [CONF_REJSEPLANEN_API_KEY],
+            PROVIDER_HVV_GTI: [CONF_HVV_GTI_USER, CONF_HVV_GTI_PASSWORD],
         }
         keys = key_map.get(provider, [])
         if not keys:
@@ -277,6 +287,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         PROVIDER_NTA_IE: "NTA (Irland)",
         PROVIDER_NATIONAL_RAIL: "National Rail (Großbritannien)",
         PROVIDER_REJSEPLANEN: "Rejseplanen (Dänemark)",
+        PROVIDER_HVV_GTI: "HVV Geofox GTI (Hamburg)",
     }
 
     async def _async_store_credential(self, provider: str) -> None:
@@ -285,7 +296,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             return
         secondary = ""
         key = self._api_key or ""
-        if provider == PROVIDER_NTA_IE:
+        if provider in (PROVIDER_NTA_IE, PROVIDER_HVV_GTI):
             secondary = self._api_key_secondary or ""
         if not key:
             return
@@ -437,6 +448,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             elif self._provider == PROVIDER_REJSEPLANEN and creds.get(CONF_REJSEPLANEN_API_KEY):
                 self._api_key = creds[CONF_REJSEPLANEN_API_KEY]
                 return await self._async_next_step_after_api_key()
+            elif self._provider == PROVIDER_HVV_GTI and creds.get(CONF_HVV_GTI_USER):
+                self._api_key = creds[CONF_HVV_GTI_USER]
+                self._api_key_secondary = creds.get(CONF_HVV_GTI_PASSWORD)
+                return await self._async_next_step_after_api_key()
 
         if user_input is not None:
             if self._provider == PROVIDER_TRAFIKLAB_SE:
@@ -483,6 +498,17 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 else:
                     self._api_key = api_key
                     return await self._async_next_step_after_api_key()
+            elif self._provider == PROVIDER_HVV_GTI:
+                # GTI signs every request, so both halves are mandatory: the
+                # username identifies the app, the password is the HMAC key.
+                user = user_input.get(CONF_HVV_GTI_USER, "").strip()
+                password = user_input.get(CONF_HVV_GTI_PASSWORD, "").strip()
+                if not user or not password:
+                    errors["base"] = "hvv_gti_credentials_required"
+                else:
+                    self._api_key = user
+                    self._api_key_secondary = password
+                    return await self._async_next_step_after_api_key()
 
         # Show appropriate schema based on provider
         if self._provider == PROVIDER_TRAFIKLAB_SE:
@@ -514,6 +540,18 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         elif self._provider == PROVIDER_REJSEPLANEN:
             schema = vol.Schema({vol.Required(CONF_REJSEPLANEN_API_KEY): str})
             description = "Rejseplanen API key required. Register for free at labs.rejseplanen.dk (50k calls/month, non-commercial)."
+        elif self._provider == PROVIDER_HVV_GTI:
+            schema = vol.Schema(
+                {
+                    vol.Required(CONF_HVV_GTI_USER): str,
+                    vol.Required(CONF_HVV_GTI_PASSWORD): str,
+                }
+            )
+            description = (
+                "HVV Geofox GTI credentials required (username + password). "
+                "Request them for free by email at api@hochbahn.de, see hvv.de/de/fahrplaene/"
+                "abruf-fahrplaninfos/datenabruf. Free for non-commercial travel information only."
+            )
         else:  # NTA
             schema = vol.Schema(
                 {
@@ -799,6 +837,15 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 data[CONF_NTA_API_KEY] = self._api_key
                 if self._api_key_secondary:
                     data[CONF_NTA_API_KEY_SECONDARY] = self._api_key_secondary
+            elif self._provider == PROVIDER_HVV_GTI:
+                if not self._api_key or not self._api_key_secondary:
+                    return self.async_show_form(
+                        step_id="settings",
+                        data_schema=schema,
+                        errors={"base": "hvv_gti_credentials_required"},
+                    )
+                data[CONF_HVV_GTI_USER] = self._api_key
+                data[CONF_HVV_GTI_PASSWORD] = self._api_key_secondary
             elif self._provider == PROVIDER_RMV:
                 if not self._api_key:
                     return self.async_show_form(

@@ -27,7 +27,12 @@ from .const import (
     PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
-from .sensor import _RESTORE_SKIP_ATTRS, PublicTransportDataUpdateCoordinator
+from .sensor import (
+    _RESTORE_SKIP_ATTRS,
+    PublicTransportDataUpdateCoordinator,
+    station_device_name,
+    station_entity_key,
+)
 
 PARALLEL_UPDATES = 0
 
@@ -74,18 +79,14 @@ class PublicTransportDelayBinarySensor(CoordinatorEntity, RestoreEntity, BinaryS
         self._attributes: dict[str, Any] = {}
 
         # Setup entity
-        provider = coordinator.provider
-        station_id = coordinator.station_id
         place_dm = coordinator.place_dm
-        name_dm = coordinator.name_dm
 
-        station_key = station_id or f"{place_dm}_{name_dm}".lower().replace(" ", "_")
-        device_name = f"{coordinator.agency_name} - {name_dm}" if coordinator.agency_name else name_dm
-        self._attr_unique_id = f"{provider}_{station_key}_delays"
+        entity_key = station_entity_key(coordinator, config_entry)
+        self._attr_unique_id = f"{entity_key}_delays"
 
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"{provider}_{station_key}")},
-            name=device_name,
+            identifiers={(DOMAIN, entity_key)},
+            name=station_device_name(coordinator, config_entry),
             suggested_area=place_dm,
         )
 

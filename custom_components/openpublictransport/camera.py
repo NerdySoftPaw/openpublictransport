@@ -19,7 +19,7 @@ from homeassistant.util import dt as dt_util
 from PIL import Image, ImageDraw, ImageFont
 
 from .const import CONF_TRANSPORTATION_TYPES, DOMAIN, TRANSPORTATION_TYPES
-from .sensor import PublicTransportDataUpdateCoordinator
+from .sensor import PublicTransportDataUpdateCoordinator, station_device_name, station_entity_key
 
 PARALLEL_UPDATES = 0
 _LOGGER = logging.getLogger(__name__)
@@ -190,19 +190,16 @@ class DepartureBoardCamera(CoordinatorEntity, Camera):
         self._config_entry = config_entry
         self._image: bytes | None = None
 
-        provider = coordinator.provider
-        station_id = coordinator.station_id
         place_dm = coordinator.place_dm
         name_dm = coordinator.name_dm
-        station_key = station_id or f"{place_dm}_{name_dm}".lower().replace(" ", "_")
+        entity_key = station_entity_key(coordinator, config_entry)
 
         self._station_name = f"{place_dm} - {name_dm}" if place_dm else name_dm
-        device_name = f"{coordinator.agency_name} - {name_dm}" if coordinator.agency_name else name_dm
-        self._attr_unique_id = f"{provider}_{station_key}_board"
+        self._attr_unique_id = f"{entity_key}_board"
 
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"{provider}_{station_key}")},
-            name=device_name,
+            identifiers={(DOMAIN, entity_key)},
+            name=station_device_name(coordinator, config_entry),
             suggested_area=place_dm,
         )
 

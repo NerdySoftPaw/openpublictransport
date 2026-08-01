@@ -23,6 +23,8 @@ from .const import (
     API_RATE_LIMIT_PER_DAY,
     CONF_DEPARTURES,
     CONF_DESTINATION_FILTER,
+    CONF_ENTRY_LABEL,
+    CONF_ENTRY_SUFFIX,
     CONF_FAVORITE_LINES,
     CONF_LINE_FILTER,
     CONF_NTA_API_KEY_SECONDARY,
@@ -40,6 +42,7 @@ from .const import (
     PROVIDER_NTA_IE,
     TRANSPORTATION_TYPES,
 )
+from .filters import current_filters, filter_label
 
 _LOGGER = logging.getLogger(__name__)
 PARALLEL_UPDATES = 0
@@ -59,6 +62,53 @@ _RESTORE_SKIP_ATTRS = frozenset(
     }
 )
 INTEGRATION_VERSION = json.loads((Path(__file__).parent / "manifest.json").read_text()).get("version", "unknown")
+
+
+def station_entity_key(coordinator: Any, config_entry: Optional[ConfigEntry] = None) -> str:
+    """Return the key every entity unique_id and the device identifier build on.
+
+    Historically ``f"{provider}_{station_id}"``. That collides when the same
+    station is configured twice with different filters, so entries created
+    since issue #55 carry a stable discriminator in
+    ``entry.data[CONF_ENTRY_SUFFIX]`` and append it here.
+
+    Entries without that key — every entry that existed before — get the exact
+    legacy string back, so no existing entity or device is renamed.
+    """
+    station_id = coordinator.station_id
+    station_key = station_id or f"{coordinator.place_dm}_{coordinator.name_dm}".lower().replace(" ", "_")
+    base = f"{coordinator.provider}_{station_key}"
+
+    suffix = ""
+    if config_entry is not None:
+        suffix = str(config_entry.data.get(CONF_ENTRY_SUFFIX) or "").strip()
+
+    return f"{base}_{suffix}" if suffix else base
+
+
+def station_device_name(coordinator: Any, config_entry: Optional[ConfigEntry] = None) -> str:
+    """Return the device name, disambiguated when a station is configured twice.
+
+    Without a discriminator this is the historical ``"Agency - Stop"``, so no
+    pre-existing device is renamed. Entries created as a deliberate duplicate
+    (issue #55) get their filter appended so the two are told apart in the UI.
+
+    That label follows the *current* filters, unlike the unique-ID suffix,
+    which is frozen at creation. The two deliberately diverge once the filters
+    are edited under Options: renaming a device is harmless — entity IDs were
+    assigned once, at creation — whereas moving the suffix would rename every
+    entity of the entry.
+    """
+    name_dm = coordinator.name_dm
+    agency_name = coordinator.agency_name
+    base = f"{agency_name} - {name_dm}" if agency_name else name_dm
+
+    if config_entry is None or not str(config_entry.data.get(CONF_ENTRY_SUFFIX) or "").strip():
+        return base
+
+    label = filter_label(current_filters(config_entry)) or str(config_entry.data.get(CONF_ENTRY_LABEL) or "").strip()
+
+    return f"{base} ({label})" if label else base
 
 
 class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
@@ -388,19 +438,16 @@ class MultiProviderSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
         # Setup entity
         self._provider = coordinator.provider
         provider = self._provider
-        station_id = coordinator.station_id
         place_dm = coordinator.place_dm
-        name_dm = coordinator.name_dm
 
-        station_key = station_id or f"{place_dm}_{name_dm}".lower().replace(" ", "_")
-        self._attr_unique_id = f"{provider}_{station_key}"
-        agency_name = coordinator.agency_name
-        display_name = f"{agency_name} - {name_dm}" if agency_name else name_dm
+        entity_key = station_entity_key(coordinator, config_entry)
+        self._attr_unique_id = entity_key
+        display_name = station_device_name(coordinator, config_entry)
         self._attr_name = None  # device name IS the entity name
 
         # Device info
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"{provider}_{station_key}")},
+            identifiers={(DOMAIN, entity_key)},
             name=display_name,
             manufacturer=f"{provider.upper()} Public Transport",
             model="Departure Monitor",

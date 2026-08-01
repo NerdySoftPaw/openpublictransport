@@ -26,6 +26,8 @@ from .const import (
     CONF_DELAY_THRESHOLD,
     CONF_DEPARTURES,
     CONF_DESTINATION_FILTER,
+    CONF_ENTRY_LABEL,
+    CONF_ENTRY_SUFFIX,
     CONF_FAVORITE_LINES,
     CONF_LINE_FILTER,
     CONF_NATIONAL_RAIL_API_KEY,
@@ -64,6 +66,7 @@ from .const import (
     PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
+from .filters import filter_discriminator, filter_label
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -846,9 +849,23 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             name = self._selected_stop.get("name", "")
             title = f"{(self._provider or '').upper()} {place} - {name}".strip()
 
+            # A filtered entry says what it is filtered to, both in its title and
+            # in the device name, so two entries for one station are tellable
+            # apart at a glance (issue #55).
+            label = filter_label(user_input)
+            if label:
+                title = f"{title} ({label})"
+
             self._found_stops = []
 
             if self._reconfiguring and self._reconfigure_entry:
+                # Reconfigure only moves the entry to a different stop. Carry the
+                # existing discriminator over untouched — regenerating it here
+                # would rename every entity of the entry.
+                for key in (CONF_ENTRY_SUFFIX, CONF_ENTRY_LABEL):
+                    existing = self._reconfigure_entry.data.get(key)
+                    if existing:
+                        data[key] = existing
                 return self.async_update_reload_and_abort(
                     self._reconfigure_entry,
                     title=title,
@@ -856,8 +873,20 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     reason="reconfigure_successful",
                 )
 
-            # Create unique ID (self._selected_stop validated above)
+            # Create unique ID (self._selected_stop validated above).
+            #
+            # An unfiltered entry keeps the historical f"{provider}_{stop_id}",
+            # so nothing that already exists is renamed. A filtered entry gets a
+            # stable suffix derived from its filters, which is what allows the
+            # same station to be added twice for two directions — and still
+            # aborts as already_configured when the filters are identical.
             unique_id = f"{self._provider}_{self._selected_stop['id']}"
+            suffix = filter_discriminator(user_input)
+            if suffix:
+                unique_id = f"{unique_id}_{suffix}"
+                data[CONF_ENTRY_SUFFIX] = suffix
+                data[CONF_ENTRY_LABEL] = label
+
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()
 

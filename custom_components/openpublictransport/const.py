@@ -22,6 +22,11 @@ CONF_DELAY_THRESHOLD = "delay_threshold"  # Minutes threshold for delay binary s
 CONF_LINE_FILTER = "line_filter"  # Comma-separated line numbers to show
 CONF_DESTINATION_FILTER = "destination_filter"  # Comma-separated destinations (substring match) to show
 CONF_PLATFORM_FILTER = "platform_filter"  # Comma-separated platforms/tracks to show
+# Discriminator that lets the same station be configured more than once with
+# different filters (issue #55). Absent on entries created before that, which
+# is what keeps their unique IDs byte-identical.
+CONF_ENTRY_SUFFIX = "entry_suffix"
+CONF_ENTRY_LABEL = "entry_label"  # Human-readable form of that discriminator, e.g. "S1 → Plochingen"
 CONF_WALKING_TIME = "walking_time"  # Minutes to walk to the stop
 CONF_FAVORITE_LINES = "favorite_lines"  # Comma-separated favorite lines (shown first)
 DEFAULT_DELAY_THRESHOLD = 5

@@ -82,6 +82,35 @@ To monitor multiple stops:
 
 Each stop will create its own sensor and binary sensor entities.
 
+### Adding the Same Stop Twice
+
+You can add one stop more than once — for example one entry for the outbound direction and
+one for the inbound direction of the same S-Bahn station — as long as the two entries differ
+in at least one of the **line**, **destination** or **platform** filters.
+
+The filter is appended to the entry title and the device name, so the two are easy to tell
+apart:
+
+```
+VVS Stuttgart - Vaihingen (→ Plochingen)
+VVS Stuttgart - Vaihingen (→ Herrenberg)
+```
+
+Two entries with *identical* filters, or two unfiltered entries, are still rejected as
+**already configured** — there would be nothing to distinguish them.
+
+!!! note
+    The filters you set **during setup** determine the entry's entity IDs, and they stay
+    fixed afterwards. Changing a filter later under **Configure** takes effect immediately
+    and updates the device name, but deliberately does *not* rename any entity, so your
+    dashboards and automations keep working. If you want the new filter reflected in the
+    entity IDs too, remove the entry and add it again.
+
+!!! tip
+    Entries created before this feature keep their existing entity IDs **and** their existing
+    device names exactly as they were, even if they have filters configured. Nothing is
+    renamed by upgrading.
+
 ## Modifying Settings
 
 After initial setup, you can modify settings:

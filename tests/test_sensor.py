@@ -319,6 +319,84 @@ async def test_sensor_destination_filtering(hass: HomeAssistant):
     assert departures[0]["destination"] == "Duisburg Hbf"
 
 
+async def test_sensor_exposes_efa_platform(hass: HomeAssistant):
+    """EFA departures reach HA with their platform filled in (issue #56).
+
+    The track lives at location.properties.platform in EFA's RapidJSON. Needs
+    python-openpublictransport >= 0.1.15.
+    """
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from custom_components.openpublictransport.const import CONF_PROVIDER, CONF_STATION_ID, PROVIDER_VVS
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="VVS Stuttgart - Vaihingen",
+        data={
+            CONF_PROVIDER: PROVIDER_VVS,
+            "place_dm": "Stuttgart",
+            "name_dm": "Vaihingen",
+            CONF_STATION_ID: "de:08111:6002",
+        },
+        unique_id="vvs_platform",
+    )
+    entry.add_to_hass(hass)
+
+    coordinator = MagicMock()
+    coordinator.data = {
+        "stopEvents": [
+            {
+                "location": {
+                    "id": "de:08111:6002:1:3",
+                    "name": "Vaihingen",
+                    "disassembledName": "Gleis 3",
+                    "type": "platform",
+                    "pointType": "TRACK",
+                    "properties": {
+                        "stopId": "5006002",
+                        "platform": "3",
+                        "platformName": "Gleis 3",
+                        "plannedPlatformName": "Gleis 3",
+                    },
+                },
+                "departureTimePlanned": "2026-07-18T18:25:00Z",
+                "departureTimeEstimated": "2026-07-18T18:26:00Z",
+                "isRealtimeControlled": True,
+                "transportation": {
+                    "number": "S1",
+                    "destination": {"name": "Plochingen"},
+                    "description": "Herrenberg - Stuttgart - Plochingen",
+                    "product": {"class": 1, "name": "S-Bahn"},
+                },
+            }
+        ]
+    }
+    coordinator.last_update_success = True
+    coordinator.provider = PROVIDER_VVS
+    coordinator.place_dm = "Stuttgart"
+    coordinator.name_dm = "Vaihingen"
+    coordinator.station_id = "de:08111:6002"
+    coordinator.departures_limit = 10
+
+    from openpublictransport import get_provider
+
+    coordinator.provider_instance = get_provider(PROVIDER_VVS, hass)
+
+    sensor = MultiProviderSensor(coordinator, entry, ["train"])
+
+    with patch("custom_components.openpublictransport.sensor.dt_util.now") as mock_now:
+        mock_now.return_value = dt_util.parse_datetime("2026-07-18T18:08:00Z")
+        sensor._process_departure_data(coordinator.data)
+
+    departures = sensor._attributes.get("departures", [])
+    assert len(departures) == 1
+    # Technical value, not the "Gleis 3" label
+    assert departures[0]["platform"] == "3"
+    assert departures[0]["platform_name"] == "Gleis 3"
+    # "3" vs "Gleis 3" is the same platform, not a change
+    assert "platform_changed" not in departures[0]
+
+
 # ── restore state across restart ──────────────────────────────────────────────
 # Regression: after a restart the push-style sensor showed `unknown` until the
 # next poll. It should now populate on add — from fresh coordinator data if

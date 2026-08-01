@@ -745,27 +745,48 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             },
         )
 
+    def _settings_default(self, key: str, fallback: Any) -> Any:
+        """Return what the settings form should offer for one field.
+
+        Reconfigure exists to move an entry to a different stop, but it reuses
+        this step and writes the whole form back into ``entry.data``. Offering
+        hardcoded defaults there would silently reset every other setting on
+        submit, so the current value is offered instead. A fresh setup has no
+        entry to read and gets the plain default.
+        """
+        entry = self._reconfigure_entry if self._reconfiguring else None
+        if entry is None:
+            return fallback
+        return entry.options.get(key, entry.data.get(key, fallback))
+
     async def async_step_settings(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Handle settings step - departures, transport types, scan interval."""
         # Define schema first (needed for error handling)
         schema = vol.Schema(
             {
-                vol.Optional(CONF_DEPARTURES, default=DEFAULT_DEPARTURES): vol.All(int, vol.Range(min=1, max=20)),
-                vol.Optional(CONF_TRANSPORTATION_TYPES, default=list(TRANSPORTATION_TYPES.keys())): cv.multi_select(
-                    TRANSPORTATION_TYPES
-                ),
-                vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): vol.All(
-                    int, vol.Range(min=10, max=3600)
-                ),
-                vol.Optional(CONF_USE_PROVIDER_LOGO, default=False): bool,
-                vol.Optional(CONF_DELAY_THRESHOLD, default=DEFAULT_DELAY_THRESHOLD): vol.All(
-                    int, vol.Range(min=1, max=30)
-                ),
-                vol.Optional(CONF_LINE_FILTER, default=""): str,
-                vol.Optional(CONF_DESTINATION_FILTER, default=""): str,
-                vol.Optional(CONF_PLATFORM_FILTER, default=""): str,
-                vol.Optional(CONF_FAVORITE_LINES, default=""): str,
-                vol.Optional(CONF_WALKING_TIME, default=0): vol.All(int, vol.Range(min=0, max=30)),
+                vol.Optional(
+                    CONF_DEPARTURES, default=self._settings_default(CONF_DEPARTURES, DEFAULT_DEPARTURES)
+                ): vol.All(int, vol.Range(min=1, max=20)),
+                vol.Optional(
+                    CONF_TRANSPORTATION_TYPES,
+                    default=self._settings_default(CONF_TRANSPORTATION_TYPES, list(TRANSPORTATION_TYPES.keys())),
+                ): cv.multi_select(TRANSPORTATION_TYPES),
+                vol.Optional(
+                    CONF_SCAN_INTERVAL, default=self._settings_default(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+                ): vol.All(int, vol.Range(min=10, max=3600)),
+                vol.Optional(
+                    CONF_USE_PROVIDER_LOGO, default=self._settings_default(CONF_USE_PROVIDER_LOGO, False)
+                ): bool,
+                vol.Optional(
+                    CONF_DELAY_THRESHOLD, default=self._settings_default(CONF_DELAY_THRESHOLD, DEFAULT_DELAY_THRESHOLD)
+                ): vol.All(int, vol.Range(min=1, max=30)),
+                vol.Optional(CONF_LINE_FILTER, default=self._settings_default(CONF_LINE_FILTER, "")): str,
+                vol.Optional(CONF_DESTINATION_FILTER, default=self._settings_default(CONF_DESTINATION_FILTER, "")): str,
+                vol.Optional(CONF_PLATFORM_FILTER, default=self._settings_default(CONF_PLATFORM_FILTER, "")): str,
+                vol.Optional(CONF_FAVORITE_LINES, default=self._settings_default(CONF_FAVORITE_LINES, "")): str,
+                vol.Optional(
+                    CONF_WALKING_TIME, default=self._settings_default(CONF_WALKING_TIME, DEFAULT_WALKING_TIME)
+                ): vol.All(int, vol.Range(min=0, max=30)),
             }
         )
 

@@ -252,13 +252,21 @@ async def test_otp_rest_with_itineraries(hass: HomeAssistant):
     assert result is not None
     assert len(result) == 1
 
-    # Regression test for the issue #59 bug: a stray `session` positional
-    # argument used to shift into `_get`'s `url` parameter (real signature is
+    # Regression test for the issue #59 bug: a stray `session` argument used to
+    # shift into `_get`'s `url` parameter (the real signature is
     # `_get(self, url, params=None)` — the session is injected once via the
-    # constructor, not per-call).
+    # constructor, not per call). A bare AsyncMock accepts any signature, so
+    # the shape is asserted explicitly, positionally or by keyword.
     for call in provider._get.call_args_list:
-        assert 1 <= len(call.args) <= 2
-        assert isinstance(call.args[0], str)
+        assert "session" not in call.kwargs
+        assert len(call.args) <= 2
+
+        url = call.kwargs["url"] if "url" in call.kwargs else call.args[0]
+        assert isinstance(url, str)
+        assert url.startswith("http")
+
+        params = call.kwargs.get("params", call.args[1] if len(call.args) > 1 else None)
+        assert params is None or isinstance(params, dict)
 
 
 async def test_otp_rest_plan_data_none(hass: HomeAssistant):

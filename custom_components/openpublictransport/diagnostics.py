@@ -86,12 +86,16 @@ def _coordinator_diagnostics(coordinator: Any) -> dict[str, Any]:
     coordinator has no API-call budget and no departure limit — so every
     flavour-specific attribute is read defensively (issue #58).
     """
+    # Stringified because a timedelta is not JSON-serialisable — but a missing
+    # interval stays null rather than becoming the string "None".
+    update_interval = getattr(coordinator, "update_interval", None)
+
     data: dict[str, Any] = {
         "coordinator_type": type(coordinator).__name__,
         "provider": getattr(coordinator, "provider", None),
         "last_update_success": getattr(coordinator, "last_update_success", None),
         "last_update_success_time": _isoformat(getattr(coordinator, "last_update_success_time", None)),
-        "update_interval": str(getattr(coordinator, "update_interval", None)),
+        "update_interval": str(update_interval) if update_interval is not None else None,
     }
 
     for key, attr in (

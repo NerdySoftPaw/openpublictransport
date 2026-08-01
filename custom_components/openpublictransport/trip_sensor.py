@@ -92,9 +92,11 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
             api_key=self.api_key,
             custom_url=self.custom_url,
         )
-        if data:
-            # Only stamp an actual result — async_plan_trip returns None when
-            # the provider yields no journeys, same as the departure monitor.
+        if data is not None:
+            # `None` is a failed or unsupported lookup; an empty list is a
+            # successful query that simply found no connection (EFA's
+            # _parse_journeys returns [] for an empty board). Both leave
+            # last_update_success True, so only the former must skip the stamp.
             self.last_update_success_time = dt_util.now()
         return data
 

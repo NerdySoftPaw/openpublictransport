@@ -217,3 +217,16 @@ async def test_coordinator_diagnostics_tolerates_partial_coordinator(hass: HomeA
     assert diagnostics["coordinator"]["last_update_success_time"] is None
     assert diagnostics["coordinator"]["update_interval"] == "0:01:00"
     assert "last_api_response" not in diagnostics
+
+
+async def test_missing_update_interval_is_null_not_the_string_none(hass: HomeAssistant, mock_config_entry):
+    """A missing interval stays JSON null, like every other absent field."""
+    coordinator = MagicMock(spec=["provider", "last_update_success", "data"])
+    coordinator.provider = "vrr"
+    coordinator.last_update_success = True
+    coordinator.data = None
+    mock_config_entry.runtime_data = coordinator
+
+    diagnostics = await async_get_config_entry_diagnostics(hass, mock_config_entry)
+
+    assert diagnostics["coordinator"]["update_interval"] is None

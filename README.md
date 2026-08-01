@@ -191,14 +191,14 @@ automation:
 
 Full documentation at **[docs.openpublictransport.net](https://docs.openpublictransport.net/)**:
 
-- [Configuration](https://docs.openpublictransport.net/latest/configuration/)
-- [Providers](https://docs.openpublictransport.net/latest/providers/)
-- [Sensors & Attributes](https://docs.openpublictransport.net/latest/sensors/)
-- [Actions](https://docs.openpublictransport.net/latest/services/)
-- [Trip Planner](https://docs.openpublictransport.net/latest/trip-planner/)
-- [Dashboard Examples](https://docs.openpublictransport.net/latest/dashboard/)
-- [Automations](https://docs.openpublictransport.net/latest/automations/)
-- [Migration Guide](https://docs.openpublictransport.net/latest/migration/)
+- [Configuration](https://docs.openpublictransport.net/configuration/)
+- [Providers](https://docs.openpublictransport.net/providers/)
+- [Sensors & Attributes](https://docs.openpublictransport.net/sensors/)
+- [Actions](https://docs.openpublictransport.net/services/)
+- [Trip Planner](https://docs.openpublictransport.net/trip-planner/)
+- [Dashboard Examples](https://docs.openpublictransport.net/dashboard/)
+- [Automations](https://docs.openpublictransport.net/automations/)
+- [Migration Guide](https://docs.openpublictransport.net/migration/)
 
 ---
 

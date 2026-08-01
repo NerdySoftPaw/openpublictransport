@@ -1,7 +1,6 @@
 """Config flow for Open Public Transport integration with autocomplete support."""
 
 import asyncio
-import hashlib
 import logging
 from datetime import datetime
 from difflib import SequenceMatcher
@@ -70,51 +69,9 @@ from .const import (
     PROVIDER_VRR,
     TRANSPORTATION_TYPES,
 )
+from .filters import filter_discriminator, filter_label
 
 _LOGGER = logging.getLogger(__name__)
-
-# Filters that make one entry for a station distinct from another (issue #55),
-# paired with how each reads in the entry title and device name.
-_DISCRIMINATING_FILTERS = (
-    (CONF_LINE_FILTER, "{}"),
-    (CONF_DESTINATION_FILTER, "→ {}"),
-    (CONF_PLATFORM_FILTER, "Pl. {}"),
-)
-
-
-def _filter_values(user_input: Dict[str, Any], key: str) -> List[str]:
-    """Split one comma-separated filter field into its trimmed values."""
-    return [value.strip() for value in str(user_input.get(key) or "").split(",") if value.strip()]
-
-
-def _filter_discriminator(user_input: Dict[str, Any]) -> str:
-    """Return a stable short id for this entry's filter set, "" when unfiltered.
-
-    Order- and case-insensitive, so "S1, S2" and "s2,s1" are recognised as the
-    same configuration and the second one is rejected as already_configured.
-
-    Frozen into ``entry.data`` at creation: entity unique IDs are built on it,
-    so it must not move when the filters are later edited under Options.
-    """
-    canonical = {
-        key: sorted({value.casefold() for value in _filter_values(user_input, key)})
-        for key, _ in _DISCRIMINATING_FILTERS
-    }
-    if not any(canonical.values()):
-        return ""
-
-    fingerprint = "|".join(f"{key}={','.join(values)}" for key, values in sorted(canonical.items()))
-    return hashlib.sha1(fingerprint.encode("utf-8")).hexdigest()[:8]
-
-
-def _filter_label(user_input: Dict[str, Any]) -> str:
-    """Return a short human-readable form of the filters, "" when unfiltered."""
-    bits = []
-    for key, template in _DISCRIMINATING_FILTERS:
-        values = _filter_values(user_input, key)
-        if values:
-            bits.append(template.format(", ".join(values)))
-    return " ".join(bits)
 
 
 class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
@@ -921,7 +878,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             # A filtered entry says what it is filtered to, both in its title and
             # in the device name, so two entries for one station are tellable
             # apart at a glance (issue #55).
-            label = _filter_label(user_input)
+            label = filter_label(user_input)
             if label:
                 title = f"{title} ({label})"
 
@@ -950,7 +907,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             # same station to be added twice for two directions — and still
             # aborts as already_configured when the filters are identical.
             unique_id = f"{self._provider}_{self._selected_stop['id']}"
-            suffix = _filter_discriminator(user_input)
+            suffix = filter_discriminator(user_input)
             if suffix:
                 unique_id = f"{unique_id}_{suffix}"
                 data[CONF_ENTRY_SUFFIX] = suffix

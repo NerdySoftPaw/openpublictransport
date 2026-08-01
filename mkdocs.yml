@@ -60,6 +60,7 @@ nav:
       - VRR (Rhein-Ruhr): providers/vrr.md
       - KVV (Karlsruhe): providers/kvv.md
       - HVV (Hamburg): providers/hvv.md
+      - HVV Geofox GTI (Hamburg): providers/hvv-gti.md
       - BVG (Berlin): providers/bvg.md
       - MVV (München): providers/mvv.md
       - VVS (Stuttgart): providers/vvs.md

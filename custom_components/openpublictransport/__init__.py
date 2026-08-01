@@ -14,6 +14,8 @@ from homeassistant.helpers import entity_registry as er
 
 from .const import (
     CONF_DEPARTURES,
+    CONF_HVV_GTI_PASSWORD,
+    CONF_HVV_GTI_USER,
     CONF_NATIONAL_RAIL_API_KEY,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
@@ -30,6 +32,7 @@ from .const import (
     DEFAULT_DEPARTURES,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    PROVIDER_HVV_GTI,
     PROVIDER_NATIONAL_RAIL,
     PROVIDER_NTA_IE,
     PROVIDER_OPT,
@@ -117,6 +120,7 @@ async def _async_migrate_credential(hass: HomeAssistant, entry: ConfigEntry) -> 
         PROVIDER_VBN_OTP: (CONF_VBN_API_KEY, ""),
         PROVIDER_VBN_TRIAS: (CONF_VBN_API_KEY, ""),
         PROVIDER_NTA_IE: (CONF_NTA_API_KEY, CONF_NTA_API_KEY_SECONDARY),
+        PROVIDER_HVV_GTI: (CONF_HVV_GTI_USER, CONF_HVV_GTI_PASSWORD),
         PROVIDER_REJSEPLANEN: (CONF_REJSEPLANEN_API_KEY, ""),
         PROVIDER_NATIONAL_RAIL: (CONF_NATIONAL_RAIL_API_KEY, ""),
     }
@@ -352,6 +356,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     otp_custom_api_key = entry.data.get(CONF_OTP_CUSTOM_API_KEY)  # For custom OTP instance
     rejseplanen_api_key = entry.data.get(CONF_REJSEPLANEN_API_KEY)  # For Rejseplanen (DK)
     national_rail_api_key = entry.data.get(CONF_NATIONAL_RAIL_API_KEY)  # For National Rail (UK)
+    hvv_gti_user = entry.data.get(CONF_HVV_GTI_USER)  # For HVV Geofox GTI (password read by the coordinator)
     otp_custom_url = entry.data.get(CONF_OTP_BASE_URL)  # For custom OTP instance
 
     # Use appropriate API key (and URL) based on provider
@@ -374,6 +379,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         api_key = rejseplanen_api_key
     elif provider == PROVIDER_NATIONAL_RAIL:
         api_key = national_rail_api_key
+    elif provider == PROVIDER_HVV_GTI:
+        api_key = hvv_gti_user
 
     departures = entry.options.get(CONF_DEPARTURES, entry.data.get(CONF_DEPARTURES, DEFAULT_DEPARTURES))
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))

@@ -53,14 +53,18 @@
           "nta_api_key": "NTA Primary API-Schlüssel",
           "nta_api_key_secondary": "NTA Secondary API-Schlüssel (optional)",
           "rmv_api_key": "RMV API-Schlüssel",
-          "vbn_api_key": "VBN API-Schlüssel"
+          "vbn_api_key": "VBN API-Schlüssel",
+          "hvv_gti_user": "GTI-Benutzername (Application ID)",
+          "hvv_gti_password": "GTI-Passwort"
         },
         "data_description": {
           "trafiklab_api_key": "Trafiklab API-Schlüssel (erhältlich auf trafiklab.se)",
           "nta_api_key": "NTA Primary API-Schlüssel (erforderlich, erhältlich auf developer.nationaltransport.ie)",
           "nta_api_key_secondary": "NTA Secondary API-Schlüssel (optional, als Fallback)",
           "rmv_api_key": "RMV API-Schlüssel (erhältlich auf opendata.rmv.de)",
-          "vbn_api_key": "VBN API-Schlüssel — gilt für OTP und TRIAS. Kostenlos für private Nutzung, per E-Mail anfragen bei api@vbn.de"
+          "vbn_api_key": "VBN API-Schlüssel — gilt für OTP und TRIAS. Kostenlos für private Nutzung, per E-Mail anfragen bei api@vbn.de",
+          "hvv_gti_user": "Benutzername aus den Geofox-GTI-Zugangsdaten (geofox-auth-user)",
+          "hvv_gti_password": "Passwort aus den Geofox-GTI-Zugangsdaten. Wird zum Signieren jeder Anfrage verwendet und nicht übertragen"
         }
       },
       "settings": {
@@ -132,7 +136,8 @@
       "nta_api_key_required": "NTA API-Schlüssel ist erforderlich",
       "rmv_api_key_required": "RMV API-Schlüssel ist erforderlich",
       "vbn_api_key_required": "VBN API-Schlüssel ist erforderlich",
-      "min_two_entities": "Bitte mindestens 2 Entity-IDs angeben"
+      "min_two_entities": "Bitte mindestens 2 Entity-IDs angeben",
+      "hvv_gti_credentials_required": "GTI-Benutzername und -Passwort sind beide erforderlich (kostenlos anfragen per E-Mail an api@hochbahn.de)"
     }
   },
   "options": {

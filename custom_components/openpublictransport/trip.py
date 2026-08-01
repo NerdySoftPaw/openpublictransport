@@ -117,7 +117,7 @@ async def async_plan_trip(
             return None
         session = async_get_clientsession(hass)
         provider_instance = get_provider(provider, session, api_key=api_key)
-        return await _async_plan_trip_otp(hass, origin_id, dest_id, departure_time, provider_instance)
+        return await _async_plan_trip_otp(origin_id, dest_id, departure_time, provider_instance)
 
     # EFA providers
     base_url = EFA_TRIP_ENDPOINTS.get(provider)
@@ -236,7 +236,6 @@ async def _async_plan_trip_otp2_graphql(
 
 
 async def _async_plan_trip_otp(
-    hass: HomeAssistant,
     origin_id: str,
     dest_id: str,
     departure_time: Optional[datetime],
@@ -244,13 +243,12 @@ async def _async_plan_trip_otp(
 ) -> Optional[List[Dict[str, Any]]]:
     """Plan a trip using the OTP 2.x REST /plan endpoint."""
     now = departure_time or dt_util.now()
-    session = async_get_clientsession(hass)
     base_url = provider_instance.otp_base_url
 
     # Resolve stop coordinates concurrently — OTP /plan needs lat,lon not stop IDs
     origin_stop, dest_stop = await asyncio.gather(
-        provider_instance._get(session, f"{base_url}/index/stops/{quote(origin_id, safe='')}"),
-        provider_instance._get(session, f"{base_url}/index/stops/{quote(dest_id, safe='')}"),
+        provider_instance._get(f"{base_url}/index/stops/{quote(origin_id, safe='')}"),
+        provider_instance._get(f"{base_url}/index/stops/{quote(dest_id, safe='')}"),
     )
     if not origin_stop or not dest_stop:
         _LOGGER.warning("VBN OTP trip: could not resolve stop coordinates for %s / %s", origin_id, dest_id)
@@ -260,7 +258,6 @@ async def _async_plan_trip_otp(
     to_place = f"{dest_stop['lat']},{dest_stop['lon']}"
 
     data = await provider_instance._get(
-        session,
         f"{base_url}/plan",
         {
             "fromPlace": from_place,

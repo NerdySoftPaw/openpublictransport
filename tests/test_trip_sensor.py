@@ -78,6 +78,40 @@ async def test_coordinator_async_update_data(hass: HomeAssistant):
         result = await coordinator._async_update_data()
 
     assert result == mock_journeys
+    assert coordinator.last_update_success_time is not None
+
+
+async def test_empty_journey_list_still_counts_as_a_successful_update(hass: HomeAssistant):
+    """[] is "no connection right now", not a failure (issue #58 review).
+
+    EFA's _parse_journeys returns [] for an empty board. The coordinator
+    reports last_update_success=True for it, so diagnostics must not show a
+    null last_update_success_time alongside that.
+    """
+    coordinator = _make_trip_coordinator(hass)
+
+    with patch(
+        "custom_components.openpublictransport.trip_sensor.async_plan_trip",
+        new_callable=AsyncMock, return_value=[],
+    ):
+        result = await coordinator._async_update_data()
+
+    assert result == []
+    assert coordinator.last_update_success_time is not None
+
+
+async def test_failed_lookup_does_not_stamp_a_success_time(hass: HomeAssistant):
+    """None means the lookup failed or the provider is unsupported."""
+    coordinator = _make_trip_coordinator(hass)
+
+    with patch(
+        "custom_components.openpublictransport.trip_sensor.async_plan_trip",
+        new_callable=AsyncMock, return_value=None,
+    ):
+        result = await coordinator._async_update_data()
+
+    assert result is None
+    assert coordinator.last_update_success_time is None
 
 
 # ── async_setup_trip_entry ────────────────────────────────────────────────────

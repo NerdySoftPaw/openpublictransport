@@ -102,13 +102,14 @@ Two entries with *identical* filters, or two unfiltered entries, are still rejec
 !!! note
     The filters you set **during setup** determine the entry's entity IDs, and they stay
     fixed afterwards. Changing a filter later under **Configure** takes effect immediately
-    but deliberately does not rename any entity, so your dashboards and automations keep
-    working. If you want the new filter reflected in the entity IDs, remove the entry and
-    add it again.
+    and updates the device name, but deliberately does *not* rename any entity, so your
+    dashboards and automations keep working. If you want the new filter reflected in the
+    entity IDs too, remove the entry and add it again.
 
 !!! tip
-    Entries created before this feature keep their existing entity IDs exactly as they were.
-    Nothing is renamed by upgrading.
+    Entries created before this feature keep their existing entity IDs **and** their existing
+    device names exactly as they were, even if they have filters configured. Nothing is
+    renamed by upgrading.
 
 ## Modifying Settings
 

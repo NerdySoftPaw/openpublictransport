@@ -12,7 +12,7 @@ import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.openpublictransport.config_flow import _filter_discriminator, _filter_label
+from custom_components.openpublictransport.filters import filter_discriminator, filter_label
 from custom_components.openpublictransport.const import (
     CONF_DELAY_THRESHOLD,
     CONF_DEPARTURES,
@@ -194,10 +194,74 @@ async def test_entity_key_falls_back_to_place_and_name(hass: HomeAssistant):
 
 async def test_entity_key_appends_the_discriminator(hass: HomeAssistant):
     """A filtered entry gets its own key, so the two do not collide."""
-    entry = _entry(hass, **{CONF_ENTRY_SUFFIX: "abc12345", CONF_ENTRY_LABEL: "→ Duisburg"})
+    entry = _entry(
+        hass,
+        **{CONF_DESTINATION_FILTER: "Duisburg", CONF_ENTRY_SUFFIX: "abc12345", CONF_ENTRY_LABEL: "→ Duisburg"},
+    )
 
     assert station_entity_key(_coordinator(), entry) == f"{PROVIDER_VRR}_{STOP_ID}_abc12345"
     assert station_device_name(_coordinator(), entry) == "Rheinbahn - Hauptbahnhof (→ Duisburg)"
+
+
+# ── the device name tracks the filters, the unique ID does not ────────────────
+
+
+async def test_editing_filters_renames_the_device_but_not_the_entities(hass: HomeAssistant):
+    """Changing a filter under Options must update the label, not the IDs.
+
+    The device would otherwise keep advertising the filter it was created
+    with — "(→ Duisburg)" on an entry that now filters for Köln. Renaming a
+    device is harmless because entity IDs are assigned once at creation;
+    moving the unique-ID suffix would rename every entity of the entry.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_PROVIDER: PROVIDER_VRR,
+            CONF_STATION_ID: STOP_ID,
+            CONF_DESTINATION_FILTER: "Duisburg",
+            CONF_ENTRY_SUFFIX: "abc12345",
+            CONF_ENTRY_LABEL: "→ Duisburg",
+        },
+        options={CONF_DESTINATION_FILTER: "Köln"},
+    )
+    entry.add_to_hass(hass)
+
+    assert station_device_name(_coordinator(), entry) == "Rheinbahn - Hauptbahnhof (→ Köln)"
+    assert station_entity_key(_coordinator(), entry) == f"{PROVIDER_VRR}_{STOP_ID}_abc12345"
+
+
+async def test_clearing_every_filter_falls_back_to_the_creation_label(hass: HomeAssistant):
+    """An entry with a suffix stays labelled even if the filters are emptied.
+
+    Dropping the label would make two same-station devices indistinguishable.
+    """
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_PROVIDER: PROVIDER_VRR,
+            CONF_STATION_ID: STOP_ID,
+            CONF_DESTINATION_FILTER: "Duisburg",
+            CONF_ENTRY_SUFFIX: "abc12345",
+            CONF_ENTRY_LABEL: "→ Duisburg",
+        },
+        options={CONF_DESTINATION_FILTER: ""},
+    )
+    entry.add_to_hass(hass)
+
+    assert station_device_name(_coordinator(), entry) == "Rheinbahn - Hauptbahnhof (→ Duisburg)"
+
+
+async def test_filters_on_a_pre_existing_entry_do_not_rename_its_device(hass: HomeAssistant):
+    """No discriminator means no label — upgrading must not rename anything.
+
+    Plenty of existing entries have filters set under Options; they were
+    created before #55 and carry no suffix, so their device name must stay
+    exactly what it was.
+    """
+    entry = _entry(hass, **{CONF_DESTINATION_FILTER: "Duisburg"})
+
+    assert station_device_name(_coordinator(), entry) == "Rheinbahn - Hauptbahnhof"
 
 
 async def test_every_platform_derives_its_key_from_the_shared_helper(hass: HomeAssistant):
@@ -232,13 +296,13 @@ async def test_every_platform_derives_its_key_from_the_shared_helper(hass: HomeA
     ],
 )
 def test_no_discriminator_without_filters(user_input):
-    assert _filter_discriminator(user_input) == ""
-    assert _filter_label(user_input) == ""
+    assert filter_discriminator(user_input) == ""
+    assert filter_label(user_input) == ""
 
 
 def test_discriminator_is_stable_and_short():
-    first = _filter_discriminator({CONF_DESTINATION_FILTER: "Duisburg"})
-    second = _filter_discriminator({CONF_DESTINATION_FILTER: "Duisburg"})
+    first = filter_discriminator({CONF_DESTINATION_FILTER: "Duisburg"})
+    second = filter_discriminator({CONF_DESTINATION_FILTER: "Duisburg"})
 
     assert first == second
     assert len(first) == 8
@@ -246,18 +310,18 @@ def test_discriminator_is_stable_and_short():
 
 
 def test_discriminator_ignores_order_and_case():
-    assert _filter_discriminator({CONF_LINE_FILTER: "S1,S2"}) == _filter_discriminator(
+    assert filter_discriminator({CONF_LINE_FILTER: "S1,S2"}) == filter_discriminator(
         {CONF_LINE_FILTER: " s2 , S1 "}
     )
 
 
 def test_discriminator_differs_per_filter_field():
     """The same text in two different fields is two different configurations."""
-    assert _filter_discriminator({CONF_LINE_FILTER: "3"}) != _filter_discriminator({CONF_PLATFORM_FILTER: "3"})
+    assert filter_discriminator({CONF_LINE_FILTER: "3"}) != filter_discriminator({CONF_PLATFORM_FILTER: "3"})
 
 
 def test_label_covers_all_three_filters():
-    label = _filter_label(
+    label = filter_label(
         {CONF_LINE_FILTER: "S1", CONF_DESTINATION_FILTER: "Duisburg", CONF_PLATFORM_FILTER: "3"}
     )
     assert label == "S1 → Duisburg Pl. 3"

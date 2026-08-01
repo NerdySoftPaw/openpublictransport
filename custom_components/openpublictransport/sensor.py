@@ -42,6 +42,7 @@ from .const import (
     PROVIDER_NTA_IE,
     TRANSPORTATION_TYPES,
 )
+from .filters import current_filters, filter_label
 
 _LOGGER = logging.getLogger(__name__)
 PARALLEL_UPDATES = 0
@@ -88,17 +89,24 @@ def station_entity_key(coordinator: Any, config_entry: Optional[ConfigEntry] = N
 def station_device_name(coordinator: Any, config_entry: Optional[ConfigEntry] = None) -> str:
     """Return the device name, disambiguated when a station is configured twice.
 
-    Without a filter label this is the historical ``"Agency - Stop"``; entries
-    created with a discriminator (issue #55) get the filter appended so the two
-    devices are told apart in the UI.
+    Without a discriminator this is the historical ``"Agency - Stop"``, so no
+    pre-existing device is renamed. Entries created as a deliberate duplicate
+    (issue #55) get their filter appended so the two are told apart in the UI.
+
+    That label follows the *current* filters, unlike the unique-ID suffix,
+    which is frozen at creation. The two deliberately diverge once the filters
+    are edited under Options: renaming a device is harmless — entity IDs were
+    assigned once, at creation — whereas moving the suffix would rename every
+    entity of the entry.
     """
     name_dm = coordinator.name_dm
     agency_name = coordinator.agency_name
     base = f"{agency_name} - {name_dm}" if agency_name else name_dm
 
-    label = ""
-    if config_entry is not None:
-        label = str(config_entry.data.get(CONF_ENTRY_LABEL) or "").strip()
+    if config_entry is None or not str(config_entry.data.get(CONF_ENTRY_SUFFIX) or "").strip():
+        return base
+
+    label = filter_label(current_filters(config_entry)) or str(config_entry.data.get(CONF_ENTRY_LABEL) or "").strip()
 
     return f"{base} ({label})" if label else base
 

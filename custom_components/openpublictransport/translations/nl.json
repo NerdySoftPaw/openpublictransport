@@ -75,6 +75,7 @@
           "delay_threshold": "Vertragingsdrempel (minuten)",
           "line_filter": "Lijnfilter",
           "destination_filter": "Bestemmingsfilter",
+          "platform_filter": "Perronfilter",
           "walking_time": "Looptijd (minuten)",
           "favorite_lines": "Favoriete lijnen"
         },
@@ -86,6 +87,7 @@
           "delay_threshold": "Minimale vertraging in minuten om de vertragingssensor te activeren (1-30)",
           "line_filter": "Toon alleen specifieke lijnen, gescheiden door komma's (bijv. U79, RE5, Bus 42). Leeg = alle lijnen",
           "destination_filter": "Toon alleen vertrekken met overeenkomende bestemming, kommagescheiden, gedeeltelijke overeenkomst (bijv. Duisburg, Luchthaven). Leeg = alle bestemmingen",
+          "platform_filter": "Toon alleen vertrekken van specifieke perrons/sporen, kommagescheiden (bijv. 3, 4). Leeg = alle perrons",
           "walking_time": "Looptijd naar de halte in minuten (0 = uitgeschakeld). Vertrekken die niet meer gehaald kunnen worden, worden verborgen",
           "favorite_lines": "Lijnen die als eerste worden getoond, gescheiden door komma's (bijv. U79, RE5). Leeg = geen favorieten"
         }
@@ -145,6 +147,7 @@
           "delay_threshold": "Vertragingsdrempel (minuten)",
           "line_filter": "Lijnfilter",
           "destination_filter": "Bestemmingsfilter",
+          "platform_filter": "Perronfilter",
           "walking_time": "Looptijd (minuten)",
           "favorite_lines": "Favoriete lijnen"
         },
@@ -153,6 +156,7 @@
           "delay_threshold": "Minimale vertraging in minuten om de vertragingssensor te activeren (1-30)",
           "line_filter": "Toon alleen specifieke lijnen, gescheiden door komma's (bijv. U79, RE5, Bus 42). Leeg = alle lijnen",
           "destination_filter": "Toon alleen vertrekken met overeenkomende bestemming, kommagescheiden, gedeeltelijke overeenkomst (bijv. Duisburg, Luchthaven). Leeg = alle bestemmingen",
+          "platform_filter": "Toon alleen vertrekken van specifieke perrons/sporen, kommagescheiden (bijv. 3, 4). Leeg = alle perrons",
           "walking_time": "Looptijd naar de halte in minuten (0 = uitgeschakeld). Vertrekken die niet meer gehaald kunnen worden, worden verborgen",
           "favorite_lines": "Lijnen die als eerste worden getoond, gescheiden door komma's (bijv. U79, RE5). Leeg = geen favorieten"
         }

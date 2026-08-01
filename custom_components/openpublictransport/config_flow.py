@@ -34,6 +34,7 @@ from .const import (
     CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
+    CONF_PLATFORM_FILTER,
     CONF_PROVIDER,
     CONF_REJSEPLANEN_API_KEY,
     CONF_RMV_API_KEY,
@@ -47,6 +48,7 @@ from .const import (
     DEFAULT_DELAY_THRESHOLD,
     DEFAULT_DEPARTURES,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_WALKING_TIME,
     DOMAIN,
     PROVIDER_HVV,
     PROVIDER_KVV,
@@ -720,6 +722,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 ),
                 vol.Optional(CONF_LINE_FILTER, default=""): str,
                 vol.Optional(CONF_DESTINATION_FILTER, default=""): str,
+                vol.Optional(CONF_PLATFORM_FILTER, default=""): str,
                 vol.Optional(CONF_FAVORITE_LINES, default=""): str,
                 vol.Optional(CONF_WALKING_TIME, default=0): vol.All(int, vol.Range(min=0, max=30)),
             }
@@ -741,6 +744,15 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 CONF_TRANSPORTATION_TYPES: user_input[CONF_TRANSPORTATION_TYPES],
                 CONF_SCAN_INTERVAL: user_input[CONF_SCAN_INTERVAL],
                 CONF_USE_PROVIDER_LOGO: user_input.get(CONF_USE_PROVIDER_LOGO, False),
+                # These are offered by the settings form but used to be dropped
+                # on save, so a filter set during setup silently did nothing
+                # until it was entered again under Options.
+                CONF_DELAY_THRESHOLD: user_input.get(CONF_DELAY_THRESHOLD, DEFAULT_DELAY_THRESHOLD),
+                CONF_LINE_FILTER: user_input.get(CONF_LINE_FILTER, "").strip(),
+                CONF_DESTINATION_FILTER: user_input.get(CONF_DESTINATION_FILTER, "").strip(),
+                CONF_PLATFORM_FILTER: user_input.get(CONF_PLATFORM_FILTER, "").strip(),
+                CONF_FAVORITE_LINES: user_input.get(CONF_FAVORITE_LINES, "").strip(),
+                CONF_WALKING_TIME: user_input.get(CONF_WALKING_TIME, DEFAULT_WALKING_TIME),
             }
             # Add API key for Trafiklab or NTA (required)
             if self._provider == PROVIDER_TRAFIKLAB_SE:
@@ -1872,6 +1884,10 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
             CONF_DESTINATION_FILTER,
             self.config_entry.data.get(CONF_DESTINATION_FILTER, ""),
         )
+        current_platform_filter = self.config_entry.options.get(
+            CONF_PLATFORM_FILTER,
+            self.config_entry.data.get(CONF_PLATFORM_FILTER, ""),
+        )
         current_walking_time = self.config_entry.options.get(
             CONF_WALKING_TIME,
             self.config_entry.data.get(CONF_WALKING_TIME, 0),
@@ -1892,6 +1908,7 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
                 ),
                 vol.Optional(CONF_LINE_FILTER, default=current_line_filter): str,
                 vol.Optional(CONF_DESTINATION_FILTER, default=current_destination_filter): str,
+                vol.Optional(CONF_PLATFORM_FILTER, default=current_platform_filter): str,
                 vol.Optional(
                     CONF_FAVORITE_LINES,
                     default=self.config_entry.options.get(

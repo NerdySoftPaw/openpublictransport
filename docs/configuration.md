@@ -138,3 +138,34 @@ How often the integration fetches new data from the API.
 ### Use Provider Logo
 
 When enabled, the entity picture shows the provider's logo instead of the dynamic transport type icon.
+
+### Departure Filters
+
+Three optional filters narrow the departure list. All are comma-separated, all are applied
+after the data is fetched, and leaving one empty disables it. When any filter is active the
+integration fetches a larger raw board so filtered results aren't starved at busy stops.
+
+| Filter | Matching | Example |
+|--------|----------|---------|
+| **Line filter** | Exact line name, case-insensitive | `U79, RE5` |
+| **Destination filter** | Substring of the destination, case-insensitive | `Duisburg, Airport` |
+| **Platform filter** | Exact platform/track | `3, 4` |
+
+#### Platform filter
+
+Filtering by platform is often more stable than filtering by destination: the same direction
+can appear under many different destination strings (shortened names, special services,
+temporary changes), while the track number usually stays put.
+
+The value is matched against the provider's technical platform identifier — the same value
+you see in the `platform` attribute of the departures list. Common labels are stripped before
+comparing, so `3`, `Gleis 3` and `gleis 3` all match the same track.
+
+!!! note
+    At larger stations the same platform number can exist more than once — track 3 for rail
+    and stop position 3 for buses, for example. The filter cannot tell those apart on its own;
+    combine it with the **Transportation types** selector when the number is ambiguous.
+
+!!! tip
+    Not every provider returns platform data. Check the `platform` attribute of your
+    departures sensor first — if it is empty, this filter will match nothing.

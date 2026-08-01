@@ -17,6 +17,7 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 from openpublictransport import AuthenticationError, get_provider
+from openpublictransport.parsers import normalize_platform
 
 from .const import (
     API_RATE_LIMIT_PER_DAY,
@@ -25,6 +26,7 @@ from .const import (
     CONF_FAVORITE_LINES,
     CONF_LINE_FILTER,
     CONF_NTA_API_KEY_SECONDARY,
+    CONF_PLATFORM_FILTER,
     CONF_SCAN_INTERVAL,
     CONF_TRANSPORTATION_TYPES,
     CONF_USE_PROVIDER_LOGO,
@@ -255,7 +257,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(f"Error fetching data: {err}")
 
     def _compute_fetch_limit(self) -> int:
-        """Over-fetch a larger board when a line/destination filter is active.
+        """Over-fetch a larger board when a line/destination/platform filter is active.
 
         Filters are applied client-side after the fetch, so requesting only
         ``departures_limit`` starves filtered results at busy stops (issue #43).
@@ -264,9 +266,11 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
         """
         entry = self._config_entry
         if entry is not None:
-            line = entry.options.get(CONF_LINE_FILTER, entry.data.get(CONF_LINE_FILTER, ""))
-            dest = entry.options.get(CONF_DESTINATION_FILTER, entry.data.get(CONF_DESTINATION_FILTER, ""))
-            if (line or "").strip() or (dest or "").strip():
+            active = (
+                entry.options.get(key, entry.data.get(key, "")) or ""
+                for key in (CONF_LINE_FILTER, CONF_DESTINATION_FILTER, CONF_PLATFORM_FILTER)
+            )
+            if any(value.strip() for value in active):
                 return max(self.departures_limit, FILTERED_FETCH_LIMIT)
         return self.departures_limit
 
@@ -352,6 +356,17 @@ class MultiProviderSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
         )
         self._destination_filter: list[str] = (
             [d.strip().lower() for d in dest_filter_str.split(",") if d.strip()] if dest_filter_str else []
+        )
+
+        # Get platform filter from options/data (exact match on the normalized
+        # track, so "3" and "Gleis 3" are interchangeable — issue #57)
+        platform_filter_str = config_entry.options.get(
+            CONF_PLATFORM_FILTER, config_entry.data.get(CONF_PLATFORM_FILTER, "")
+        )
+        self._platform_filter: set[str] = (
+            {normalize_platform(p) for p in platform_filter_str.split(",") if normalize_platform(p)}
+            if platform_filter_str
+            else set()
         )
 
         # Get favorite lines from options/data
@@ -579,6 +594,8 @@ class MultiProviderSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
                 if self._destination_filter and not any(
                     term in (dep.destination or "").lower() for term in self._destination_filter
                 ):
+                    continue
+                if self._platform_filter and normalize_platform(dep.platform) not in self._platform_filter:
                     continue
                 departures.append(dep)
 

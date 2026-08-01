@@ -4,7 +4,7 @@ DEFAULT_NAME = "Elbruchstrasse"
 DEFAULT_DEPARTURES = 10
 DEFAULT_SCAN_INTERVAL = 60
 
-# When a line/destination filter is active, fetch a larger raw board from the API
+# When a line/destination/platform filter is active, fetch a larger raw board from the API
 # so client-side filtering isn't starved before truncating to the display count (issue #43).
 FILTERED_FETCH_LIMIT = 100
 
@@ -21,6 +21,7 @@ CONF_USE_PROVIDER_LOGO = "use_provider_logo"  # Show provider logo instead of tr
 CONF_DELAY_THRESHOLD = "delay_threshold"  # Minutes threshold for delay binary sensor
 CONF_LINE_FILTER = "line_filter"  # Comma-separated line numbers to show
 CONF_DESTINATION_FILTER = "destination_filter"  # Comma-separated destinations (substring match) to show
+CONF_PLATFORM_FILTER = "platform_filter"  # Comma-separated platforms/tracks to show
 CONF_WALKING_TIME = "walking_time"  # Minutes to walk to the stop
 CONF_FAVORITE_LINES = "favorite_lines"  # Comma-separated favorite lines (shown first)
 DEFAULT_DELAY_THRESHOLD = 5

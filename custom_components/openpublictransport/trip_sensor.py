@@ -5,7 +5,7 @@ Created via the plan_trip config flow.
 """
 
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from homeassistant.components.sensor import SensorEntity
@@ -16,6 +16,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_OPT_API_KEY,
@@ -73,10 +74,13 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         self.dest_id = dest_id
         self.api_key = api_key
         self.custom_url = custom_url
+        # Mirrors PublicTransportDataUpdateCoordinator so diagnostics can report
+        # it for trip entries too (issue #58).
+        self.last_update_success_time: Optional[datetime] = None
 
     async def _async_update_data(self) -> Optional[List[Dict[str, Any]]]:
         """Fetch trip data."""
-        return await async_plan_trip(
+        data = await async_plan_trip(
             self.hass,
             self.provider,
             self.origin,
@@ -88,6 +92,13 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
             api_key=self.api_key,
             custom_url=self.custom_url,
         )
+        if data is not None:
+            # `None` is a failed or unsupported lookup; an empty list is a
+            # successful query that simply found no connection (EFA's
+            # _parse_journeys returns [] for an empty board). Both leave
+            # last_update_success True, so only the former must skip the stamp.
+            self.last_update_success_time = dt_util.now()
+        return data
 
 
 async def async_setup_trip_entry(

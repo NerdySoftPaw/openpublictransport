@@ -64,7 +64,10 @@ Each departure in the `departures` list contains:
 | `departure_time` | String | Actual/estimated departure time (HH:MM) |
 | `planned_time` | String | Scheduled departure time (HH:MM) |
 | `delay` | Integer | Delay in minutes (0 if on time) |
-| `platform` | String | Platform/track number |
+| `platform` | String | Platform/track — the provider's technical identifier (`"3"`, `"A"`) |
+| `platform_name` | String | Human-readable platform label (`"Gleis 3"`), only when it differs from `platform` |
+| `planned_platform` | String | Scheduled platform, only present when it changed |
+| `platform_changed` | Boolean | `true` when the departure was moved to another platform |
 | `transportation_type` | String | Type: bus, train, tram, subway, ferry, taxi |
 | `is_realtime` | Boolean | Whether real-time data is available |
 | `minutes_until_departure` | Integer | Minutes until departure |

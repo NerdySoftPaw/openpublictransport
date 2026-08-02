@@ -1,6 +1,6 @@
 # Changelog
 
-## v2026.8.1 — Trip Planner: reachable connections, correct transfer rating
+## v2026.8.2 — Trip Planner: reachable connections, correct transfer rating
 
 Requires `python-openpublictransport` 0.1.16.
 

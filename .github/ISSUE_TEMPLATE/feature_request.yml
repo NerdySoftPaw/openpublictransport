@@ -1,0 +1,87 @@
+name: 💡 Feature Request
+description: Suggest a new feature or an improvement
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea!
+
+        Want a **new transit provider** supported? Please use the
+        *🚉 Provider Request* template instead — it asks for the API details needed.
+
+        Still shaping the idea? [Discussions → Ideas](https://github.com/NerdySoftPaw/openpublictransport/discussions)
+        is a better place to talk it through first.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight checklist
+      options:
+        - label: I searched existing issues and discussions for this idea
+          required: true
+        - label: This is not a request for a new provider
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the situation you run into, not the solution yet.
+      placeholder: |
+        I commute with two lines from the same stop and only care about one of them
+        in the morning, the other in the evening. Right now I need two entities.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What should the integration do?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area does this touch?
+      multiple: true
+      options:
+        - Config flow / setup
+        - Entities (sensor, calendar, camera, ...)
+        - Actions / services
+        - Trip planner
+        - Departure board camera
+        - Filters, favorites, walking time
+        - Translations / i18n
+        - Dashboard card
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Template sensors, automations, other integrations — what did you try?
+
+  - type: textarea
+    id: example
+    attributes:
+      label: Example configuration or automation
+      description: If you can sketch how it would look in YAML, that helps a lot.
+      render: yaml
+
+  - type: dropdown
+    id: contribute
+    attributes:
+      label: Would you like to contribute this?
+      options:
+        - "No, just suggesting"
+        - "Maybe, with some guidance"
+        - "Yes, I'd like to open a PR"
+    validations:
+      required: true

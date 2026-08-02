@@ -1,0 +1,98 @@
+name: 🚨 Wrong or Missing Departure Data
+description: A supported provider returns wrong, missing or stale departures
+title: "[Data]: "
+labels: ["provider", "data", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this when the integration *works* but the **data** is wrong —
+        missing departures, wrong delays, stops that cannot be found, odd platforms.
+
+        Please first compare against the provider's own app or website.
+        If their app is wrong too, it is an upstream data problem and there is
+        little this integration can do — but it is still worth documenting here.
+
+  - type: dropdown
+    id: symptom
+    attributes:
+      label: What is wrong?
+      multiple: true
+      options:
+        - Stop cannot be found in search
+        - Wrong stop matched
+        - No departures returned at all
+        - Departures missing (some lines absent)
+        - Wrong departure times
+        - Delays missing or incorrect
+        - Wrong or missing platform
+        - Wrong destination / line name
+        - Disruption notices missing
+        - Data is stale / not refreshing
+        - Trip planner returns no or wrong routes
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: provider
+    attributes:
+      label: Provider
+      placeholder: KVV
+    validations:
+      required: true
+
+  - type: input
+    id: stop
+    attributes:
+      label: Stop name (exactly as configured)
+      placeholder: Rastatt Bahnhof
+    validations:
+      required: true
+
+  - type: input
+    id: stop_id
+    attributes:
+      label: Stop ID
+      description: Visible in the entity attributes or diagnostics download.
+      placeholder: de:08216:14201
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What the provider's own app shows
+      description: A screenshot or a copy of the real departure board at the same moment.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What the integration shows
+      description: Entity state and attributes, or a screenshot of your card.
+    validations:
+      required: true
+
+  - type: input
+    id: when
+    attributes:
+      label: When did you observe this?
+      description: Date, time and timezone — departure data is very time-sensitive.
+      placeholder: 2026-08-02 07:42 CEST
+    validations:
+      required: true
+
+  - type: input
+    id: version_integration
+    attributes:
+      label: Integration version
+      placeholder: v2026.7.8
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Debug log
+      description: Debug output for `custom_components.openpublictransport`. Remove any API keys.
+      render: shell

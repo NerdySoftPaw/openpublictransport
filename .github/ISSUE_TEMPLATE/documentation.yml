@@ -1,0 +1,48 @@
+name: 📖 Documentation
+description: Something in the docs is missing, wrong or unclear
+title: "[Docs]: "
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Docs live at [docs.openpublictransport.net](https://docs.openpublictransport.net/)
+        and are built from the `docs/` folder with MkDocs.
+        Small fixes are very welcome as a direct PR.
+
+  - type: input
+    id: page
+    attributes:
+      label: Which page?
+      placeholder: https://docs.openpublictransport.net/latest/trip-planner/
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Type of problem
+      options:
+        - Information is missing
+        - Information is outdated
+        - Information is wrong
+        - Confusing or hard to follow
+        - Broken link or rendering issue
+        - Typo / grammar
+        - Translation issue
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: What should change?
+      description: Quote the passage if possible and describe what would be clearer.
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested wording
+      description: Optional — a draft replacement text.

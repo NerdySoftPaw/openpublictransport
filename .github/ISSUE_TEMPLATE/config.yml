@@ -1,0 +1,25 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Question or setup help
+    url: https://github.com/NerdySoftPaw/openpublictransport/discussions/categories/q-a
+    about: Ask in Discussions — setup, API keys, filters, migration from vrr.
+
+  - name: 📖 Documentation
+    url: https://docs.openpublictransport.net/
+    about: Configuration, providers, sensors, actions and the trip planner.
+
+  - name: 🔀 Migration from VRRAPI-HACS / hacs-publictransport
+    url: https://docs.openpublictransport.net/latest/migration/
+    about: The domain changed from `vrr` to `openpublictransport` — start here.
+
+  - name: 🎴 Dashboard card issues
+    url: https://github.com/NerdySoftPaw/openpublictransport-card/issues
+    about: Problems with the Lovelace card belong in the card repository.
+
+  - name: 🖼️ Show your dashboard
+    url: https://github.com/NerdySoftPaw/openpublictransport/discussions/categories/show-and-tell
+    about: Share screenshots, automations and YAML with the community.
+
+  - name: ☕ Support the project
+    url: https://buymeacoffee.com/nerdysoftpaw
+    about: This is a spare-time project — donations are appreciated.

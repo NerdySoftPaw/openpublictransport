@@ -1,0 +1,55 @@
+name: 🌍 Translation
+description: Fix a translation or offer a new language
+title: "[i18n]: "
+labels: ["translation", "good first issue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Currently shipped: **DE, EN, FR, NL, PL, IT, SV**.
+
+        Translation files live in
+        `custom_components/openpublictransport/translations/`.
+        A new language is simply a copy of `en.json` with the values translated —
+        a perfect first contribution.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What would you like to do?
+      options:
+        - Report a wrong or awkward translation
+        - Report missing strings in an existing language
+        - Offer a new language
+    validations:
+      required: true
+
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      description: Name and ISO code.
+      placeholder: Czech (cs)
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: |
+        For fixes: the key, the current text and your suggested replacement.
+        For new languages: just say hello and note whether you are a native speaker.
+      placeholder: |
+        Key: config.step.user.data.walking_time
+        Current (DE): "Laufzeit"
+        Suggested:    "Fußweg (Minuten)"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: pr
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to open a pull request with the translation file

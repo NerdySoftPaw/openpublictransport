@@ -61,7 +61,7 @@ The sensor will appear as `sensor.openpublictransport_trip_<origin>_to_<destinat
 
 ### Example Sensor State and Attributes
 
-**State:** `08:15 - U79 to Duisburg Meiderich`
+**State:** `08:15 → 08:42 (27 min, 1 transfers)`
 
 **Attributes:**
 
@@ -69,44 +69,70 @@ The sensor will appear as `sensor.openpublictransport_trip_<origin>_to_<destinat
 {
   "origin": "Holthausen, Dusseldorf",
   "destination": "Hauptbahnhof, Dusseldorf",
-  "departure_time": "2026-04-09T08:15:00+02:00",
-  "arrival_time": "2026-04-09T08:42:00+02:00",
+  "departure": "08:15",
+  "arrival": "08:42",
+  "departure_timestamp": "2026-04-09T08:15:00+02:00",
+  "arrival_timestamp": "2026-04-09T08:42:00+02:00",
+  "in_minutes": 6,
   "duration_minutes": 27,
   "transfers": 1,
   "connection_feasible": true,
   "transfer_risk": "low",
+  "min_transfer_time": 5,
   "legs": [
     {
+      "origin": "Holthausen",
+      "destination": "Dusseldorf Hbf",
       "line": "U79",
-      "direction": "Duisburg Meiderich",
-      "departure_stop": "Holthausen",
-      "departure_time": "08:15",
-      "arrival_stop": "Dusseldorf Hbf",
-      "arrival_time": "08:35",
+      "product": "U-Bahn",
+      "departure_planned": "08:15",
+      "departure_estimated": "08:17",
+      "arrival_planned": "08:35",
+      "arrival_estimated": "08:35",
       "delay": 2,
+      "duration_minutes": 20,
       "platform": "1"
     },
     {
+      "origin": "Dusseldorf Hbf",
+      "destination": "Hauptbahnhof",
       "line": "RE5",
-      "direction": "Koblenz Hbf",
-      "departure_stop": "Dusseldorf Hbf",
-      "departure_time": "08:40",
-      "arrival_stop": "Dusseldorf Hbf",
-      "arrival_time": "08:42",
+      "product": "Regional",
+      "departure_planned": "08:40",
+      "departure_estimated": "08:40",
+      "arrival_planned": "08:42",
+      "arrival_estimated": "08:42",
       "delay": 0,
+      "duration_minutes": 2,
       "platform": "3"
     }
   ],
-  "next_connections": [
+  "alternative_journeys": 3,
+  "next_journeys": [
     {
-      "departure_time": "08:30",
-      "arrival_time": "08:57",
+      "departure": "08:30",
+      "arrival": "08:57",
+      "departure_timestamp": "2026-04-09T08:30:00+02:00",
+      "arrival_timestamp": "2026-04-09T08:57:00+02:00",
+      "in_minutes": 21,
+      "duration_minutes": 27,
       "transfers": 1,
       "transfer_risk": "low"
     }
   ]
 }
 ```
+
+`departure` / `arrival` are `HH:MM` for display. Use `departure_timestamp` and `in_minutes` when
+you need to compare against the current time — a bare `HH:MM` cannot tell 23:50 tonight from
+23:50 tomorrow.
+
+Both `departure` and `in_minutes` refer to the **start of the journey**. On some providers that
+is a footpath to the platform, so the countdown is to when you have to set off, not to when the
+vehicle leaves.
+
+Connections that have already departed are not reported — the sensor always shows the next one
+you can still reach.
 
 ## Using the plan_trip Service
 
@@ -142,12 +168,22 @@ Every trip result includes transfer risk assessment:
 
 | Risk Level | Meaning |
 |------------|---------|
-| `low` | Comfortable transfer time (>5 min buffer) |
-| `medium` | Tight but feasible (2-5 min buffer) |
-| `high` | At risk due to delays (<2 min buffer) |
-| `missed` | Connection is no longer reachable |
+| `low` | Comfortable transfer time (more than 5 min), or no transfer at all |
+| `medium` | Tight but feasible (4-5 min) |
+| `high` | At risk due to delays (1-3 min) |
+| `missed` | Connection is no longer reachable (0 min or less) |
+
+The rating uses the gap between two **vehicles**, reported as `min_transfer_time` (`null` for a
+direct connection). A walk to the platform is not a transfer — it ends exactly when the
+connecting vehicle leaves, and rating it as one would mark every walk-in journey as `missed`.
 
 The `connection_feasible` attribute is `true` when all transfers can still be made, and `false` when any transfer is missed.
+
+## Walking Time
+
+The **walking time** option (**Configure** on the trip entry) is the time you need to reach the
+origin stop. It shifts the search and hides connections you could not reach in time, so a trip
+sensor with 10 minutes walking time never shows a connection leaving in 5 minutes.
 
 ## Example Automations
 

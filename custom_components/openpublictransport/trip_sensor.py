@@ -24,7 +24,9 @@ from .const import (
     CONF_OTP_CUSTOM_API_KEY,
     CONF_SCAN_INTERVAL,
     CONF_VBN_API_KEY,
+    CONF_WALKING_TIME,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_WALKING_TIME,
     DOMAIN,
 )
 from .sensor import _RESTORE_SKIP_ATTRS
@@ -57,6 +59,7 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         dest_id: Optional[str] = None,
         api_key: Optional[str] = None,
         custom_url: Optional[str] = None,
+        walking_time: int = DEFAULT_WALKING_TIME,
     ):
         """Initialize."""
         super().__init__(
@@ -74,12 +77,18 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         self.dest_id = dest_id
         self.api_key = api_key
         self.custom_url = custom_url
+        self.walking_time = walking_time
         # Mirrors PublicTransportDataUpdateCoordinator so diagnostics can report
         # it for trip entries too (issue #58).
         self.last_update_success_time: Optional[datetime] = None
 
     async def _async_update_data(self) -> Optional[List[Dict[str, Any]]]:
         """Fetch trip data."""
+        # Ask for connections the traveller can still reach: with a walking time
+        # configured, the first one that counts leaves that many minutes from now.
+        # Without one, pass None so the provider anchors on its own clock.
+        earliest = dt_util.now() + timedelta(minutes=self.walking_time) if self.walking_time else None
+
         data = await async_plan_trip(
             self.hass,
             self.provider,
@@ -87,6 +96,7 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
             self.origin_city,
             self.destination,
             self.destination_city,
+            departure_time=earliest,
             origin_id=self.origin_id,
             dest_id=self.dest_id,
             api_key=self.api_key,
@@ -98,7 +108,34 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
             # _parse_journeys returns [] for an empty board). Both leave
             # last_update_success True, so only the former must skip the stamp.
             self.last_update_success_time = dt_util.now()
+            data = self._drop_departed(data)
         return data
+
+    def _drop_departed(self, journeys: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Drop connections that have already left.
+
+        EFA anchors the requested time on the first *vehicle* departure and
+        back-dates the walk to the platform, so its first journey has regularly
+        already started — which is what put a past connection into the sensor
+        state in issue #72. A journey whose departure cannot be parsed is kept:
+        better an unrated connection than an empty sensor.
+        """
+        cutoff = dt_util.now() + timedelta(minutes=self.walking_time)
+        reachable = [
+            journey
+            for journey in journeys
+            if (departure := dt_util.parse_datetime(journey.get("departure_timestamp") or "")) is None
+            or departure >= cutoff
+        ]
+        if len(reachable) < len(journeys):
+            _LOGGER.debug(
+                "Trip %s → %s: dropped %s connection(s) departing before %s",
+                self.origin,
+                self.destination,
+                len(journeys) - len(reachable),
+                cutoff.isoformat(),
+            )
+        return reachable
 
 
 async def async_setup_trip_entry(
@@ -113,7 +150,13 @@ async def async_setup_trip_entry(
     destination_city = config_entry.data[CONF_TRIP_DESTINATION_CITY]
     origin_id = config_entry.data.get("trip_origin_id")
     dest_id = config_entry.data.get("trip_destination_id")
-    scan_interval = config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    # Options win over data — both are configurable after setup via the options flow
+    scan_interval = config_entry.options.get(
+        CONF_SCAN_INTERVAL, config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    )
+    walking_time = config_entry.options.get(
+        CONF_WALKING_TIME, config_entry.data.get(CONF_WALKING_TIME, DEFAULT_WALKING_TIME)
+    )
 
     # Resolve API key and custom URL based on provider
     if provider == "vbn_otp":
@@ -141,6 +184,7 @@ async def async_setup_trip_entry(
         dest_id=dest_id,
         api_key=api_key,
         custom_url=custom_url,
+        walking_time=walking_time,
     )
 
     config_entry.runtime_data = coordinator
@@ -200,6 +244,24 @@ class TripSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
             model="Trip Planner",
         )
 
+        # Listen to options updates — without this a changed walking time or
+        # scan interval only took effect after a restart.
+        self._config_entry.async_on_unload(self._config_entry.add_update_listener(self._async_update_listener))
+
+    async def _async_update_listener(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+        """Handle options update."""
+        self.coordinator.walking_time = config_entry.options.get(
+            CONF_WALKING_TIME,
+            config_entry.data.get(CONF_WALKING_TIME, DEFAULT_WALKING_TIME),
+        )
+        scan_interval = config_entry.options.get(
+            CONF_SCAN_INTERVAL,
+            config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+        )
+        self.coordinator.update_interval = timedelta(seconds=scan_interval)
+
+        await self.coordinator.async_request_refresh()
+
     async def async_added_to_hass(self) -> None:
         """Restore the last trip so the sensor isn't blank right after a restart.
 
@@ -250,6 +312,9 @@ class TripSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
         attrs = {
             "departure": best.get("departure"),
             "arrival": best.get("arrival"),
+            "departure_timestamp": best.get("departure_timestamp"),
+            "arrival_timestamp": best.get("arrival_timestamp"),
+            "in_minutes": _minutes_until(best),
             "duration_minutes": best.get("duration_minutes"),
             "transfers": best.get("transfers"),
             "connection_feasible": best.get("connection_feasible"),
@@ -267,6 +332,9 @@ class TripSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
                 {
                     "departure": j.get("departure"),
                     "arrival": j.get("arrival"),
+                    "departure_timestamp": j.get("departure_timestamp"),
+                    "arrival_timestamp": j.get("arrival_timestamp"),
+                    "in_minutes": _minutes_until(j),
                     "duration_minutes": j.get("duration_minutes"),
                     "transfers": j.get("transfers"),
                     "transfer_risk": j.get("transfer_risk"),
@@ -275,3 +343,16 @@ class TripSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
             ]
 
         return attrs
+
+
+def _minutes_until(journey: Dict[str, Any]) -> Optional[int]:
+    """Minutes from now until a journey departs (None when it has no timestamp).
+
+    Counts down to the start of the journey — including an initial walk to the
+    platform, because that is when the traveller has to set off. Rounds down, so
+    a departure that has just passed reads as ``-1`` rather than a hopeful ``0``.
+    """
+    departure = dt_util.parse_datetime(journey.get("departure_timestamp") or "")
+    if departure is None:
+        return None
+    return int((departure - dt_util.now()).total_seconds() // 60)

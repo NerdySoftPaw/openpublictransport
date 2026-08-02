@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 from custom_components.openpublictransport.trip import (
     _format_time,
@@ -175,6 +176,132 @@ def test_parse_journeys_platform_from_origin():
     ]
     result = _parse_journeys(journeys)
     assert result[0]["legs"][0]["platform"] == "3A"
+
+
+# ── _parse_journeys: walking legs are not transfers (issue #72) ───────────────
+
+def _hvv_walk_and_train(walk_start="23:07", walk_end="23:14", train_start="23:14", train_end="23:35"):
+    """The journey shape from issue #72: walk to the platform, then one S-Bahn.
+
+    HVV prepends a footpath for a station-to-station trip; it ends exactly when
+    the connecting train leaves, because the walk *is* the way to that platform.
+    """
+    day = "2026-08-01"
+    return {
+        "legs": [
+            {
+                "origin": {"name": "Hauptbahnhof/ZOB", "departureTimePlanned": f"{day}T{walk_start}:00+02:00"},
+                "destination": {"name": "Hamburg Hbf", "arrivalTimePlanned": f"{day}T{walk_end}:00+02:00"},
+                "transportation": {"product": {"class": 99, "name": "footpath"}},
+                "duration": 420,
+            },
+            {
+                "origin": {"name": "Hamburg Hbf", "departureTimePlanned": f"{day}T{train_start}:00+02:00"},
+                "destination": {"name": "Bergedorf", "arrivalTimePlanned": f"{day}T{train_end}:00+02:00"},
+                "transportation": {"number": "S2", "product": {"class": 1, "name": "S-Bahn"}},
+                "duration": 1260,
+            },
+        ],
+        "interchanges": 0,
+    }
+
+
+def test_parse_journeys_footpath_is_not_a_transfer():
+    """A walk to the platform must not be rated as a missed transfer (issue #72).
+
+    Before the fix every walk-in journey came out as connection_feasible=False /
+    transfer_risk='missed' / min_transfer_time=0, because the footpath leg was
+    fed into the transfer-gap loop.
+    """
+    result = _parse_journeys([_hvv_walk_and_train()])
+
+    assert len(result) == 1
+    assert result[0]["connection_feasible"] is True
+    assert result[0]["transfer_risk"] == "low"
+    assert result[0]["min_transfer_time"] is None  # no transfer at all
+    # The walk itself stays in the output — the traveller needs to see it
+    assert [leg["product"] for leg in result[0]["legs"]] == ["footpath", "S-Bahn"]
+
+
+def test_parse_journeys_footpath_detected_without_product_class():
+    """Providers that omit the product class are matched on the name."""
+    journey = _hvv_walk_and_train()
+    journey["legs"][0]["transportation"]["product"] = {"name": "Fußweg"}
+
+    result = _parse_journeys([journey])
+
+    assert result[0]["connection_feasible"] is True
+    assert result[0]["transfer_risk"] == "low"
+
+
+def test_parse_journeys_real_transfer_is_still_rated():
+    """Excluding walks must not stop actual vehicle-to-vehicle transfers being rated."""
+    journey = _hvv_walk_and_train()
+    journey["legs"].append(
+        {
+            "origin": {"name": "Bergedorf", "departureTimePlanned": "2026-08-01T23:37:00+02:00"},
+            "destination": {"name": "Lohbrügge", "arrivalTimePlanned": "2026-08-01T23:45:00+02:00"},
+            "transportation": {"number": "8", "product": {"class": 5, "name": "Bus"}},
+            "duration": 480,
+        }
+    )
+    journey["interchanges"] = 1
+
+    result = _parse_journeys([journey])
+
+    # 23:35 arrival → 23:37 departure = 2 min between the two vehicles
+    assert result[0]["min_transfer_time"] == 2
+    assert result[0]["transfer_risk"] == "high"
+    assert result[0]["connection_feasible"] is True
+
+
+def test_parse_journeys_transfer_across_midnight():
+    """A transfer past midnight is a positive gap, not a missed connection.
+
+    The old gap maths pinned both times to a fixed date, so 23:58 → 00:07 came
+    out as -1411 minutes and the journey was reported as missed.
+    """
+    journeys = [
+        {
+            "legs": [
+                {
+                    "origin": {"name": "A", "departureTimePlanned": "2026-08-01T23:30:00+02:00"},
+                    "destination": {"name": "B", "arrivalTimePlanned": "2026-08-01T23:58:00+02:00"},
+                    "transportation": {"number": "S1", "product": {"class": 1, "name": "S-Bahn"}},
+                    "duration": 1680,
+                },
+                {
+                    "origin": {"name": "B", "departureTimePlanned": "2026-08-02T00:07:00+02:00"},
+                    "destination": {"name": "C", "arrivalTimePlanned": "2026-08-02T00:20:00+02:00"},
+                    "transportation": {"number": "U1", "product": {"class": 2, "name": "U-Bahn"}},
+                    "duration": 780,
+                },
+            ],
+            "interchanges": 1,
+        }
+    ]
+
+    result = _parse_journeys(journeys)
+
+    assert result[0]["min_transfer_time"] == 9
+    assert result[0]["transfer_risk"] == "low"
+    assert result[0]["connection_feasible"] is True
+
+
+def test_parse_journeys_exposes_full_timestamps():
+    """Journeys carry full timestamps, so consumers can tell past from future."""
+    result = _parse_journeys([_hvv_walk_and_train()])
+
+    # Rendered in HA's local timezone, so compare instants rather than strings.
+    # Start of the journey = start of the walk, i.e. when to set off.
+    assert dt_util.parse_datetime(result[0]["departure_timestamp"]) == dt_util.parse_datetime(
+        "2026-08-01T23:07:00+02:00"
+    )
+    assert dt_util.parse_datetime(result[0]["arrival_timestamp"]) == dt_util.parse_datetime(
+        "2026-08-01T23:35:00+02:00"
+    )
+    # Internal gap-calculation keys must not leak into the attributes
+    assert not [key for leg in result[0]["legs"] for key in leg if key.startswith("_")]
 
 
 # ── _parse_otp_itineraries ────────────────────────────────────────────────────

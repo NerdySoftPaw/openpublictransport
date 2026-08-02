@@ -1,0 +1,178 @@
+name: 🐛 Bug Report
+description: Something is broken or behaves unexpectedly
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a report!
+
+        Before you continue, please check:
+        - [Existing issues](https://github.com/NerdySoftPaw/openpublictransport/issues?q=is%3Aissue) — someone may have reported this already
+        - [Documentation](https://docs.openpublictransport.net/)
+        - [Migration Guide](https://docs.openpublictransport.net/latest/migration/) if you came from `vrr` / VRRAPI-HACS / hacs-publictransport
+
+        Have a **question** rather than a bug? Please use
+        [Discussions](https://github.com/NerdySoftPaw/openpublictransport/discussions) instead.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight checklist
+      options:
+        - label: I searched the existing issues and this is not a duplicate
+          required: true
+        - label: I am running the latest release of the integration
+          required: true
+        - label: I have read the relevant documentation
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+      placeholder: |
+        The departures sensor shows "unavailable" after every Home Assistant restart.
+        I expected it to recover automatically.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Provider
+      description: Which transit provider is affected?
+      options:
+        - AVV (Augsburg)
+        - BART (San Francisco, USA)
+        - BEG (Bavaria)
+        - BSVG (Braunschweig)
+        - BVG (Berlin / Brandenburg)
+        - DART (Des Moines, USA)
+        - DB (Germany, nationwide)
+        - DING (Ulm)
+        - Entur (Norway)
+        - HVV (Hamburg)
+        - Irish Rail (Ireland)
+        - KVV (Karlsruhe)
+        - mobilitéit.lu (Luxembourg)
+        - MVV (Munich)
+        - NS (Netherlands)
+        - NTA (Ireland)
+        - NVBW (Baden-Württemberg)
+        - NWL (Westfalen-Lippe)
+        - ÖBB (Austria)
+        - openpublictransport (Germany, GTFS.DE)
+        - OTP2 Custom (self-hosted)
+        - RMV (Frankfurt / Rhein-Main)
+        - RVV (Regensburg)
+        - SBB (Switzerland)
+        - TPG (Geneva)
+        - Trafiklab (Sweden)
+        - Transitous (worldwide)
+        - VAG (Freiburg)
+        - VBN OTP (Bremen / Niedersachsen)
+        - VBN TRIAS (Bremen / Niedersachsen)
+        - VGN (Nuremberg)
+        - VRN (Rhein-Neckar)
+        - VRR (Rhein-Ruhr, NRW)
+        - VVO (Dresden)
+        - VVS (Stuttgart)
+        - Multiple providers
+        - Not provider-specific
+    validations:
+      required: true
+
+  - type: input
+    id: stop
+    attributes:
+      label: Stop / station name
+      description: The exact name as configured in the integration. Leave empty if not applicable.
+      placeholder: Rastatt Bahnhof
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      multiple: true
+      options:
+        - Config flow / setup
+        - Reconfigure
+        - Departures sensor
+        - Delays binary sensor
+        - Calendar entity
+        - Event / disruptions entity
+        - Departure board camera
+        - Punctuality sensor
+        - Trip planner
+        - Actions (refresh, plan_trip, check_delays, announce_departure)
+        - Stop search
+        - Filters / favorites / walking time
+        - Translations
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version_integration
+    attributes:
+      label: Integration version
+      placeholder: v2026.7.8
+    validations:
+      required: true
+
+  - type: input
+    id: version_ha
+    attributes:
+      label: Home Assistant version
+      placeholder: 2026.7.2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install_type
+    attributes:
+      label: Installation type
+      options:
+        - Home Assistant OS
+        - Home Assistant Supervised
+        - Home Assistant Container (Docker)
+        - Home Assistant Core (venv)
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Diagnostics / logs
+      description: |
+        Enable debug logging, reproduce the problem, then paste the relevant log lines.
+
+        ```yaml
+        logger:
+          default: warning
+          logs:
+            custom_components.openpublictransport: debug
+        ```
+
+        **Please remove API keys, tokens and anything else private.**
+      render: shell
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots, YAML config, entity attributes — anything else that helps.

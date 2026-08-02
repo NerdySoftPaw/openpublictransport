@@ -1,0 +1,105 @@
+name: 🚉 Provider Request
+description: Request support for a transit network that is not yet supported
+title: "[Provider]: "
+labels: ["provider", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A new provider is only feasible if there is a reachable API.
+        The more of the fields below you can fill in, the faster this can be built.
+
+        **Tip:** many networks are already covered indirectly by
+        **Transitous** (worldwide) or **DB** (Germany nationwide) — worth testing first.
+
+  - type: input
+    id: name
+    attributes:
+      label: Network name and abbreviation
+      placeholder: Verkehrsverbund Oberelbe (VVO)
+    validations:
+      required: true
+
+  - type: input
+    id: region
+    attributes:
+      label: Region and country
+      placeholder: Dresden, Germany
+    validations:
+      required: true
+
+  - type: input
+    id: website
+    attributes:
+      label: Official website
+      placeholder: https://www.vvo-online.de
+    validations:
+      required: true
+
+  - type: textarea
+    id: api
+    attributes:
+      label: API endpoint and documentation
+      description: |
+        Base URL, docs link, and anything you know about the interface.
+        Look for EFA / TRIAS / HAFAS / OTP2 / GTFS-RT / a public developer portal.
+      placeholder: |
+        Base URL: https://efa.example.org/standard/
+        Docs: https://example.org/opendata
+        Looks like an EFA/VDV instance, departureMonitor endpoint responds without auth.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: api_type
+    attributes:
+      label: API type (if known)
+      options:
+        - EFA / VDV
+        - TRIAS
+        - HAFAS
+        - OTP2 / GraphQL
+        - GTFS + GTFS-Realtime
+        - REST (custom / proprietary)
+        - Unknown
+    validations:
+      required: true
+
+  - type: dropdown
+    id: auth
+    attributes:
+      label: Does the API require an API key?
+      options:
+        - "No, open access"
+        - "Yes, free after registration"
+        - "Yes, paid or approval required"
+        - Unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: sample
+    attributes:
+      label: Sample request and response
+      description: |
+        A working request URL plus a trimmed JSON/XML response is the single most
+        useful thing you can provide. **Strip any API keys before pasting.**
+      render: json
+
+  - type: input
+    id: licence
+    attributes:
+      label: Data licence / terms of use
+      placeholder: CC-BY 4.0 — https://example.org/terms
+
+  - type: dropdown
+    id: testing
+    attributes:
+      label: Can you help test this?
+      description: A local tester in the region makes a huge difference.
+      options:
+        - "Yes, I live in the area and can test builds"
+        - "Yes, occasionally"
+        - "No"
+    validations:
+      required: true

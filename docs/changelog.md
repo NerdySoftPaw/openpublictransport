@@ -1,5 +1,36 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- **Trip Planner showed a connection that had already left, and rated every connection as
+  `missed`** ([#72](https://github.com/NerdySoftPaw/openpublictransport/issues/72)) — three
+  separate causes, all fixed:
+    - The walk to the platform was rated like a transfer. It ends exactly when the connecting
+      vehicle leaves, so every journey EFA prefixes with a footpath (all station-to-station
+      trips on HVV, KVV, VRR and the other EFA providers) came out as
+      `connection_feasible: false` / `transfer_risk: missed` / `min_transfer_time: 0`.
+      Only vehicle-to-vehicle transfers are rated now.
+    - Connections that had already departed stayed in the sensor. EFA anchors the requested
+      time on the first *vehicle* departure and back-dates the walk, so its first journey is
+      regularly already running — those are now dropped, and the next reachable connection is
+      the sensor state.
+    - **Walking time is now honoured by trip entries.** It shifts the query and filters
+      connections you could not reach in time; previously the option applied to departure
+      boards only. Changing it — or the scan interval — no longer needs a restart.
+- **Transfers across midnight** were reported as `missed`, because the gap was calculated from
+  `HH:MM` strings pinned to one fixed date. It is now derived from the full timestamps.
+
+### New Features
+
+- **Trip attributes carry full timestamps and a countdown** — `departure_timestamp`,
+  `arrival_timestamp` and `in_minutes`, on the connection itself and on every entry in
+  `next_journeys`. Cards and templates can tell a connection that is still ahead from one that
+  has left, which `HH:MM` alone did not allow.
+
+---
+
 ## v2026.8.0 — Platform data, filters, two entries per station, official HVV API
 
 Requires `python-openpublictransport` 0.1.16.

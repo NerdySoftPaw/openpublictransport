@@ -1,9 +1,11 @@
 """Tests for trip_sensor.py."""
 
+from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.openpublictransport.const import (
@@ -12,6 +14,7 @@ from custom_components.openpublictransport.const import (
     CONF_OTP_CUSTOM_API_KEY,
     CONF_SCAN_INTERVAL,
     CONF_VBN_API_KEY,
+    CONF_WALKING_TIME,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
@@ -41,7 +44,7 @@ def _make_trip_coordinator(hass, provider="vrr"):
     )
 
 
-def _make_trip_entry(provider="vrr", is_trip=True, extra_data=None):
+def _make_trip_entry(provider="vrr", is_trip=True, extra_data=None, options=None):
     data = {
         CONF_TRIP_PROVIDER: provider,
         CONF_TRIP_ORIGIN: "Düsseldorf Hbf",
@@ -53,7 +56,7 @@ def _make_trip_entry(provider="vrr", is_trip=True, extra_data=None):
     }
     if extra_data:
         data.update(extra_data)
-    return MockConfigEntry(domain=DOMAIN, entry_id="trip_test", data=data)
+    return MockConfigEntry(domain=DOMAIN, entry_id="trip_test", data=data, options=options or {})
 
 
 # ── TripDataUpdateCoordinator ─────────────────────────────────────────────────
@@ -112,6 +115,88 @@ async def test_failed_lookup_does_not_stamp_a_success_time(hass: HomeAssistant):
 
     assert result is None
     assert coordinator.last_update_success_time is None
+
+
+# ── departed connections are dropped (issue #72) ──────────────────────────────
+
+def _journey_at(minutes_from_now, transfers=0):
+    """A journey departing `minutes_from_now` (negative = already gone)."""
+    departure = dt_util.now() + timedelta(minutes=minutes_from_now)
+    return {
+        "departure": departure.strftime("%H:%M"),
+        "arrival": (departure + timedelta(minutes=28)).strftime("%H:%M"),
+        "departure_timestamp": departure.isoformat(),
+        "arrival_timestamp": (departure + timedelta(minutes=28)).isoformat(),
+        "duration_minutes": 28,
+        "transfers": transfers,
+        "legs": [],
+    }
+
+
+async def test_coordinator_drops_already_departed_journeys(hass: HomeAssistant):
+    """Connections whose departure has passed never reach the sensor (issue #72).
+
+    EFA anchors the requested time on the first vehicle departure and back-dates
+    the walk to the platform, so its first journey is regularly already running.
+    """
+    coordinator = _make_trip_coordinator(hass)
+    journeys = [_journey_at(-8), _journey_at(-1), _journey_at(2), _journey_at(12)]
+
+    with patch(
+        "custom_components.openpublictransport.trip_sensor.async_plan_trip",
+        new_callable=AsyncMock, return_value=journeys,
+    ):
+        result = await coordinator._async_update_data()
+
+    assert [j["departure"] for j in result] == [journeys[2]["departure"], journeys[3]["departure"]]
+
+
+async def test_coordinator_keeps_journeys_without_timestamp(hass: HomeAssistant):
+    """A journey we cannot date is kept — better unrated than an empty sensor."""
+    coordinator = _make_trip_coordinator(hass)
+    journeys = [{"departure": "10:00", "arrival": "11:30", "duration_minutes": 90}]
+
+    with patch(
+        "custom_components.openpublictransport.trip_sensor.async_plan_trip",
+        new_callable=AsyncMock, return_value=journeys,
+    ):
+        result = await coordinator._async_update_data()
+
+    assert result == journeys
+
+
+async def test_walking_time_shifts_the_requested_departure(hass: HomeAssistant):
+    """With a walking time set, the query starts that many minutes from now.
+
+    The user in issue #72 raised the walking time to 30 min and nothing changed,
+    because the trip planner ignored the option entirely.
+    """
+    coordinator = _make_trip_coordinator(hass)
+    coordinator.walking_time = 30
+
+    with patch(
+        "custom_components.openpublictransport.trip_sensor.async_plan_trip",
+        new_callable=AsyncMock, return_value=[_journey_at(10), _journey_at(45)],
+    ) as mock_plan:
+        result = await coordinator._async_update_data()
+
+    requested = mock_plan.call_args.kwargs["departure_time"]
+    assert 29 <= (requested - dt_util.now()).total_seconds() / 60 <= 30
+    # A connection in 10 min is unreachable when the stop is a 30 min walk away
+    assert len(result) == 1
+
+
+async def test_without_walking_time_the_provider_keeps_its_own_clock(hass: HomeAssistant):
+    """No walking time → no pinned departure, so a live server anchors on now."""
+    coordinator = _make_trip_coordinator(hass)
+
+    with patch(
+        "custom_components.openpublictransport.trip_sensor.async_plan_trip",
+        new_callable=AsyncMock, return_value=[],
+    ) as mock_plan:
+        await coordinator._async_update_data()
+
+    assert mock_plan.call_args.kwargs["departure_time"] is None
 
 
 # ── async_setup_trip_entry ────────────────────────────────────────────────────
@@ -305,6 +390,51 @@ def test_trip_sensor_extra_attributes_multiple_journeys(hass: HomeAssistant):
     assert attrs["alternative_journeys"] == 2
     assert "next_journeys" in attrs
     assert len(attrs["next_journeys"]) == 2
+
+
+def test_trip_sensor_exposes_countdown_and_timestamps(hass: HomeAssistant):
+    """Attributes carry full timestamps and a countdown, for both best and alternatives.
+
+    A card can only tell a connection that is still ahead from one that has left
+    if it gets more than an HH:MM string (issue #72).
+    """
+    coordinator = _make_trip_coordinator(hass)
+    coordinator.data = [_journey_at(7), _journey_at(17)]
+    entry = _make_trip_entry()
+    sensor = TripSensor(coordinator, entry)
+
+    attrs = sensor.extra_state_attributes
+    assert attrs["in_minutes"] == 6  # 6:5x remaining, truncated
+    assert dt_util.parse_datetime(attrs["departure_timestamp"]) is not None
+    assert dt_util.parse_datetime(attrs["arrival_timestamp"]) is not None
+    assert attrs["next_journeys"][0]["in_minutes"] == 16
+    assert attrs["next_journeys"][0]["departure_timestamp"] is not None
+
+
+def test_trip_sensor_countdown_is_none_without_timestamp(hass: HomeAssistant):
+    """A journey without a timestamp reports no countdown instead of guessing."""
+    coordinator = _make_trip_coordinator(hass)
+    coordinator.data = [{"departure": "10:00", "arrival": "11:30", "duration_minutes": 90, "transfers": 0}]
+    entry = _make_trip_entry()
+    sensor = TripSensor(coordinator, entry)
+
+    assert sensor.extra_state_attributes["in_minutes"] is None
+
+
+async def test_options_update_applies_walking_time_and_interval(hass: HomeAssistant):
+    """Changing the options takes effect without a restart (issue #72)."""
+    coordinator = _mock_trip_coordinator(data=[])
+    coordinator.async_request_refresh = AsyncMock()
+    entry = _make_trip_entry()
+    sensor = TripSensor(coordinator, entry)
+
+    updated_entry = _make_trip_entry(options={CONF_WALKING_TIME: 30, CONF_SCAN_INTERVAL: 300})
+
+    await sensor._async_update_listener(hass, updated_entry)
+
+    assert coordinator.walking_time == 30
+    assert coordinator.update_interval == timedelta(seconds=300)
+    coordinator.async_request_refresh.assert_awaited_once()
 
 
 # ── restore state across restart ──────────────────────────────────────────────

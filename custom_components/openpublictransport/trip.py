@@ -78,6 +78,86 @@ _OTP_MODE_TO_PRODUCT = {
     "WALK": "walk",
 }
 
+# EFA models the walk to the platform (or between two nearby stations) as a leg
+# of the journey. Such a leg ends exactly when the connecting vehicle departs,
+# so rating it like a transfer marks every walk-in journey as "missed" — which
+# is what made the trip planner unusable in issue #72. Detected by product
+# class, with a name fallback for providers that omit the class.
+_NON_TRANSIT_PRODUCT_CLASSES = {98, 99, 100}
+_NON_TRANSIT_PRODUCT_NAMES = {
+    "footpath",
+    "fussweg",
+    "fußweg",
+    "walk",
+    "gesicherter anschluss",
+    "bicycle",
+    "fahrrad",
+}
+
+
+def _is_transit_product(product: Dict[str, Any]) -> bool:
+    """Return True when an EFA product describes an actual vehicle."""
+    if product.get("class") in _NON_TRANSIT_PRODUCT_CLASSES:
+        return False
+    return str(product.get("name") or "").strip().lower() not in _NON_TRANSIT_PRODUCT_NAMES
+
+
+def _rate_transfers(transit_legs: List[Dict[str, Any]]) -> tuple[bool, str, Optional[int]]:
+    """Rate a journey's transfers from the gaps between consecutive transit legs.
+
+    ``transit_legs`` must hold vehicle legs only, in travel order, each carrying
+    the internal ``_departure_s`` / ``_arrival_s`` epoch keys. Walking legs are
+    not transfers and must be filtered out by the caller.
+
+    Returns ``(connection_feasible, transfer_risk, min_transfer_time)``; the
+    minimum transfer time is ``None`` for a journey without a transfer.
+    """
+    feasible = True
+    risk = "low"
+    min_transfer: Optional[int] = None
+
+    for current, following in zip(transit_legs, transit_legs[1:]):
+        arrival = current.get("_arrival_s") or 0
+        departure = following.get("_departure_s") or 0
+        if not arrival or not departure:
+            continue
+        gap_min = int((departure - arrival) // 60)
+        if min_transfer is None or gap_min < min_transfer:
+            min_transfer = gap_min
+        if gap_min <= 0:
+            feasible = False
+            risk = "missed"
+        elif gap_min <= 3 and risk != "missed":
+            risk = "high"
+        elif gap_min <= 5 and risk not in ("missed", "high"):
+            risk = "medium"
+
+    return feasible, risk, min_transfer
+
+
+def _journey_bounds(legs: List[Dict[str, Any]]) -> tuple[Optional[str], Optional[str]]:
+    """Return a journey's start and end as local ISO-8601 timestamps.
+
+    The start is the first leg's departure — including an initial walk, because
+    that is when the traveller has to set off. Consumers need the full timestamp
+    (not just ``HH:MM``) to tell a connection that is still ahead from one that
+    has already left.
+    """
+    return (
+        _epoch_to_local_iso(legs[0].get("_departure_s") or 0),
+        _epoch_to_local_iso(legs[-1].get("_arrival_s") or 0),
+    )
+
+
+def _epoch_to_local_iso(epoch_s: float) -> Optional[str]:
+    """Format an epoch timestamp as a local ISO-8601 string (None if unknown)."""
+    if not epoch_s:
+        return None
+    try:
+        return dt_util.as_local(datetime.fromtimestamp(epoch_s, tz=timezone.utc)).isoformat()
+    except (ValueError, OSError, OverflowError):
+        return None
+
 
 async def async_plan_trip(
     hass: HomeAssistant,
@@ -285,16 +365,9 @@ def _parse_otp_itineraries(itineraries: List[Dict[str, Any]]) -> List[Dict[str, 
 
     for itin in itineraries:
         transit_legs: List[Dict[str, Any]] = []
-        # ms timestamps for transfer gap calculation
-        leg_arrival_ms: List[int] = []
-        leg_departure_ms: List[int] = []
 
         for leg in itin.get("legs", []):
             if not leg.get("transitLeg", False):
-                # Walking/transfer leg — capture its times for gap calc but skip display
-                if transit_legs:
-                    # The walk connects the previous transit leg to the next one
-                    leg_arrival_ms.append(leg.get("endTime", 0))
                 continue
 
             start_ms: int = leg.get("startTime", 0)
@@ -326,40 +399,22 @@ def _parse_otp_itineraries(itineraries: List[Dict[str, Any]]) -> List[Dict[str, 
                     "delay": delay_min,
                     "duration_minutes": round(leg.get("duration", 0) / 60),
                     "platform": "",
-                    # Internal ms values for transfer gap calculation
-                    "_arrival_ms": end_ms,
-                    "_departure_ms": start_ms,
+                    # Internal epoch seconds for transfer-gap calculation
+                    "_arrival_s": end_ms / 1000,
+                    "_departure_s": start_ms / 1000,
                 }
             )
-            leg_departure_ms.append(start_ms)
-            leg_arrival_ms.append(end_ms)
 
         if not transit_legs:
             continue
 
-        # Transfer risk from arrival of leg N to departure of leg N+1
-        connection_feasible = True
-        transfer_risk = "low"
-        min_transfer_time: Optional[int] = None
-
-        for i in range(len(transit_legs) - 1):
-            arr_ms = transit_legs[i]["_arrival_ms"]
-            dep_ms = transit_legs[i + 1]["_departure_ms"]
-            gap_min = (dep_ms - arr_ms) // 60000
-            if min_transfer_time is None or gap_min < min_transfer_time:
-                min_transfer_time = gap_min
-            if gap_min <= 0:
-                connection_feasible = False
-                transfer_risk = "missed"
-            elif gap_min <= 3 and transfer_risk != "missed":
-                transfer_risk = "high"
-            elif gap_min <= 5 and transfer_risk not in ("missed", "high"):
-                transfer_risk = "medium"
+        connection_feasible, transfer_risk, min_transfer_time = _rate_transfers(transit_legs)
+        departure_ts, arrival_ts = _journey_bounds(transit_legs)
 
         # Strip internal keys before returning
         for leg in transit_legs:
-            leg.pop("_arrival_ms", None)
-            leg.pop("_departure_ms", None)
+            leg.pop("_arrival_s", None)
+            leg.pop("_departure_s", None)
 
         first_dep = transit_legs[0].get("departure_estimated") or transit_legs[0].get("departure_planned", "")
         last_arr = transit_legs[-1].get("arrival_estimated") or transit_legs[-1].get("arrival_planned", "")
@@ -368,6 +423,8 @@ def _parse_otp_itineraries(itineraries: List[Dict[str, Any]]) -> List[Dict[str, 
             {
                 "departure": first_dep,
                 "arrival": last_arr,
+                "departure_timestamp": departure_ts,
+                "arrival_timestamp": arrival_ts,
                 "duration_minutes": round(itin.get("duration", 0) / 60),
                 "transfers": itin.get("numberOfTransfers", itin.get("transfers", len(transit_legs) - 1)),
                 "connection_feasible": connection_feasible,
@@ -489,21 +546,8 @@ def _parse_otp_plan_connection(nodes: List[Dict[str, Any]]) -> List[Dict[str, An
         if not transit_legs:
             continue
 
-        connection_feasible = True
-        transfer_risk = "low"
-        min_transfer_time: Optional[int] = None
-
-        for i in range(len(transit_legs) - 1):
-            gap_min = int((transit_legs[i + 1]["_departure_s"] - transit_legs[i]["_arrival_s"]) // 60)
-            if min_transfer_time is None or gap_min < min_transfer_time:
-                min_transfer_time = gap_min
-            if gap_min <= 0:
-                connection_feasible = False
-                transfer_risk = "missed"
-            elif gap_min <= 3 and transfer_risk != "missed":
-                transfer_risk = "high"
-            elif gap_min <= 5 and transfer_risk not in ("missed", "high"):
-                transfer_risk = "medium"
+        connection_feasible, transfer_risk, min_transfer_time = _rate_transfers(transit_legs)
+        departure_ts, arrival_ts = _journey_bounds(transit_legs)
 
         for leg in transit_legs:
             leg.pop("_arrival_s", None)
@@ -516,6 +560,8 @@ def _parse_otp_plan_connection(nodes: List[Dict[str, Any]]) -> List[Dict[str, An
             {
                 "departure": first_dep,
                 "arrival": last_arr,
+                "departure_timestamp": departure_ts,
+                "arrival_timestamp": arrival_ts,
                 "duration_minutes": round(_duration_to_seconds(node.get("duration")) / 60),
                 "transfers": node.get("numberOfTransfers", len(transit_legs) - 1),
                 "connection_feasible": connection_feasible,
@@ -534,14 +580,16 @@ def _parse_journeys(journeys: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
     for journey in journeys:
         legs = []
+        # Vehicle legs only — walking legs are not transfers (see _rate_transfers)
+        transit_legs: List[Dict[str, Any]] = []
         total_duration = 0
 
         for leg in journey.get("legs", []):
-            origin = leg.get("origin", {})
-            destination = leg.get("destination", {})
-            transport = leg.get("transportation", {})
-            product = transport.get("product", {})
-            interchange = leg.get("interchange", {})
+            origin = leg.get("origin") or {}
+            destination = leg.get("destination") or {}
+            transport = leg.get("transportation") or {}
+            product = transport.get("product") or {}
+            interchange = leg.get("interchange") or {}
 
             dep_planned = origin.get("departureTimePlanned", "")
             dep_estimated = origin.get("departureTimeEstimated", "")
@@ -573,7 +621,12 @@ def _parse_journeys(journeys: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 "arrival_estimated": _format_time(arr_estimated),
                 "delay": dep_delay,
                 "duration_minutes": round(duration / 60) if duration else 0,
-                "platform": origin.get("platform", {}).get("name", ""),
+                "platform": (origin.get("platform") or {}).get("name", ""),
+                # Internal epoch seconds for transfer-gap calculation. Derived
+                # from the full timestamps rather than the HH:MM strings, so a
+                # transfer across midnight is no longer a negative gap.
+                "_departure_s": _iso_to_epoch(dep_estimated or dep_planned),
+                "_arrival_s": _iso_to_epoch(arr_estimated or arr_planned),
             }
 
             # Add transfer info if present
@@ -581,6 +634,8 @@ def _parse_journeys(journeys: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 leg_data["transfer"] = interchange.get("desc", "")
 
             legs.append(leg_data)
+            if _is_transit_product(product):
+                transit_legs.append(leg_data)
 
         if not legs:
             continue
@@ -589,37 +644,19 @@ def _parse_journeys(journeys: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         first_dep = legs[0].get("departure_estimated") or legs[0].get("departure_planned", "")
         last_arr = legs[-1].get("arrival_estimated") or legs[-1].get("arrival_planned", "")
 
-        # Connection feasibility
-        connection_feasible = True
-        transfer_risk = "low"
-        min_transfer_time = None
+        connection_feasible, transfer_risk, min_transfer_time = _rate_transfers(transit_legs)
+        departure_ts, arrival_ts = _journey_bounds(legs)
 
-        for i in range(len(legs) - 1):
-            arr = legs[i].get("arrival_estimated") or legs[i].get("arrival_planned", "")
-            dep = legs[i + 1].get("departure_estimated") or legs[i + 1].get("departure_planned", "")
-            if arr and dep:
-                try:
-                    arr_dt = dt_util.parse_datetime(f"2026-01-01T{arr}:00")
-                    dep_dt = dt_util.parse_datetime(f"2026-01-01T{dep}:00")
-                    if arr_dt and dep_dt:
-                        transfer_mins = int((dep_dt - arr_dt).total_seconds() / 60)
-                        if min_transfer_time is None or transfer_mins < min_transfer_time:
-                            min_transfer_time = transfer_mins
-                        if transfer_mins <= 0:
-                            connection_feasible = False
-                            transfer_risk = "missed"
-                        elif transfer_mins <= 3:
-                            transfer_risk = "high"
-                        elif transfer_mins <= 5:
-                            if transfer_risk != "high":
-                                transfer_risk = "medium"
-                except (ValueError, TypeError):
-                    pass
+        for leg_data in legs:
+            leg_data.pop("_departure_s", None)
+            leg_data.pop("_arrival_s", None)
 
         results.append(
             {
                 "departure": first_dep,
                 "arrival": last_arr,
+                "departure_timestamp": departure_ts,
+                "arrival_timestamp": arrival_ts,
                 "duration_minutes": round(total_duration / 60) if total_duration else 0,
                 "transfers": journey.get("interchanges", 0),
                 "connection_feasible": connection_feasible,

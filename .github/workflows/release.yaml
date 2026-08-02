@@ -22,7 +22,17 @@ jobs:
           cd custom_components/openpublictransport
           zip -r ../../openpublictransport.zip .
 
+      # Immutable releases reject asset uploads after publication ("HTTP 422:
+      # Cannot upload assets to an immutable release"), so the zip has to be
+      # attached while the release is still a draft. When it already is, skip
+      # instead of failing the run.
       - name: Upload release asset
-        run: gh release upload "${{ github.event.release.tag_name }}" openpublictransport.zip
+        run: |
+          if gh release view "$TAG" --json assets --jq '.assets[].name' | grep -qx openpublictransport.zip; then
+            echo "openpublictransport.zip is already attached to $TAG — nothing to upload."
+            exit 0
+          fi
+          gh release upload "$TAG" openpublictransport.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}

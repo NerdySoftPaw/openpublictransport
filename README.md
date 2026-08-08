@@ -23,7 +23,7 @@ Real-time public transport departures for Home Assistant — 35 providers across
 
 ---
 
-## Supported Providers (35)
+## Supported Providers (38)
 
 | Provider | Region | API Key | Trip Planner |
 |----------|--------|---------|--------------|
@@ -37,17 +37,20 @@ Real-time public transport departures for Home Assistant — 35 providers across
 | **DING** | Ulm | No | Yes |
 | **Entur** | Norway (nationwide) | No | No |
 | **HVV** | Hamburg | No | Yes |
+| **HVV (Geofox GTI)** | Hamburg (official API) | Yes (free) | No |
 | **Irish Rail** | Ireland (nationwide) | No | No |
 | **KVV** | Karlsruhe | No | Yes |
 | **mobilitéit.lu** | Luxembourg (nationwide) | No | No |
 | **MVV** | Munich | No | Yes |
 | **NS** | Netherlands (nationwide) | No | No |
 | **NTA** | Ireland (nationwide) | Yes (free) | No |
+| **National Rail** | Great Britain (nationwide) | Yes (free) | No |
 | **NVBW** | Baden-Württemberg | No | No |
 | **NWL** | Westfalen-Lippe | No | Yes |
 | **ÖBB** | Austria (nationwide) | No | No |
 | **openpublictransport** | Germany (nationwide, GTFS.DE + GTFS-RT, community OTP2) | Yes ([request](https://openpublictransport.net/api-key)) | Yes |
 | **OTP2 Custom** | Any OTP2 instance (self-hosted) | Optional | Yes |
+| **Rejseplanen** | Denmark (nationwide) | Yes (free) | No |
 | **RMV** | Frankfurt / Rhein-Main | Yes (free) | No |
 | **RVV** | Regensburg | No | Yes |
 | **SBB** | Switzerland (nationwide) | No | No |

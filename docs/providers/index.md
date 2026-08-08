@@ -1,92 +1,110 @@
 # Providers Overview
 
-The Public Transport Integration supports multiple transit providers across Europe, plus Norway and the USA. Each provider has its own API and data format, but the integration normalizes all data into a consistent format.
+The integration supports 38 transit providers across Europe and the USA. Each has its own API and data format; the integration normalizes all of them into the same entities and attributes.
 
 ## Provider Comparison
 
-| Feature | VRR | KVV | HVV | MVV | VVS | VGN | VAG Freiburg | BVG | RMV | VBN OTP | VBN TRIAS | VRN | VVO | DING | AVV | RVV | BSVG | NWL | NVBW | BEG | SBB | ÖBB | Trafiklab | NTA | Transitous | openpublictransport | OTP2 Custom |
-|---------|-----|-----|-----|-----|-----|-----|--------------|-----|-----|---------|-----------|-----|-----|------|-----|-----|------|-----|------|-----|-----|-----|-----------|-----|-----------|---------------------|-------------|
-| **Region** | NRW | Karlsruhe | Hamburg | Munich | Stuttgart | Nuremberg | Freiburg | Berlin | Frankfurt | Bremen/Niedersachsen | Bremen/Niedersachsen | Rhein-Neckar | Dresden | Ulm | Augsburg | Regensburg | Braunschweig | Westfalen-Lippe | Baden-Württemberg | Bayern | Switzerland | Austria | Sweden | Ireland | Worldwide | Germany (all) | Any OTP2 |
-| **API Type** | EFA | EFA | EFA | EFA | EFA | EFA | EFA | FPTF REST | HAFAS REST | OTP REST | TRIAS XML | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | EFA | REST | HAFAS Scotty | REST | GTFS-RT | MOTIS2 | OTP2 GraphQL | OTP2 GraphQL |
-| **API Key** | No | No | No | No | No | No | No | No | Yes (free) | Yes (free) | Yes (free) | No | No | No | No | No | No | No | No | No | No | No | Yes (free) | Yes (free) | No | Yes (free²) | Optional |
-| **Real-time Data** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | When available | Yes (GTFS-RT) | Depends on server |
-| **Delay Information** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | When available | Yes | Depends on server |
-| **Platform Info** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Limited | When available | No | No |
-| **Agency/Operator** | No | No | No | No | No | No | No | Yes | Yes | Yes | No | No | No | No | No | No | No | No | No | No | No | Yes | Yes | No | When available | No | No |
-| **Alerts/Notices** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | Yes | No | Yes | When available | No | No |
-| **Trip Planner** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | No | Yes | No | Yes | Yes | Yes | Yes | Yes | Yes | Yes | No | No | No | No | No | No | No | Yes | Yes |
-| **Stop Search** | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Geocoded¹ | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Autocomplete | Stop ID | Autocomplete | GraphQL + prefix | GraphQL + prefix |
+All 38 providers, one row each. The **ID** is what you pick in the config flow and
+what the `plan_trip` action expects.
+
+| Provider | ID | Region | API Type | API Key | Real-time | Platform | Alerts | Trip Planner | Stop Search |
+|----------|----|--------|----------|---------|-----------|----------|--------|--------------|-------------|
+| [VRR](vrr.md) | `vrr` | Rhein-Ruhr (NRW) | EFA | No | Yes | Yes | Yes | Yes | Autocomplete |
+| [KVV](kvv.md) | `kvv` | Karlsruhe | EFA | No | Yes | Yes | Yes | Yes | Autocomplete |
+| [HVV](hvv.md) | `hvv` | Hamburg | EFA | No | Yes | Yes | Yes | Yes | Autocomplete |
+| [HVV Geofox GTI](hvv-gti.md) | `hvv_gti` | Hamburg (official API) | GTI (signed JSON) | Yes (free)³ | Yes (explicit delay) | Yes, incl. changes | Cancellations, attributes | No | Autocomplete |
+| [BVG](bvg.md) | `bvg` | Berlin / Brandenburg | FPTF REST | No | Yes | Yes | Yes | No | Autocomplete |
+| [MVV](mvv.md) | `mvv` | Munich | EFA | No | Yes | Yes | Yes | Yes | Autocomplete |
+| [VVS](vvs.md) | `vvs` | Stuttgart | EFA | No | Yes | Yes | Yes | Yes | Autocomplete |
+| [VGN](vgn.md) | `vgn` | Nuremberg | EFA | No | Yes | Yes | Yes | Yes | Autocomplete |
+| [VAG](vagfr.md) | `vagfr` | Freiburg | EFA | No | Yes | Yes | Yes | Yes | Autocomplete |
+| [RMV](rmv.md) | `rmv` | Frankfurt / Rhein-Main | HAFAS REST | Yes (free) | Yes | Yes | Yes | No | Autocomplete |
+| [VRN](vrn.md) | `vrn` | Rhein-Neckar | EFA | No | Yes | Yes | Yes | Yes | Autocomplete |
+| [VVO](vvo.md) | `vvo` | Dresden | EFA | No | Yes | Yes | Yes | Yes | Autocomplete |
+| [DING](ding.md) | `ding` | Ulm / Donau-Iller | EFA | No | Yes | Yes | Yes | Yes | Autocomplete |
+| [AVV](avv.md) | `avv_augsburg` | Augsburg | EFA | No | Yes | Yes | Yes | Yes | Autocomplete |
+| [RVV](rvv.md) | `rvv` | Regensburg | EFA | No | Yes | Yes | Yes | Yes | Autocomplete |
+| [BSVG](bsvg.md) | `bsvg` | Braunschweig | EFA | No | Yes | Yes | Yes | Yes | Autocomplete |
+| [NWL](nwl.md) | `nwl` | Westfalen-Lippe | EFA | No | Yes | Yes | Yes | Yes | Autocomplete |
+| [NVBW](nvbw.md) | `nvbw` | Baden-Württemberg | EFA | No | Yes | Yes | Yes | No | Autocomplete |
+| [BEG](beg.md) | `beg` | Bavaria | EFA | No | Yes | Yes | Yes | No | Autocomplete |
+| [DB](db.md) | `db` | Germany (nationwide) | FPTF REST | No | Yes | Yes | Yes | No | Autocomplete |
+| [VBN OTP](vbn.md) | `vbn_otp` | Bremen / Niedersachsen | OTP REST | Yes (free) | Yes | No | Yes | Yes | Geocoded¹ |
+| [VBN TRIAS](vbn.md) | `vbn_trias` | Bremen / Niedersachsen | TRIAS XML | Yes (free) | Yes | Yes | No | No | Autocomplete |
+| [openpublictransport](openpublictransport.md) | `openpublictransport` | Germany (nationwide) | OTP2 GraphQL | Yes (free)² | Yes (GTFS-RT) | No | No | Yes | GraphQL + prefix |
+| [SBB](sbb.md) | `sbb` | Switzerland | REST | No | Yes | Yes | No | No | Autocomplete |
+| [TPG](tpg.md) | `tpg_ch` | Geneva | HAFAS mgate | No | Yes | Yes | Cancellations | No | Autocomplete |
+| [ÖBB](oebb.md) | `oebb` | Austria | HAFAS Scotty | No | Yes | Yes | Yes (HIM) | No | Autocomplete |
+| [NS](ns.md) | `ns_nl` | Netherlands | HAFAS Scotty | No | Yes | Yes | Yes (HIM) | No | Autocomplete |
+| [mobilitéit.lu](mobiliteit_lu.md) | `mobiliteit_lu` | Luxembourg | HAFAS Scotty | No | Yes | Yes | Yes (HIM) | No | Autocomplete |
+| [Rejseplanen](rejseplanen.md) | `rejseplanen` | Denmark | HAFAS REST | Yes (free) | Yes | Yes, incl. changes | Cancellations | No | Autocomplete |
+| [Entur](entur.md) | `entur_no` | Norway | OTP transmodel GraphQL | No | Yes | Yes (quay) | Cancellations | No | Geocoder |
+| [Trafiklab](trafiklab.md) | `trafiklab_se` | Sweden | REST | Yes (free) | Yes | Yes | No | No | Autocomplete |
+| [NTA](nta.md) | `nta_ie` | Ireland | GTFS-RT | Yes (free) | Yes | Limited | Yes | No | Stop ID |
+| [Irish Rail](irishrail.md) | `irishrail_ie` | Ireland | HAFAS mgate | No | Yes | Yes | Cancellations | No | Autocomplete |
+| [National Rail](national_rail.md) | `national_rail` | Great Britain | OpenLDBWS (SOAP) | Yes (free) | Yes | Yes | Cancellations + reasons | No | Autocomplete |
+| [BART](bart.md) | `bart_us` | San Francisco, USA | HAFAS mgate | No | Yes | Yes | Cancellations | No | Autocomplete |
+| [DART](dart.md) | `dart_us` | Des Moines, USA | HAFAS mgate | No | Yes | Limited | Cancellations | No | Autocomplete |
+| [Transitous](transitous.md) | `transitous` | Worldwide | MOTIS2 | No | When available | When available | When available | No | Autocomplete |
+| [OTP2 Custom](otp-custom.md) | `otp_custom` | Any OTP2 instance | OTP2 GraphQL | Optional | Depends on server | No | No | Yes | GraphQL + prefix |
+
+Delay information is available wherever real-time data is — the two always come from the same
+response, so there is no separate column. Agency/operator names are exposed by BVG, RMV, VBN OTP,
+ÖBB and Trafiklab; the EFA providers do not report them.
 
 ¹ VBN OTP has no native name-based stop search. The integration geocodes your search term via Nominatim (OpenStreetMap) and finds stops within 500 m of the resolved coordinates.
 
 ² API key for the community server is free — [request it here](https://openpublictransport.net/api-key).
 
-### Providers added in 0.1.14
-
-These use the HAFAS "Scotty", HAFAS `mgate.exe`, or Entur transmodel interfaces. None require an API key.
-
-| Provider | Region | API Type | Real-time | Platform | Notices | Stop Search |
-|----------|--------|----------|-----------|----------|---------|-------------|
-| **NS** | Netherlands | HAFAS Scotty | Yes | Yes | Yes (HIM) | Autocomplete |
-| **mobilitéit.lu** | Luxembourg | HAFAS Scotty | Yes | Yes | Yes (HIM) | Autocomplete |
-| **Entur** | Norway | OTP transmodel GraphQL | Yes | Yes (quay) | Cancellations | Geocoder |
-| **BART** | San Francisco, USA | HAFAS mgate | Yes | Yes | Cancellations | Autocomplete |
-| **DART** | Des Moines, USA | HAFAS mgate | Yes | Limited | Cancellations | Autocomplete |
-| **Irish Rail** | Ireland | HAFAS mgate | Yes | Yes | Cancellations | Autocomplete |
-| **TPG** | Geneva, Switzerland | HAFAS mgate | Yes | Yes | Cancellations | Autocomplete |
-
-### Providers added in 0.1.16
-
-| Provider | Region | API Type | Real-time | Platform | Notices | Stop Search |
-|----------|--------|----------|-----------|----------|---------|-------------|
-| **[HVV Geofox GTI](hvv-gti.md)** | Hamburg, Germany | GTI (HMAC-signed JSON) | Yes (explicit delay) | Yes, incl. changes | Cancellations, attributes | Autocomplete |
-
-HOCHBAHN's official API on behalf of the HVV. Free credentials, requested by email at
-api@hochbahn.de. It exposes delays, cancellations and platform changes that the keyless
-[HVV](hvv.md) EFA provider does not — both providers remain available.
-Trip planning is not supported on GTI yet; use the EFA `hvv` provider for trip entries.
+³ HVV Geofox GTI is HOCHBAHN's official API on behalf of the HVV. Credentials are free and
+requested by email at api@hochbahn.de. It exposes delays, cancellations and platform changes that
+the keyless [HVV](hvv.md) EFA provider does not — both providers stay available, and trip planning
+runs through the EFA `hvv` provider.
 
 ## Timezone Handling
 
 Each provider uses its local timezone for departure times:
 
-| Provider | Timezone |
-|----------|----------|
-| VRR | Europe/Berlin |
-| KVV | Europe/Berlin |
-| HVV | Europe/Berlin |
-| HVV Geofox GTI | Europe/Berlin |
-| MVV | Europe/Berlin |
-| VVS | Europe/Berlin |
-| VGN | Europe/Berlin |
-| VAG Freiburg | Europe/Berlin |
-| BVG | Europe/Berlin |
-| RMV | Europe/Berlin |
-| VBN OTP | Europe/Berlin |
-| VBN TRIAS | Europe/Berlin |
-| VRN | Europe/Berlin |
-| VVO | Europe/Berlin |
-| DING | Europe/Berlin |
-| AVV | Europe/Berlin |
-| RVV | Europe/Berlin |
-| BSVG | Europe/Berlin |
-| NWL | Europe/Berlin |
-| NVBW | Europe/Berlin |
-| BEG | Europe/Berlin |
-| SBB | Europe/Zurich |
-| TPG | Europe/Zurich |
-| ÖBB | Europe/Vienna |
-| NS | Europe/Amsterdam |
-| mobilitéit.lu | Europe/Luxembourg |
-| Entur | Europe/Oslo |
-| Irish Rail | Europe/Dublin |
-| BART | America/Los_Angeles |
-| DART | America/Chicago |
-| Trafiklab | Europe/Stockholm |
-| NTA | Europe/Dublin |
-| Transitous | Per-stop (automatic) |
-| openpublictransport | Europe/Berlin |
-| OTP2 Custom | Europe/Berlin (or per OTP2 config) |
+| Provider | ID | Timezone |
+|----------|----|----------|
+| VRR | `vrr` | Europe/Berlin |
+| KVV | `kvv` | Europe/Berlin |
+| HVV | `hvv` | Europe/Berlin |
+| HVV Geofox GTI | `hvv_gti` | Europe/Berlin |
+| BVG | `bvg` | Europe/Berlin |
+| MVV | `mvv` | Europe/Berlin |
+| VVS | `vvs` | Europe/Berlin |
+| VGN | `vgn` | Europe/Berlin |
+| VAG | `vagfr` | Europe/Berlin |
+| RMV | `rmv` | Europe/Berlin |
+| VRN | `vrn` | Europe/Berlin |
+| VVO | `vvo` | Europe/Berlin |
+| DING | `ding` | Europe/Berlin |
+| AVV | `avv_augsburg` | Europe/Berlin |
+| RVV | `rvv` | Europe/Berlin |
+| BSVG | `bsvg` | Europe/Berlin |
+| NWL | `nwl` | Europe/Berlin |
+| NVBW | `nvbw` | Europe/Berlin |
+| BEG | `beg` | Europe/Berlin |
+| DB | `db` | Europe/Berlin |
+| VBN OTP | `vbn_otp` | Europe/Berlin |
+| VBN TRIAS | `vbn_trias` | Europe/Berlin |
+| openpublictransport | `openpublictransport` | Europe/Berlin |
+| SBB | `sbb` | Europe/Zurich |
+| TPG | `tpg_ch` | Europe/Zurich |
+| ÖBB | `oebb` | Europe/Vienna |
+| NS | `ns_nl` | Europe/Amsterdam |
+| mobilitéit.lu | `mobiliteit_lu` | Europe/Luxembourg |
+| Rejseplanen | `rejseplanen` | Europe/Copenhagen |
+| Entur | `entur_no` | Europe/Oslo |
+| Trafiklab | `trafiklab_se` | Europe/Stockholm |
+| NTA | `nta_ie` | Europe/Dublin |
+| Irish Rail | `irishrail_ie` | Europe/Dublin |
+| National Rail | `national_rail` | Europe/London |
+| BART | `bart_us` | America/Los_Angeles |
+| DART | `dart_us` | America/Chicago |
+| Transitous | `transitous` | Per-stop (automatic) |
+| OTP2 Custom | `otp_custom` | Europe/Berlin (or per OTP2 config) |
 
 ## Transport Type Mapping
 

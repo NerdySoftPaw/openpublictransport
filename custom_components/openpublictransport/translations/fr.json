@@ -132,6 +132,7 @@
       "missing_location": "Veuillez fournir un identifiant de gare ou un emplacement et un nom d'arrêt",
       "empty_search": "Veuillez saisir un terme de recherche",
       "no_results": "Aucun résultat trouvé. Veuillez essayer un autre terme de recherche.",
+      "trip_not_supported": "Ce fournisseur ne prend en charge que l'affichage des départs — la recherche d'itinéraire n'est pas disponible. Choisissez un fournisseur EFA ou OTP2, ou le type d'entrée « Affichage des départs ».",
       "api_key_required": "La clé API est requise",
       "trafiklab_api_key_required": "La clé API Trafiklab est requise",
       "nta_api_key_required": "La clé API NTA est requise",

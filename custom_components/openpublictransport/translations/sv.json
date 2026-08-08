@@ -132,6 +132,7 @@
       "missing_location": "Ange antingen ett stations-ID eller en plats och hållplatsnamn",
       "empty_search": "Ange en sökterm",
       "no_results": "Inga resultat hittades. Försök med en annan sökterm.",
+      "trip_not_supported": "Den här leverantören stöder endast avgångstavlan — reseplanering är inte tillgänglig. Välj en EFA- eller OTP2-leverantör, eller posttypen \"Avgångstavla\".",
       "api_key_required": "API-nyckel krävs",
       "trafiklab_api_key_required": "Trafiklab API-nyckel krävs",
       "nta_api_key_required": "NTA API-nyckel krävs",

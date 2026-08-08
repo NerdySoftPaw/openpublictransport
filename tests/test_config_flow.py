@@ -160,13 +160,22 @@ async def test_options_flow(hass: HomeAssistant, mock_config_entry):
 async def test_api_key_provider_trip_routes_to_trip_search(hass: HomeAssistant):
     """After entering an API key with entry_type=trip, flow must go to trip_search."""
     result = await _init_flow(hass)
-    result = await _select_provider(hass, result["flow_id"], provider=PROVIDER_RMV, entry_type="trip")
+    result = await _select_provider(hass, result["flow_id"], provider=PROVIDER_VBN_OTP, entry_type="trip")
     assert result["step_id"] == "api_key"
 
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_RMV_API_KEY: "test-api-key-123"}
+        result["flow_id"], user_input={CONF_VBN_API_KEY: "test-api-key-123"}
     )
     assert result["step_id"] == "trip_search"
+
+
+async def test_api_key_provider_without_routing_rejects_trip(hass: HomeAssistant):
+    """RMV has no routing endpoint — the trip entry type is refused up front (#80)."""
+    result = await _init_flow(hass)
+    result = await _select_provider(hass, result["flow_id"], provider=PROVIDER_RMV, entry_type="trip")
+
+    assert result["step_id"] == "user"
+    assert result["errors"] == {"base": "trip_not_supported"}
 
 
 async def test_api_key_provider_departures_routes_to_stop_search(hass: HomeAssistant):

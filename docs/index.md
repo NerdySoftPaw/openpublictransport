@@ -23,7 +23,7 @@ Real-time public transport departures for Home Assistant — 26 providers across
 | **NTA** | Ireland (nationwide) | GTFS-RT | Yes (free) |
 | **NVBW** | Baden-Württemberg | EFA | No |
 | **NWL** | Westfalen-Lippe | EFA | No |
-| **ÖBB** | Austria (nationwide) | FPTF REST | No |
+| **ÖBB** | Austria (nationwide) | HAFAS Scotty | No |
 | **RMV** | Frankfurt / Rhein-Main | HAFAS | Yes (free) |
 | **RVV** | Regensburg | EFA | No |
 | **SBB** | Switzerland (nationwide) | REST | No |

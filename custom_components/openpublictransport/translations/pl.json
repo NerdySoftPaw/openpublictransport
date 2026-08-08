@@ -132,6 +132,7 @@
       "missing_location": "Podaj identyfikator stacji lub lokalizację i nazwę przystanku",
       "empty_search": "Wprowadź frazę wyszukiwania",
       "no_results": "Nie znaleziono wyników. Spróbuj innej frazy wyszukiwania.",
+      "trip_not_supported": "Ten dostawca obsługuje tylko tablicę odjazdów — planowanie podróży nie jest dostępne. Wybierz dostawcę EFA lub OTP2 albo typ wpisu „Tablica odjazdów”.",
       "api_key_required": "Klucz API jest wymagany",
       "trafiklab_api_key_required": "Klucz API Trafiklab jest wymagany",
       "nta_api_key_required": "Klucz API NTA jest wymagany",

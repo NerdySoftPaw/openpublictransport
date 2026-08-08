@@ -144,6 +144,7 @@
       "missing_location": "Bitte geben Sie entweder eine Stations-ID oder Ort und Haltestelle an",
       "empty_search": "Bitte geben Sie einen Suchbegriff ein",
       "no_results": "Keine Ergebnisse gefunden. Bitte versuchen Sie einen anderen Suchbegriff.",
+      "trip_not_supported": "Dieser Anbieter unterstützt nur die Abfahrtsanzeige — eine Verbindungssuche ist nicht möglich. Bitte wähle einen EFA- oder OTP2-Anbieter oder den Eintragstyp „Abfahrtsanzeige“.",
       "opt_api_key_required": "API-Schlüssel ist erforderlich (kostenlos anfordern auf openpublictransport.net/api-key)",
       "otp_url_required": "Bitte gib eine gültige URL für deinen OTP2-Server ein",
       "api_key_required": "API-Schlüssel ist erforderlich",

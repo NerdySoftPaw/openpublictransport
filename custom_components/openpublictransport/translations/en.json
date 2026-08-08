@@ -134,6 +134,7 @@
       "missing_location": "Please provide either a station ID or location and stop name",
       "empty_search": "Please enter a search term",
       "no_results": "No results found. Please try a different search term.",
+      "trip_not_supported": "This provider only supports the departure monitor — trip planning is not available. Choose an EFA or OTP2 provider, or pick the \"Departure Monitor\" entry type.",
       "opt_api_key_required": "API key is required (request a free key at openpublictransport.net/api-key)",
       "otp_url_required": "Please enter a valid URL for your OTP2 server",
       "api_key_required": "API key is required",

@@ -1,5 +1,36 @@
 # Changelog
 
+## v2026.8.3 — VGN setup, transportation type filter, honest trip planner list
+
+Requires `python-openpublictransport` 0.1.17.
+
+### Fixes
+
+- **VGN stations could not be added** ([#79](https://github.com/NerdySoftPaw/openpublictransport/issues/79))
+  — `efa.vgn.de` returns valid RapidJSON but labels it `text/xml;;charset=utf-8`, which the
+  strict content-type check rejected, so the config flow reported "no results found". Station
+  search, departures and trip planning now accept the mislabelled payload. Shipped in
+  `python-openpublictransport` 0.1.17 for all EFA providers.
+- **The transportation type filter starved the departure board**
+  ([#81](https://github.com/NerdySoftPaw/openpublictransport/issues/81)) — filtering for a
+  subset of types (e.g. trains only) now fetches a larger raw board first, like the line,
+  destination and platform filters already did. At a bus-heavy stop such as Kiel Hauptbahnhof
+  a "trains only" board showed a single departure; it now fills up to the configured count.
+  Selecting all types still fetches only the display count.
+
+### Documentation
+
+- **The Trip Planner page listed providers that cannot plan trips, and omitted the ones that
+  can** ([#80](https://github.com/NerdySoftPaw/openpublictransport/issues/80)) — ÖBB and SBB
+  were advertised as supported although neither has a routing endpoint here (ÖBB is HAFAS
+  Scotty, not EFA), while the OTP2 providers — the community server, a self-hosted OTP2
+  instance and VBN OTP — were missing entirely. The page now lists provider IDs, and the
+  capability tables in the README and the provider overview match the code.
+- Picking the Trip Planner entry type for a provider without routing is now rejected in the
+  config flow instead of creating a sensor that never returns a connection.
+
+---
+
 ## v2026.8.2 — Trip Planner: reachable connections, correct transfer rating
 
 Requires `python-openpublictransport` 0.1.16.

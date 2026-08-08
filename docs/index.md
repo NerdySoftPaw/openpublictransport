@@ -1,32 +1,44 @@
 # openpublictransport
 
-Real-time public transport departures for Home Assistant — 26 providers across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide.
+Real-time public transport departures for Home Assistant — 38 providers across Germany, Switzerland, Austria, the Netherlands, Luxembourg, Denmark, Norway, Sweden, Ireland, the UK, the USA, and worldwide.
 
 !!! tip "Coming from VRRAPI-HACS or hacs-publictransport?"
     This is the new official repository! The domain changed from `vrr` to `openpublictransport` — entity IDs and services have new names.
     
     **[→ Migration Guide](migration.md)** — Step-by-step instructions for both migrations.
 
-## Supported Providers (26)
+## Supported Providers (38)
 
 | Provider | Region | API Type | API Key |
 |----------|--------|----------|---------|
 | **AVV** | Augsburg | EFA | No |
+| **BART** | San Francisco, USA | HAFAS mgate | No |
 | **BEG** | Bavaria | EFA | No |
 | **BSVG** | Braunschweig | EFA | No |
 | **BVG** | Berlin / Brandenburg | FPTF REST | No |
+| **DART** | Des Moines, USA | HAFAS mgate | No |
 | **DB** | Germany (nationwide, community API) | FPTF REST | No |
 | **DING** | Ulm / Donau-Iller | EFA | No |
+| **Entur** | Norway (nationwide) | OTP transmodel GraphQL | No |
 | **HVV** | Hamburg | EFA | No |
+| **HVV (Geofox GTI)** | Hamburg (official API) | GTI (signed JSON) | Yes (free) |
+| **Irish Rail** | Ireland (nationwide) | HAFAS mgate | No |
 | **KVV** | Karlsruhe | EFA | No |
+| **mobilitéit.lu** | Luxembourg (nationwide) | HAFAS Scotty | No |
 | **MVV** | Munich | EFA | No |
+| **National Rail** | Great Britain (nationwide) | OpenLDBWS (SOAP) | Yes (free) |
+| **NS** | Netherlands (nationwide) | HAFAS Scotty | No |
 | **NTA** | Ireland (nationwide) | GTFS-RT | Yes (free) |
 | **NVBW** | Baden-Württemberg | EFA | No |
 | **NWL** | Westfalen-Lippe | EFA | No |
 | **ÖBB** | Austria (nationwide) | HAFAS Scotty | No |
+| **openpublictransport** | Germany (nationwide, GTFS.DE + GTFS-RT) | OTP2 GraphQL | Yes (free) |
+| **OTP2 Custom** | Any self-hosted OTP2 instance | OTP2 GraphQL | Optional |
+| **Rejseplanen** | Denmark (nationwide) | HAFAS REST | Yes (free) |
 | **RMV** | Frankfurt / Rhein-Main | HAFAS | Yes (free) |
 | **RVV** | Regensburg | EFA | No |
 | **SBB** | Switzerland (nationwide) | REST | No |
+| **TPG** | Geneva, Switzerland | HAFAS mgate | No |
 | **Trafiklab** | Sweden (nationwide) | REST | Yes (free) |
 | **Transitous** | Worldwide (community) | MOTIS2 | No |
 | **VAG** | Freiburg | EFA | No |

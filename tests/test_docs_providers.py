@@ -22,15 +22,15 @@ DOCS_PROVIDERS = REPO_ROOT / "docs" / "providers"
 INDEX = DOCS_PROVIDERS / "index.md"
 MKDOCS = REPO_ROOT / "mkdocs.yml"
 
-# Row shape: | [Name](page.md) | `id` | Region | API Type | API Key | Real-time | … |
-_MATRIX_ROW = re.compile(r"^\| \[([^\]]+)\]\(([^)]+)\) \| `([a-z0-9_]+)` \|(.+)\|\s*$", re.M)
+# Row shape: | [Name](page.md)<br>`id` | Region | API | Key | RT | Platform | … |
+_MATRIX_ROW = re.compile(r"^\| \[([^\]]+)\]\(([^)]+)\)<br>`([a-z0-9_]+)` \|(.+)\|\s*$", re.M)
 # Row shape: | Name | `id` | Timezone |
 _TIMEZONE_ROW = re.compile(r"^\| ([^|]+?) \| `([a-z0-9_]+)` \| ([^|]+?) \|\s*$", re.M)
 
 # Documented values the code cannot express.
 #   otp_custom: the class reports no key requirement, but a self-hosted instance
-#   may well be protected — the docs say "Optional" on purpose.
-API_KEY_EXCEPTIONS = {"otp_custom": "Optional"}
+#   may well be protected — the docs say "opt." on purpose.
+API_KEY_EXCEPTIONS = {"otp_custom": "opt."}
 #   These two have no single fixed zone.
 TIMEZONE_EXCEPTIONS = {
     "transitous": "Per-stop (automatic)",
@@ -62,20 +62,20 @@ def test_timezone_table_lists_every_provider():
 
 
 def test_api_key_column_matches_the_providers():
-    """"Yes" in the docs must mean the provider class demands a key."""
+    """A "free" key in the docs must mean the provider class demands one."""
     mismatches = []
     for provider_id, (_, _, cells) in _matrix_rows().items():
         documented = cells[2]
         if API_KEY_EXCEPTIONS.get(provider_id) == documented:
             continue
         required = get_provider_class(provider_id)(None).requires_api_key
-        if documented.startswith("Yes") is not required:
+        if documented.startswith("free") is not required:
             mismatches.append(f"{provider_id}: docs say {documented!r}, code says {required}")
     assert not mismatches, mismatches
 
 
 def test_trip_planner_column_matches_the_capability_set():
-    documented = {pid for pid, (_, _, cells) in _matrix_rows().items() if cells[6] == "Yes"}
+    documented = {pid for pid, (_, _, cells) in _matrix_rows().items() if cells[6] == "✅"}
     assert documented == set(TRIP_CAPABLE_PROVIDERS)
 
 

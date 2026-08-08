@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Providers Overview
 
 The integration supports 38 transit providers across Europe and the USA. Each has its own API and data format; the integration normalizes all of them into the same entities and attributes.
@@ -8,7 +13,7 @@ All 38 providers, one row each. The code below each name is the provider ID — 
 pick in the config flow and what the `plan_trip` action expects.
 
 | Provider | Region | API | Key | RT | Platform | Alerts | Trip | Search |
-|----------|--------|-----|-----|----|----------|--------|------|--------|
+|----------|--------|-----|-----|:--:|:--------:|:------:|:----:|:------:|
 | [VRR](vrr.md)<br>`vrr` | Rhein-Ruhr | EFA | – | ✅ | ✅ | ✅ | ✅ | Auto |
 | [KVV](kvv.md)<br>`kvv` | Karlsruhe | EFA | – | ✅ | ✅ | ✅ | ✅ | Auto |
 | [HVV](hvv.md)<br>`hvv` | Hamburg | EFA | – | ✅ | ✅ | ✅ | ✅ | Auto |

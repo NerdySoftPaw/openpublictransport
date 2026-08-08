@@ -12,7 +12,7 @@ Click **OK** to start the setup wizard.
 
 ### Step 1: Select Provider
 
-Choose your transit provider from the descriptive dropdown. Each entry shows the provider's full name and region (e.g. "VRR — Rhein-Ruhr (NRW)" instead of just "vrr"). You can also select the entry type: **Departure Monitor**, **Trip Planner**, or **Multi-Stop**.
+Choose your transit provider from the descriptive dropdown. Each entry shows the provider's full name and region (e.g. "VRR — Rhein-Ruhr (NRW)" instead of just "vrr"). You can also select the entry type: **Departure Monitor**, **Trip Planner**, or **Multi-Stop**. **Trip Planner** only works with EFA and OTP2 providers — see the [supported providers](trip-planner.md#supported-providers); other providers are rejected with a message when you pick that entry type.
 
 ![Provider selection](assets/screenshots/config-flow/02-provider-selection.png)
 

@@ -69,7 +69,7 @@ Real-time public transport departures for Home Assistant — 35 providers across
 
 - **Real-time departures** with delay tracking, platform changes, and disruption notices
 - **35 transit providers** — most require no API key
-- **Trip planner** — A-to-B routes with transfer risk assessment
+- **Trip planner** — A-to-B routes with transfer risk assessment (EFA and OTP2 providers, see the table above)
 - **8 entity types**: sensor, binary sensor, calendar, event, camera, trip sensor, statistics, multi-stop
 - **4 actions** — refresh_departures, plan_trip, check_delays, announce_departure (TTS)
 - **Reconfigure without re-setup** — change your station anytime via ⚙️ → Reconfigure

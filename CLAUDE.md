@@ -225,7 +225,7 @@ All 18 tracked Bronze rules are done or exempt.
 
 ## Key Constraints / Do Not Break
 
-- **All 28 providers must keep working** — never remove a provider or change its
+- **All 38 providers must keep working** — never remove a provider or change its
   `provider_id` constant; existing config entries depend on these strings.
 - **Application Credentials integration** — API keys must stay in the AC store
   (`application_credentials.py`), not revert to `config_entry.data`.

@@ -1,5 +1,5 @@
 site_name: openpublictransport
-site_description: Multi-Provider Public Transport Home Assistant Integration for 28 transit networks across Germany, Switzerland, Austria, Sweden, Ireland, and worldwide
+site_description: Home Assistant integration for real-time public transport departures from 38 transit networks across Germany, Switzerland, Austria, the Netherlands, Luxembourg, Denmark, Norway, Sweden, Ireland, the UK, the USA, and worldwide
 site_url: https://docs.openpublictransport.net
 repo_url: https://github.com/NerdySoftPaw/openpublictransport
 repo_name: NerdySoftPaw/openpublictransport
@@ -76,11 +76,14 @@ nav:
       - NWL (Westfalen-Lippe): providers/nwl.md
       - NVBW (Baden-Württemberg): providers/nvbw.md
       - BEG (Bayern): providers/beg.md
+      - DB (Deutschlandweit): providers/db.md
+      - VBN (Bremen / Niedersachsen): providers/vbn.md
       - SBB (Schweiz): providers/sbb.md
       - TPG (Genève): providers/tpg.md
       - ÖBB (Österreich): providers/oebb.md
       - NS (Nederland): providers/ns.md
       - mobilitéit.lu (Luxembourg): providers/mobiliteit_lu.md
+      - Rejseplanen (Danmark): providers/rejseplanen.md
       - Entur (Norway): providers/entur.md
       - Trafiklab (Sweden): providers/trafiklab.md
       - NTA (Ireland): providers/nta.md

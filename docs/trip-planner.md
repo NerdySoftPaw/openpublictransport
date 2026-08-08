@@ -13,29 +13,46 @@ The Trip Planner feature lets you:
 
 ## Supported Providers
 
-The Trip Planner works with all EFA-based providers:
+Trip planning needs a routing endpoint, which only part of the providers offer. Two
+families are supported: EFA providers with an `XML_TRIP_REQUEST2` endpoint, and OTP2
+providers.
 
-| Provider | Region |
-|----------|--------|
-| VRR | Rhein-Ruhr (NRW) |
-| KVV | Karlsruhe |
-| HVV | Hamburg |
-| BVG | Berlin |
-| MVV | Munich |
-| VVS | Stuttgart |
-| VGN | Nuremberg |
-| VAG | Freiburg |
-| VRN | Rhein-Neckar |
-| VVO | Dresden |
-| DING | Ulm |
-| AVV | Augsburg |
-| RVV | Regensburg |
-| BSVG | Braunschweig |
-| NWL | Westfalen-Lippe |
-| NVBW | Baden-Württemberg |
-| BEG | Bavaria |
-| SBB | Switzerland |
-| ÖBB | Austria |
+### EFA providers
+
+| Provider | Provider ID | Region |
+|----------|-------------|--------|
+| VRR | `vrr` | Rhein-Ruhr (NRW) |
+| KVV | `kvv` | Karlsruhe |
+| HVV | `hvv` | Hamburg |
+| MVV | `mvv` | Munich |
+| VVS | `vvs` | Stuttgart |
+| VGN | `vgn` | Nuremberg |
+| VAG | `vagfr` | Freiburg |
+| VRN | `vrn` | Rhein-Neckar |
+| VVO | `vvo` | Dresden |
+| DING | `ding` | Ulm |
+| AVV | `avv_augsburg` | Augsburg |
+| RVV | `rvv` | Regensburg |
+| BSVG | `bsvg` | Braunschweig |
+| NWL | `nwl` | Westfalen-Lippe |
+
+### OTP providers
+
+| Provider | Provider ID | Region |
+|----------|-------------|--------|
+| openpublictransport | `openpublictransport` | Germany (nationwide, community OTP2 server) |
+| OTP2 Custom | `otp_custom` | Any self-hosted OTP2 instance |
+| VBN | `vbn_otp` | Bremen / Niedersachsen |
+
+OTP trip planning routes stop to stop, so both stops must be picked in the config flow
+(or passed as stop IDs) — a plain name search is not enough.
+
+!!! note "Departure monitor only"
+
+    All other providers — including ÖBB, NS, mobilitéit.lu, SBB, BVG, DB, RMV, NVBW,
+    BEG, Transitous, Entur and the GTFS-RT/HAFAS providers — have no routing endpoint
+    in this integration. They only power the departure monitor. Selecting the Trip
+    Planner entry type for them is rejected in the config flow.
 
 ## Setting Up a Trip Sensor
 

@@ -143,7 +143,7 @@ Plan a route from origin to destination, returning connections with transfers an
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
-| `provider` | Yes | Provider ID — any EFA-based provider (e.g. `vrr`, `kvv`, `bvg`, `mvv`, `sbb`, `oebb`) |
+| `provider` | Yes | Provider ID of a trip-capable provider (e.g. `vrr`, `kvv`, `mvv`, `vgn`, `openpublictransport`) — see [Trip Planner](trip-planner.md#supported-providers) |
 | `origin` | Yes | Origin stop name (e.g. `Holthausen`) |
 | `origin_city` | No | City of origin stop for more precise results |
 | `destination` | Yes | Destination stop name (e.g. `Hauptbahnhof`) |

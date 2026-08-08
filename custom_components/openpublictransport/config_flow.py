@@ -70,6 +70,7 @@ from .const import (
     TRANSPORTATION_TYPES,
 )
 from .filters import filter_discriminator, filter_label
+from .trip import supports_trip_planning
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -153,6 +154,8 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
 
     async def async_step_user(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Handle the initial step - select entry type and provider."""
+        errors: Dict[str, str] = {}
+
         if user_input is not None:
             self._entry_type = user_input.get("entry_type", "departures")
 
@@ -161,21 +164,26 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
 
             self._provider = user_input[CONF_PROVIDER]
 
-            if self._provider == PROVIDER_OTP_CUSTOM:
-                return await self.async_step_otp_custom_url()
+            # Only EFA and OTP providers can plan trips — everything else would
+            # create a trip sensor that never returns a connection (issue #80).
+            if self._entry_type == "trip" and not supports_trip_planning(self._provider):
+                errors["base"] = "trip_not_supported"
+            else:
+                if self._provider == PROVIDER_OTP_CUSTOM:
+                    return await self.async_step_otp_custom_url()
 
-            if self._provider == PROVIDER_OPT:
-                return await self.async_step_opt_key()
+                if self._provider == PROVIDER_OPT:
+                    return await self.async_step_opt_key()
 
-            provider_class = get_provider_class(self._provider)
-            if provider_class and provider_class(None).requires_api_key:  # type: ignore[arg-type]
-                return await self.async_step_api_key()
+                provider_class = get_provider_class(self._provider)
+                if provider_class and provider_class(None).requires_api_key:  # type: ignore[arg-type]
+                    return await self.async_step_api_key()
 
-            if self._entry_type == "trip":
-                self._trip_search_phase = "origin"
-                return await self.async_step_trip_search()
+                if self._entry_type == "trip":
+                    self._trip_search_phase = "origin"
+                    return await self.async_step_trip_search()
 
-            return await self.async_step_stop_search()
+                return await self.async_step_stop_search()
 
         entry_type_options = {
             "departures": "Abfahrtsanzeige / Departure Monitor",
@@ -183,14 +191,17 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             "multi_stop": "Multi-Stop / Mehrere Haltestellen kombinieren",
         }
 
+        entry_type_default = (user_input or {}).get("entry_type", "departures")
+        provider_default = (user_input or {}).get(CONF_PROVIDER, PROVIDER_VRR)
+
         schema = vol.Schema(
             {
-                vol.Required("entry_type", default="departures"): vol.In(entry_type_options),
-                vol.Required(CONF_PROVIDER, default=PROVIDER_VRR): self._provider_selector(),
+                vol.Required("entry_type", default=entry_type_default): vol.In(entry_type_options),
+                vol.Required(CONF_PROVIDER, default=provider_default): self._provider_selector(),
             }
         )
 
-        return self.async_show_form(step_id="user", data_schema=schema)
+        return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
 
     def _find_credentials_from_application_credentials(self, provider: str) -> dict:
         """Return API key for a provider from HA's Application Credentials store."""
@@ -1016,7 +1027,9 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
                 if response.status == 200:
                     try:
-                        data = await response.json()
+                        # content_type=None: some EFA hosts send RapidJSON with a
+                        # text/xml header (issue #79).
+                        data = await response.json(content_type=None)
                     except (ValueError, aiohttp.ContentTypeError) as e:
                         _LOGGER.error("Invalid JSON response from API: %s", e)
                         return []

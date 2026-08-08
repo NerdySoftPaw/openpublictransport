@@ -132,6 +132,7 @@
       "missing_location": "Geef een station-ID of locatie en haltenaam op",
       "empty_search": "Voer een zoekterm in",
       "no_results": "Geen resultaten gevonden. Probeer een andere zoekterm.",
+      "trip_not_supported": "Deze aanbieder ondersteunt alleen het vertrekoverzicht — reisplanning is niet beschikbaar. Kies een EFA- of OTP2-aanbieder of het invoertype \"Vertrekoverzicht\".",
       "api_key_required": "API Key is vereist",
       "trafiklab_api_key_required": "Trafiklab API Key is vereist",
       "nta_api_key_required": "NTA API Key is vereist",

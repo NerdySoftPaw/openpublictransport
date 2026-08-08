@@ -312,12 +312,14 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(f"Error fetching data: {err}")
 
     def _compute_fetch_limit(self) -> int:
-        """Over-fetch a larger board when a line/destination/platform filter is active.
+        """Over-fetch a larger board when any client-side filter is active.
 
         Filters are applied client-side after the fetch, so requesting only
         ``departures_limit`` starves filtered results at busy stops (issue #43).
-        The display count is unchanged — the sensor still truncates to
-        ``departures_limit`` after filtering.
+        The transportation type filter is the outermost gate of all — a mixed
+        stop can spend the whole board on buses before a "trains only" filter
+        ever runs (issue #81). The display count is unchanged — the sensor
+        still truncates to ``departures_limit`` after filtering.
         """
         entry = self._config_entry
         if entry is not None:
@@ -327,7 +329,24 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
             )
             if any(value.strip() for value in active):
                 return max(self.departures_limit, FILTERED_FETCH_LIMIT)
+            if self._transportation_types_restrict():
+                return max(self.departures_limit, FILTERED_FETCH_LIMIT)
         return self.departures_limit
+
+    def _transportation_types_restrict(self) -> bool:
+        """Return True when the configured types are a proper subset of all types.
+
+        Selecting every type (the default) filters nothing, so it must not
+        trigger the larger fetch.
+        """
+        entry = self._config_entry
+        if entry is None:
+            return False
+        configured = entry.options.get(CONF_TRANSPORTATION_TYPES, entry.data.get(CONF_TRANSPORTATION_TYPES))
+        if not isinstance(configured, (list, tuple, set)):
+            return False
+        selected = {str(value) for value in configured} & set(TRANSPORTATION_TYPES)
+        return bool(selected) and selected != set(TRANSPORTATION_TYPES)
 
     async def _fetch_departures(self) -> Optional[Dict[str, Any]]:
         """Fetch departure data from the API."""

@@ -132,6 +132,7 @@
       "missing_location": "Fornisci un ID stazione oppure una posizione e un nome di fermata",
       "empty_search": "Inserisci un termine di ricerca",
       "no_results": "Nessun risultato trovato. Prova con un altro termine di ricerca.",
+      "trip_not_supported": "Questo operatore supporta solo il monitor delle partenze — la ricerca di percorsi non è disponibile. Scegli un operatore EFA o OTP2 oppure il tipo di voce \"Monitor delle partenze\".",
       "api_key_required": "L'API Key è obbligatoria",
       "trafiklab_api_key_required": "L'API Key Trafiklab è obbligatoria",
       "nta_api_key_required": "L'API Key NTA è obbligatoria",

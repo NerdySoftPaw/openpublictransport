@@ -36,6 +36,21 @@ EFA_TRIP_ENDPOINTS = {
     "nwl": "https://westfalenfahrplan.de/nwl-efa/XML_TRIP_REQUEST2",
 }
 
+# OTP-based providers plan trips through their own endpoints, not EFA.
+OTP2_TRIP_PROVIDERS = frozenset({"openpublictransport", "otp_custom"})
+OTP_REST_TRIP_PROVIDERS = frozenset({"vbn_otp"})
+
+# Every provider that can plan a trip. Providers outside this set (HAFAS, FPTF,
+# TRIAS, GTFS-RT …) are departure monitors only — the config flow refuses a trip
+# entry for them and the docs are checked against this set (issue #80).
+TRIP_CAPABLE_PROVIDERS = frozenset(EFA_TRIP_ENDPOINTS) | OTP2_TRIP_PROVIDERS | OTP_REST_TRIP_PROVIDERS
+
+
+def supports_trip_planning(provider: Optional[str]) -> bool:
+    """Return True when the provider can plan trips."""
+    return provider in TRIP_CAPABLE_PROVIDERS
+
+
 # OTP 2.x planConnection query — routes stop-to-stop via stopLocationId, so no
 # coordinates and no street-network access/egress are needed (works on a
 # transit-only graph). %s = origin id, dest id, optional dateTime clause.
@@ -182,7 +197,7 @@ async def async_plan_trip(
     from openpublictransport import get_provider
 
     # OTP2 GraphQL providers (community server + custom instance)
-    if provider in ("openpublictransport", "otp_custom"):
+    if provider in OTP2_TRIP_PROVIDERS:
         if not origin_id or not dest_id:
             _LOGGER.warning("OTP2 trip planning requires stop IDs — search for stops first")
             return None
@@ -191,7 +206,7 @@ async def async_plan_trip(
         return await _async_plan_trip_otp2_graphql(origin_id, dest_id, departure_time, provider_instance)
 
     # VBN OTP — legacy OTP REST plan endpoint
-    if provider == "vbn_otp":
+    if provider in OTP_REST_TRIP_PROVIDERS:
         if not origin_id or not dest_id:
             _LOGGER.warning("VBN OTP trip planning requires stop IDs — search for stops first")
             return None
@@ -238,7 +253,8 @@ async def async_plan_trip(
                 _LOGGER.warning("Trip API returned status %s", response.status)
                 return None
 
-            data = await response.json()
+            # content_type=None: VGN sends RapidJSON with a text/xml header (issue #79).
+            data = await response.json(content_type=None)
             if not isinstance(data, dict):
                 return None
 

@@ -29,8 +29,8 @@ Real-time public transport departures for Home Assistant — 35 providers across
 |----------|--------|---------|--------------|
 | **AVV** | Augsburg | No | Yes |
 | **BART** | San Francisco, USA | No | No |
-| **BEG** | Bavaria | No | Yes |
-| **BSVG** | Braunschweig | No | No |
+| **BEG** | Bavaria | No | No |
+| **BSVG** | Braunschweig | No | Yes |
 | **BVG** | Berlin / Brandenburg | No | No |
 | **DART** | Des Moines, USA | No | No |
 | **DB** | Germany (nationwide, community API) | No | No |
@@ -44,12 +44,12 @@ Real-time public transport departures for Home Assistant — 35 providers across
 | **NS** | Netherlands (nationwide) | No | No |
 | **NTA** | Ireland (nationwide) | Yes (free) | No |
 | **NVBW** | Baden-Württemberg | No | No |
-| **NWL** | Westfalen-Lippe | No | No |
+| **NWL** | Westfalen-Lippe | No | Yes |
 | **ÖBB** | Austria (nationwide) | No | No |
-| **openpublictransport** | Germany (nationwide, GTFS.DE + GTFS-RT, community OTP2) | Yes ([request](https://openpublictransport.net/api-key)) | No |
-| **OTP2 Custom** | Any OTP2 instance (self-hosted) | Optional | No |
+| **openpublictransport** | Germany (nationwide, GTFS.DE + GTFS-RT, community OTP2) | Yes ([request](https://openpublictransport.net/api-key)) | Yes |
+| **OTP2 Custom** | Any OTP2 instance (self-hosted) | Optional | Yes |
 | **RMV** | Frankfurt / Rhein-Main | Yes (free) | No |
-| **RVV** | Regensburg | No | No |
+| **RVV** | Regensburg | No | Yes |
 | **SBB** | Switzerland (nationwide) | No | No |
 | **TPG** | Geneva, Switzerland | No | No |
 | **Trafiklab** | Sweden (nationwide) | Yes (free) | No |
@@ -58,9 +58,9 @@ Real-time public transport departures for Home Assistant — 35 providers across
 | **VBN (OTP)** | Bremen / Niedersachsen | Yes (free) | Yes |
 | **VBN (TRIAS)** | Bremen / Niedersachsen | Yes (free) | No |
 | **VGN** | Nuremberg | No | Yes |
-| **VRN** | Rhein-Neckar | No | No |
+| **VRN** | Rhein-Neckar | No | Yes |
 | **VRR** | Rhein-Ruhr (NRW) | No | Yes |
-| **VVO** | Dresden | No | No |
+| **VVO** | Dresden | No | Yes |
 | **VVS** | Stuttgart | No | Yes |
 
 ---
@@ -69,7 +69,7 @@ Real-time public transport departures for Home Assistant — 35 providers across
 
 - **Real-time departures** with delay tracking, platform changes, and disruption notices
 - **35 transit providers** — most require no API key
-- **Trip planner** — A-to-B routes with transfer risk assessment
+- **Trip planner** — A-to-B routes with transfer risk assessment (EFA and OTP2 providers, see the table above)
 - **8 entity types**: sensor, binary sensor, calendar, event, camera, trip sensor, statistics, multi-stop
 - **4 actions** — refresh_departures, plan_trip, check_delays, announce_departure (TTS)
 - **Reconfigure without re-setup** — change your station anytime via ⚙️ → Reconfigure

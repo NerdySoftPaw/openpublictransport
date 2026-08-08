@@ -115,3 +115,25 @@
   height: 28px;
   width: 28px;
 }
+
+/* ===================== TABLES ===================== */
+/* The provider comparison is nine columns wide. Material's default content
+   column (61rem, shared with the table of contents) plus the theme's generous
+   cell padding pushed it into horizontal scrolling even on a desktop. */
+.md-grid {
+  max-width: 78rem;
+}
+
+.md-typeset table:not([class]) {
+  font-size: 0.68rem;
+}
+
+.md-typeset table:not([class]) th,
+.md-typeset table:not([class]) td {
+  padding: 0.35em 0.5em;
+}
+
+/* Provider IDs and other inline code must not wrap mid-token. */
+.md-typeset table:not([class]) code {
+  white-space: nowrap;
+}

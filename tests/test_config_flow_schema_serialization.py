@@ -12,7 +12,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import homeassistant.helpers.config_validation as cv
 import pytest
 from homeassistant.core import HomeAssistant
-from probatio.codecs.fields import to_field_list
 
 from custom_components.openpublictransport.const import (
     CONF_OTP_BASE_URL,
@@ -25,13 +24,30 @@ from custom_components.openpublictransport.const import (
 )
 
 
+def _to_fields(schema):
+    """Serialize a form schema the way the running Home Assistant does.
+
+    Newer cores serialize through probatio; older ones through
+    voluptuous-serialize. Which one is present depends on the Python version
+    the test matrix resolved a core for, so pick whichever is installed.
+    """
+    try:
+        from probatio.codecs.fields import to_field_list
+    except ImportError:
+        try:
+            from voluptuous_serialize import convert as to_field_list
+        except ImportError:
+            pytest.skip("no schema serializer available in this Home Assistant")
+    return to_field_list(schema, custom_serializer=cv.custom_serializer)
+
+
 def _assert_serializable(result):
     """Fail with the offending step named, the way the 500 never did."""
     schema = result.get("data_schema")
     if schema is None:
         return
     try:
-        to_field_list(schema, custom_serializer=cv.custom_serializer)
+        _to_fields(schema)
     except Exception as err:  # noqa: BLE001 — surfaced as a test failure
         pytest.fail(f"step {result.get('step_id')!r} has an unserializable schema: {err}")
 
@@ -68,7 +84,7 @@ async def test_otp_custom_url_step_renders(hass: HomeAssistant):
         result["flow_id"], user_input={"entry_type": "departures", CONF_PROVIDER: PROVIDER_OTP_CUSTOM}
     )
 
-    fields = to_field_list(result["data_schema"], custom_serializer=cv.custom_serializer)
+    fields = _to_fields(result["data_schema"])
     url_field = next(f for f in fields if f["name"] == CONF_OTP_BASE_URL)
 
     assert url_field["required"] is True

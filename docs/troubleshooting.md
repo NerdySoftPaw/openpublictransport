@@ -4,23 +4,44 @@ This guide helps you diagnose and resolve common issues with the Public Transpor
 
 ## Common Issues
 
+### Setup shows an error while searching for a stop
+
+Since v2026.9.0 each kind of failure has its own message, so the error tells you what to do
+next. Before that release every one of them read "no results found", which sent people hunting
+for a better search term during a provider outage.
+
+| Message | What happened | What to do |
+|---|---|---|
+| Fehler beim Anbieter (HTTP `nnn`) | The provider answered with an error. `503` means its API is down or restarting; `404` means the endpoint moved or no longer exists. | For `5xx`, wait and try again. If a `404` persists, open an issue — the provider has probably changed its endpoint. |
+| Authentifizierung fehlgeschlagen | The API key was rejected (HTTP 401/403). | Check the key for typos and that it is still valid. Some providers expire unused keys. |
+| Der Anbieter ist nicht erreichbar | The request timed out or the host could not be reached at all. | Check your Home Assistant host's internet access and DNS. For a self-hosted OTP2 instance, check the URL, the port and any firewall. |
+| Der Anbieter hat eine unbrauchbare Antwort geliefert | The provider answered with `200` but the body could not be parsed. | Usually a maintenance page served in place of the API. Wait and retry; if it persists, open an issue with a debug log. |
+| Keine Ergebnisse gefunden | The provider answered normally and had no match. | This one really is about the search term — try the plain stop name without the city, or `Stop, City`. |
+
+A failed search is never cached, so retrying after an outage really does query the provider
+again.
+
 ### "No departures" State
 
 **Symptoms**: Sensor shows "No departures" even when the station is active.
 
 **Possible Causes**:
 
-1. **Invalid Station ID**: The station ID may be incorrect or have changed
-2. **API Issues**: The provider's API may be temporarily unavailable
-3. **Filter Too Restrictive**: Transportation type filters may exclude all departures
-4. **Off-Peak Hours**: Some stations have no service during certain hours
+1. **Filter Too Restrictive**: Transportation type, line, destination or platform filters may
+   exclude every departure
+2. **Off-Peak Hours**: Some stations have no service during certain hours
+3. **Invalid Station ID**: The station ID may be incorrect or have changed
 
 **Solutions**:
 
-1. Verify the station exists and is spelled correctly
-2. Check the provider's API status
-3. Remove transportation type filters temporarily
-4. Enable debug logging to see API responses
+1. Remove the filters temporarily to see the raw board
+2. Check whether the station is served at all at this time of day
+3. Enable debug logging to see the API response
+
+!!! note
+    An API failure no longer shows up as "No departures". Since v2026.9.0 the sensor goes
+    **unavailable** instead, the log names the HTTP status, and a repair issue appears — so an
+    empty board means the station really has no departures right now.
 
 ### API Rate Limit Reached
 
@@ -63,19 +84,33 @@ This guide helps you diagnose and resolve common issues with the Public Transpor
 
 ### Connection Errors
 
-**Symptoms**: "API connection error" or timeout messages.
+**Symptoms**: The sensor is **unavailable** and a repair issue appears. The log carries the
+reason, with the HTTP status when the provider answered at all:
+
+```
+kvv: unavailable (HTTP 503) — will retry
+```
 
 **Possible Causes**:
 
-- Network connectivity issues
 - Provider API downtime (see scheduled maintenance above)
-- Firewall blocking connections
+- Network connectivity issues
+- Firewall blocking outgoing connections
 
 **Solutions**:
 
-1. Check your internet connection
-2. Verify the provider's API is accessible
+1. Read the status in the log — `5xx` is the provider's side, `401`/`403` is your API key,
+   a timeout is usually the network in between
+2. Check your internet connection and whether the provider's API is reachable from the
+   Home Assistant host
 3. Check for firewall rules blocking outgoing connections
+
+The integration retries on its own and logs once when the provider is unavailable and once when
+it is back, so a short outage needs no action. The repair issue disappears on recovery.
+
+!!! note
+    A rejected API key (HTTP 401/403) does not just mark the entity unavailable — it starts a
+    reauthentication flow, so Home Assistant asks you for a new key directly.
 
 ## Debug Logging
 

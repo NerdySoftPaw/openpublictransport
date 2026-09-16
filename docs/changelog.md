@@ -1,5 +1,51 @@
 # Changelog
 
+## v2026.9.0 — API failures no longer look like empty search results
+
+Requires `python-openpublictransport` 0.2.0.
+
+### Fixes
+
+- **A provider outage was reported as "no results found"**
+  ([#88](https://github.com/NerdySoftPaw/openpublictransport/issues/88)) — when a transit API
+  answered with an error, the library logged it and returned an empty list, so the config flow
+  could not tell an outage apart from a search that genuinely matched nothing. Typing a station
+  name during a provider outage told you to try a different search term. Each case now has its
+  own message, and the HTTP status is part of it, so a screenshot or a bug report carries the
+  code straight away:
+
+    | Situation | Message |
+    |---|---|
+    | The provider returned an error | Fehler beim Anbieter (HTTP 503). Bitte versuche es später erneut. |
+    | The API key was rejected | Authentifizierung fehlgeschlagen — bitte den API-Schlüssel prüfen. |
+    | Timeout or unreachable host | Der Anbieter ist nicht erreichbar. Bitte Internetverbindung und URL prüfen. |
+    | Unusable response | Der Anbieter hat eine unbrauchbare Antwort geliefert. |
+    | Nothing matched | Keine Ergebnisse gefunden. Bitte versuchen Sie einen anderen Suchbegriff. |
+
+- **A custom OTP2 server could not be configured at all** — the URL step passed a validator that
+  Home Assistant cannot serialise into a form, so the step failed to render and the dialog never
+  reached the URL field. It now uses a URL field and validates the address itself.
+- **Departure sensors stayed available through an outage** — they now go unavailable with the
+  HTTP status in the log and a repair issue, and recover on their own. A station that simply has
+  no departures right now is no longer treated as a failure, so an empty board does not make the
+  sensor disappear.
+- **Trip sensors never went unavailable** — the trip coordinator had no error handling at all and
+  quietly kept serving its last known connection while the provider was down.
+- **The `plan_trip` action pointed at the logs** — it now names the HTTP status in the error it
+  raises, so an automation can log something actionable.
+- **Two error messages were never translated** — `api_error` and `cannot_connect` were referenced
+  in the code but missing from every language file, so the dialog showed the raw key. Six error
+  messages were added across German, English, French, Italian, Dutch, Polish and Swedish.
+
+### Internals
+
+`python-openpublictransport` 0.2.0 raises typed exceptions carrying the HTTP status instead of
+returning an empty result. An empty list now means "no data" and nothing else. All 16 HTTP call
+sites across the 46 provider classes share one request path, which also fixed eight places where
+a rejected API key was swallowed before it could reach the integration.
+
+---
+
 ## v2026.8.3 — VGN setup, transportation type filter, honest trip planner list
 
 Requires `python-openpublictransport` 0.1.17.

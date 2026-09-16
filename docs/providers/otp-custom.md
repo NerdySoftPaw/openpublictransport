@@ -95,6 +95,10 @@ Same as the community server — all OTP2 GTFS modes are supported:
 
 ## Troubleshooting
 
+!!! warning "Versions before 2026.9.0"
+    The URL step could not render at all — the dialog failed instead of asking for the address,
+    so a custom instance could not be set up. Update to v2026.9.0 or later.
+
 ### Connection Refused / Timeout
 
 - Check that OTP2 is running: `curl http://localhost:8080/otp/routers/default/index/graphql -X POST -H "Content-Type: application/json" -d '{"query":"{ stops(name: \"Hbf\") { gtfsId name } }"}'`
@@ -108,6 +112,9 @@ Same as the community server — all OTP2 GTFS modes are supported:
 - Check OTP2 logs for query errors
 
 ### No Stops Found
+
+Since v2026.9.0 "no results found" means the instance answered normally and had no match — an
+unreachable or erroring instance says so instead. If you really do get no results:
 
 - Confirm the graph was built with your GTFS feed
 - Test the GraphQL endpoint directly with a known stop name

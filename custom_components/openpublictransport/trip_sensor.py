@@ -27,15 +27,18 @@ from openpublictransport import (
 )
 
 from .const import (
+    CONF_LINE_FILTER,
     CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_SCAN_INTERVAL,
+    CONF_TRANSPORTATION_TYPES,
     CONF_VBN_API_KEY,
     CONF_WALKING_TIME,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WALKING_TIME,
     DOMAIN,
+    TRANSPORTATION_TYPES,
 )
 from .sensor import _RESTORE_SKIP_ATTRS
 from .trip import async_plan_trip
@@ -49,6 +52,30 @@ CONF_TRIP_DESTINATION = "trip_destination"
 CONF_TRIP_DESTINATION_CITY = "trip_destination_city"
 CONF_TRIP_PROVIDER = "trip_provider"
 CONF_IS_TRIP = "is_trip"
+
+# Legs that are not a vehicle ride carry no line and no selectable transport
+# type, so neither filter has anything to say about them.
+_NON_VEHICLE_LEG_TYPES = frozenset({"walk", "bicycle", ""})
+
+
+def _trip_line_filter(config_entry: ConfigEntry) -> set[str]:
+    """Return the entry's line filter, lowercased; empty means "every line"."""
+    raw = config_entry.options.get(CONF_LINE_FILTER, config_entry.data.get(CONF_LINE_FILTER, ""))
+    return {line.strip().lower() for line in str(raw or "").split(",") if line.strip()}
+
+
+def _trip_transport_types(config_entry: ConfigEntry) -> set[str]:
+    """Return the transport types the entry allows.
+
+    Restricted to the types the options flow can actually deselect: a journey on
+    a ferry or a taxi must not disappear just because those are absent from a
+    four-checkbox form that never offered them.
+    """
+    configured = config_entry.options.get(
+        CONF_TRANSPORTATION_TYPES,
+        config_entry.data.get(CONF_TRANSPORTATION_TYPES, list(TRANSPORTATION_TYPES)),
+    )
+    return set(configured or TRANSPORTATION_TYPES) & set(TRANSPORTATION_TYPES)
 
 
 class TripDataUpdateCoordinator(DataUpdateCoordinator):
@@ -68,6 +95,8 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         api_key: Optional[str] = None,
         custom_url: Optional[str] = None,
         walking_time: int = DEFAULT_WALKING_TIME,
+        line_filter: Optional[set[str]] = None,
+        transport_types: Optional[set[str]] = None,
     ):
         """Initialize."""
         super().__init__(
@@ -86,6 +115,10 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         self.api_key = api_key
         self.custom_url = custom_url
         self.walking_time = walking_time
+        # The same filters the departure board applies, honoured for trips too:
+        # they were configurable on a trip device but changed nothing (issue #87).
+        self.line_filter = line_filter or set()
+        self.transport_types = transport_types if transport_types is not None else set(TRANSPORTATION_TYPES)
         # Mirrors PublicTransportDataUpdateCoordinator so diagnostics can report
         # it for trip entries too (issue #58).
         self.last_update_success_time: Optional[datetime] = None
@@ -128,7 +161,46 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
             # last_update_success True, so only the former must skip the stamp.
             self.last_update_success_time = dt_util.now()
             data = self._drop_departed(data)
+            data = self._apply_filters(data)
         return data
+
+    def _apply_filters(self, journeys: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Drop connections that use a line or transport type the entry excludes.
+
+        A trip is only wanted if *every* vehicle on it is wanted, so one
+        disallowed leg removes the whole connection — a journey that ends on the
+        400 bus is not a U43 journey. A leg whose transport type could not be
+        resolved is left alone: filtering on a guess would hide connections the
+        provider did describe correctly.
+        """
+        if not self.line_filter and self.transport_types >= set(TRANSPORTATION_TYPES):
+            return journeys
+
+        kept = [journey for journey in journeys if self._journey_allowed(journey)]
+        if len(kept) < len(journeys):
+            _LOGGER.debug(
+                "Trip %s → %s: %s of %s connection(s) filtered out (lines=%s, types=%s)",
+                self.origin,
+                self.destination,
+                len(journeys) - len(kept),
+                len(journeys),
+                sorted(self.line_filter) or "all",
+                sorted(self.transport_types),
+            )
+        return kept
+
+    def _journey_allowed(self, journey: Dict[str, Any]) -> bool:
+        """Return True when every vehicle leg of a journey passes both filters."""
+        for leg in journey.get("legs", []):
+            transport_type = str(leg.get("transport_type") or "").lower()
+            if transport_type in _NON_VEHICLE_LEG_TYPES:
+                continue
+            if transport_type in TRANSPORTATION_TYPES and transport_type not in self.transport_types:
+                return False
+            line = str(leg.get("line") or "").strip().lower()
+            if self.line_filter and line and line not in self.line_filter:
+                return False
+        return True
 
     def _drop_departed(self, journeys: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Drop connections that have already left.
@@ -204,6 +276,8 @@ async def async_setup_trip_entry(
         api_key=api_key,
         custom_url=custom_url,
         walking_time=walking_time,
+        line_filter=_trip_line_filter(config_entry),
+        transport_types=_trip_transport_types(config_entry),
     )
 
     config_entry.runtime_data = coordinator
@@ -278,6 +352,8 @@ class TripSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
             config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
         )
         self.coordinator.update_interval = timedelta(seconds=scan_interval)
+        self.coordinator.line_filter = _trip_line_filter(config_entry)
+        self.coordinator.transport_types = _trip_transport_types(config_entry)
 
         await self.coordinator.async_request_refresh()
 

@@ -124,6 +124,46 @@ def _is_transit_product(product: Dict[str, Any]) -> bool:
     return str(product.get("name") or "").strip().lower() not in _NON_TRANSIT_PRODUCT_NAMES
 
 
+# EFA product name → unified transport type, for providers whose numeric product
+# class is missing from their mapping. Mirrors the library's departure parser so
+# a leg is typed the same way whether it arrives on the departure board or in a
+# journey.
+_EFA_NAME_TYPE_PATTERNS = (
+    (("u-bahn", "u_bahn", "ubahn", "subway", "metro"), "subway"),
+    (("straßenbahn", "strassenbahn", "stadtbahn", "tram"), "tram"),
+    (("fähre", "faehre", "schiff", "ferry"), "ferry"),
+    (("bus", "ast", "ruf", "ersatz"), "bus"),
+    (("bahn", "zug", "train"), "train"),
+)
+
+
+def _transport_type_from_name(name: str) -> str:
+    """Best-effort unified transport type from an EFA product name."""
+    lowered = (name or "").lower()
+    for needles, transport_type in _EFA_NAME_TYPE_PATTERNS:
+        if any(needle in lowered for needle in needles):
+            return transport_type
+    return "unknown"
+
+
+def _leg_transport_type(product: Dict[str, Any], type_mapping: Optional[Dict[Any, str]]) -> str:
+    """Return a leg's unified transport type ("bus", "subway", "walk", …).
+
+    Journeys carry the provider's own product *name* ("Stadtbahn", "Bus"), which
+    is useless for matching the transport types configured on the entry. The
+    numeric product class resolves through the provider's mapping, exactly like a
+    departure does; an unmapped class falls back to the name, and anything still
+    unrecognised stays "unknown" so filters can let it pass rather than drop a
+    connection they cannot judge (issue #87).
+    """
+    if not _is_transit_product(product):
+        return "walk"
+    transport_type = (type_mapping or {}).get(product.get("class"), "unknown")
+    if transport_type == "unknown":
+        transport_type = _transport_type_from_name(str(product.get("name") or ""))
+    return transport_type
+
+
 def _rate_transfers(transit_legs: List[Dict[str, Any]]) -> tuple[bool, str, Optional[int]]:
     """Rate a journey's transfers from the gaps between consecutive transit legs.
 
@@ -253,6 +293,11 @@ async def async_plan_trip(
 
     url = f"{base_url}?{params}"
     session = async_get_clientsession(hass)
+    # The trip endpoint is queried directly rather than through the library, so
+    # the provider is instantiated purely for its product-class mapping — that is
+    # what lets a leg be matched against the entry's transport types (issue #87).
+    efa_provider = get_provider(provider, session)
+    type_mapping = efa_provider.get_transport_type_mapping() if efa_provider else {}
 
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:
@@ -271,7 +316,7 @@ async def async_plan_trip(
     if not isinstance(data, dict):
         raise ApiResponseError(f"{provider}: trip API returned {type(data).__name__} instead of an object")
 
-    return _parse_journeys(data.get("journeys", []))
+    return _parse_journeys(data.get("journeys", []), type_mapping)
 
 
 _GRAPHQL_PARENT = '{ stop(id: "%s") { parentStation { gtfsId } } }'
@@ -410,13 +455,17 @@ def _parse_otp_itineraries(itineraries: List[Dict[str, Any]]) -> List[Dict[str, 
             arr_planned = _ms_to_hhmm(planned_end_ms)
 
             delay_min = dep_delay_s // 60
+            product = _OTP_MODE_TO_PRODUCT.get(leg.get("mode", ""), leg.get("mode", "").lower())
 
             transit_legs.append(
                 {
                     "origin": leg.get("from", {}).get("name", ""),
                     "destination": leg.get("to", {}).get("name", ""),
                     "line": (leg.get("trip") or {}).get("route", {}).get("shortName") or leg.get("route", ""),
-                    "product": _OTP_MODE_TO_PRODUCT.get(leg.get("mode", ""), leg.get("mode", "").lower()),
+                    "product": product,
+                    # OTP modes already are the unified types, so the leg needs no
+                    # mapping to be matched against the entry's transport types.
+                    "transport_type": product,
                     "departure_planned": dep_planned,
                     "departure_estimated": dep_estimated,
                     "arrival_planned": arr_planned,
@@ -548,13 +597,15 @@ def _parse_otp_plan_connection(nodes: List[Dict[str, Any]]) -> List[Dict[str, An
             arr_estimated = ((end.get("estimated") or {}).get("time")) or arr_planned
             delay_s = (start.get("estimated") or {}).get("delay")
             route = (leg.get("trip") or {}).get("route") or leg.get("route") or {}
+            product = _OTP_MODE_TO_PRODUCT.get(leg.get("mode", ""), (leg.get("mode") or "").lower())
 
             transit_legs.append(
                 {
                     "origin": (leg.get("from") or {}).get("name", ""),
                     "destination": (leg.get("to") or {}).get("name", ""),
                     "line": route.get("shortName") or "",
-                    "product": _OTP_MODE_TO_PRODUCT.get(leg.get("mode", ""), (leg.get("mode") or "").lower()),
+                    "product": product,
+                    "transport_type": product,
                     "departure_planned": _iso_to_hhmm(dep_planned),
                     "departure_estimated": _iso_to_hhmm(dep_estimated),
                     "arrival_planned": _iso_to_hhmm(arr_planned),
@@ -599,8 +650,15 @@ def _parse_otp_plan_connection(nodes: List[Dict[str, Any]]) -> List[Dict[str, An
     return results
 
 
-def _parse_journeys(journeys: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Parse EFA journey data into a clean format."""
+def _parse_journeys(
+    journeys: List[Dict[str, Any]],
+    type_mapping: Optional[Dict[Any, str]] = None,
+) -> List[Dict[str, Any]]:
+    """Parse EFA journey data into a clean format.
+
+    ``type_mapping`` is the provider's product-class mapping; without it every
+    leg's transport type is derived from the product name alone.
+    """
     results = []
 
     for journey in journeys:
@@ -640,6 +698,7 @@ def _parse_journeys(journeys: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 "destination": destination.get("name", ""),
                 "line": transport.get("number", ""),
                 "product": product.get("name", ""),
+                "transport_type": _leg_transport_type(product, type_mapping),
                 "departure_planned": _format_time(dep_planned),
                 "departure_estimated": _format_time(dep_estimated),
                 "arrival_planned": _format_time(arr_planned),

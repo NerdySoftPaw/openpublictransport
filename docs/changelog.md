@@ -1,5 +1,31 @@
 # Changelog
 
+## v2026.9.1 — Trip sensors honour their filters
+
+### Fixes
+
+- **A trip device ignored its line filter and its transportation types**
+  ([#87](https://github.com/NerdySoftPaw/openpublictransport/issues/87)) — both settings were
+  offered under **Configure** on a Trip Planner entry and neither changed anything: only the
+  departure board ever read them, so a trip filtered to `U43, U47` still showed the occasional
+  400 bus connection. The trip coordinator now applies both, and re-reads them when you edit
+  the options instead of waiting for a restart.
+
+    A connection is kept only when every vehicle on it passes the filters — a journey that ends
+    on the 400 bus is not a U43 journey, so it is dropped whole rather than shown with a leg
+    missing. Walking legs are ignored, and so are types the selector never offered (ferry,
+    taxi), which cannot be deselected and must not silently remove a connection.
+
+- **Journey legs now carry a `transport_type`** — the legs of a trip only ever reported the
+  provider's own product name ("Stadtbahn", "Regionalbus"), which no filter and no card could
+  match against the four selectable types. Each leg now also carries the unified type (`bus`,
+  `tram`, `subway`, `train`, `ferry`, `taxi`, `walk`), resolved through the same product-class
+  mapping a departure uses, with the product name as a fallback.
+
+!!! note
+    The **line filter** on the Lovelace card still has no effect on the `trip` layout — that is
+    tracked separately in the card repository.
+
 ## v2026.9.0 — API failures no longer look like empty search results
 
 Requires `python-openpublictransport` 0.2.0.

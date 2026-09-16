@@ -202,6 +202,31 @@ The **walking time** option (**Configure** on the trip entry) is the time you ne
 origin stop. It shifts the search and hides connections you could not reach in time, so a trip
 sensor with 10 minutes walking time never shows a connection leaving in 5 minutes.
 
+## Filtering Connections
+
+The **line filter** and the **transportation types** selector (**Configure** on the trip entry)
+also apply to a trip sensor. They work per connection, not per leg: a connection is shown only
+when *every* vehicle on it is one you asked for. A journey that starts on the U43 and finishes
+on the 400 bus disappears when the line filter is `U43, U47`, or when **Bus** is deselected —
+it is not shown with the bus leg stripped out, because the remaining legs would no longer get
+you there.
+
+| Setting | Effect on a trip |
+|---------|------------------|
+| **Line filter** (`U43, U47`) | Drops a connection that uses any other line |
+| **Transportation types** | Drops a connection that uses a deselected type |
+| **Destination / platform filter** | Departure monitors only — no effect on a trip |
+
+Walking legs are ignored by both filters. So are transport types the selector does not offer,
+such as ferries and taxis: they cannot be deselected, so they are never used to drop a
+connection. A leg whose type the provider does not describe well enough to classify is kept
+rather than hidden on a guess.
+
+!!! note
+    Filtering happens after the provider has answered. If every connection it offers uses a
+    line you excluded, the sensor reads `No connections` — the provider is not asked for a
+    different route.
+
 ## Example Automations
 
 ### Notify When Connection Is at Risk

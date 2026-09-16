@@ -16,7 +16,13 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
-from openpublictransport import AuthenticationError, get_provider
+from openpublictransport import (
+    ApiConnectionError,
+    ApiError,
+    ApiTimeoutError,
+    AuthenticationError,
+    get_provider,
+)
 from openpublictransport.parsers import normalize_platform
 
 from .const import (
@@ -269,47 +275,49 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
 
         try:
             data = await self._fetch_departures()
-            if data and isinstance(data, dict):
-                self._api_calls_today += 1
-                self.last_update_success_time = dt_util.now()
-                if not self.last_update_success:
-                    _LOGGER.info("%s: connection re-established", self.provider)
-                ir.async_delete_issue(self.hass, DOMAIN, f"api_error_{self.provider}")
-                has_departures = bool(data.get("stopEvents"))
-                self._adjust_polling_interval(has_departures)
-                return data
-            else:
-                if self.last_update_success:
-                    _LOGGER.warning("%s: invalid or empty API response — will retry", self.provider)
-                ir.async_create_issue(
-                    self.hass,
-                    DOMAIN,
-                    f"api_error_{self.provider}",
-                    is_fixable=False,
-                    severity=ir.IssueSeverity.ERROR,
-                    translation_key="api_error",
-                    translation_placeholders={"provider": self.provider.upper()},
-                )
-                raise UpdateFailed("Invalid or empty API response")
+            if data is None or not isinstance(data, dict):
+                # The library raises on failure, so a missing payload here means
+                # the provider had nothing to say — not that it is unreachable.
+                raise UpdateFailed(f"{self.provider}: no departure data returned")
+
+            self._api_calls_today += 1
+            self.last_update_success_time = dt_util.now()
+            if not self.last_update_success:
+                _LOGGER.info("%s: connection re-established", self.provider)
+            ir.async_delete_issue(self.hass, DOMAIN, f"api_error_{self.provider}")
+            has_departures = bool(data.get("stopEvents"))
+            self._adjust_polling_interval(has_departures)
+            return data
         except ConfigEntryAuthFailed:
             raise
         except AuthenticationError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
+        except ApiError as err:
+            # Carry the HTTP status into the log and the repair issue (#88).
+            self._report_unavailable(f"HTTP {err.status}")
+            raise UpdateFailed(f"{self.provider}: HTTP {err.status}") from err
+        except (ApiTimeoutError, ApiConnectionError) as err:
+            self._report_unavailable(str(err))
+            raise UpdateFailed(f"{self.provider}: unreachable ({err})") from err
         except UpdateFailed:
             raise
         except Exception as err:
-            if self.last_update_success:
-                _LOGGER.warning("%s: unavailable (%s) — will retry", self.provider, err)
-            ir.async_create_issue(
-                self.hass,
-                DOMAIN,
-                f"api_error_{self.provider}",
-                is_fixable=False,
-                severity=ir.IssueSeverity.ERROR,
-                translation_key="api_error",
-                translation_placeholders={"provider": self.provider.upper()},
-            )
+            self._report_unavailable(str(err))
             raise UpdateFailed(f"Error fetching data: {err}")
+
+    def _report_unavailable(self, reason: str) -> None:
+        """Log the outage once and raise a repair issue for the user."""
+        if self.last_update_success:
+            _LOGGER.warning("%s: unavailable (%s) — will retry", self.provider, reason)
+        ir.async_create_issue(
+            self.hass,
+            DOMAIN,
+            f"api_error_{self.provider}",
+            is_fixable=False,
+            severity=ir.IssueSeverity.ERROR,
+            translation_key="api_error",
+            translation_placeholders={"provider": self.provider.upper()},
+        )
 
     def _compute_fetch_limit(self) -> int:
         """Over-fetch a larger board when any client-side filter is active.

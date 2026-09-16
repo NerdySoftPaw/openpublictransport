@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util import dt as dt_util
-from openpublictransport import AuthenticationError
+from openpublictransport import ApiConnectionError, ApiError, ApiTimeoutError, AuthenticationError
 from openpublictransport.models import UnifiedDeparture
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -135,7 +135,7 @@ async def test_update_data_auth_error_raises_config_entry_auth_failed(hass: Home
 
     with patch.object(
         coordinator, "_fetch_departures",
-        side_effect=AuthenticationError("API key invalid")
+        side_effect=AuthenticationError("kvv", 401)
     ):
         with pytest.raises(ConfigEntryAuthFailed):
             await coordinator._async_update_data()
@@ -149,6 +149,38 @@ async def test_update_data_logs_first_failure(hass: HomeAssistant):
     with patch.object(coordinator, "_fetch_departures", side_effect=Exception("network error")):
         with pytest.raises(UpdateFailed):
             await coordinator._async_update_data()
+
+
+async def test_update_data_api_error_carries_status(hass: HomeAssistant):
+    """A 503 must reach the log and the repair issue with its status (#88)."""
+    coordinator = _make_coordinator(hass)
+
+    with patch.object(coordinator, "_fetch_departures", side_effect=ApiError("kvv", 503)):
+        with pytest.raises(UpdateFailed) as excinfo:
+            await coordinator._async_update_data()
+
+    assert "503" in str(excinfo.value)
+
+
+async def test_update_data_connection_error_marks_unavailable(hass: HomeAssistant):
+    """An unreachable provider fails the update instead of looking like no data."""
+    coordinator = _make_coordinator(hass)
+
+    for error in (ApiTimeoutError("timed out"), ApiConnectionError("no route")):
+        with patch.object(coordinator, "_fetch_departures", side_effect=error):
+            with pytest.raises(UpdateFailed):
+                await coordinator._async_update_data()
+
+
+async def test_update_data_empty_board_is_not_a_failure(hass: HomeAssistant):
+    """No departures is a valid answer — the entity must stay available."""
+    coordinator = _make_coordinator(hass)
+
+    with patch.object(coordinator, "_fetch_departures", return_value={"stopEvents": []}):
+        with patch.object(coordinator, "_check_rate_limit", return_value=True):
+            result = await coordinator._async_update_data()
+
+    assert result == {"stopEvents": []}
 
 
 async def test_update_data_logs_recovery(hass: HomeAssistant):

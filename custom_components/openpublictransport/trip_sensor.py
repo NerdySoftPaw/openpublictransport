@@ -12,11 +12,19 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
+from openpublictransport import (
+    ApiConnectionError,
+    ApiError,
+    ApiTimeoutError,
+    AuthenticationError,
+    OpenPublicTransportError,
+)
 
 from .const import (
     CONF_OPT_API_KEY,
@@ -89,19 +97,30 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         # Without one, pass None so the provider anchors on its own clock.
         earliest = dt_util.now() + timedelta(minutes=self.walking_time) if self.walking_time else None
 
-        data = await async_plan_trip(
-            self.hass,
-            self.provider,
-            self.origin,
-            self.origin_city,
-            self.destination,
-            self.destination_city,
-            departure_time=earliest,
-            origin_id=self.origin_id,
-            dest_id=self.dest_id,
-            api_key=self.api_key,
-            custom_url=self.custom_url,
-        )
+        try:
+            data = await async_plan_trip(
+                self.hass,
+                self.provider,
+                self.origin,
+                self.origin_city,
+                self.destination,
+                self.destination_city,
+                departure_time=earliest,
+                origin_id=self.origin_id,
+                dest_id=self.dest_id,
+                api_key=self.api_key,
+                custom_url=self.custom_url,
+            )
+        except AuthenticationError as err:
+            raise ConfigEntryAuthFailed(str(err)) from err
+        except ApiError as err:
+            # Without this the entity stayed "available" through an outage,
+            # silently serving its last known connection (#88).
+            raise UpdateFailed(f"{self.provider}: HTTP {err.status}") from err
+        except (ApiTimeoutError, ApiConnectionError) as err:
+            raise UpdateFailed(f"{self.provider}: unreachable ({err})") from err
+        except OpenPublicTransportError as err:
+            raise UpdateFailed(f"{self.provider}: {err}") from err
         if data is not None:
             # `None` is a failed or unsupported lookup; an empty list is a
             # successful query that simply found no connection (EFA's

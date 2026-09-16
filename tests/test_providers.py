@@ -1,11 +1,11 @@
 """Tests for provider modules."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiohttp
 import pytest
 from homeassistant.util import dt as dt_util
-from openpublictransport import get_provider
+from openpublictransport import ApiError, get_provider
 from openpublictransport.providers.hvv import HVVProvider
 from openpublictransport.providers.kvv import KVVProvider
 from openpublictransport.providers.nta import NTAProvider
@@ -103,14 +103,17 @@ class TestVRRProvider:
 
     @pytest.mark.asyncio
     async def test_fetch_departures_error(self, provider):
+        """A 5xx raises with the status attached instead of looking like "no data"."""
         mock_response_obj = MagicMock()
         mock_response_obj.status = 500
 
         provider.session.get.return_value.__aenter__.return_value = mock_response_obj
 
-        result = await provider.fetch_departures("station123", "Düsseldorf", "Hauptbahnhof", 10)
+        with patch("asyncio.sleep", new_callable=AsyncMock):
+            with pytest.raises(ApiError) as excinfo:
+                await provider.fetch_departures("station123", "Düsseldorf", "Hauptbahnhof", 10)
 
-        assert result is None
+        assert excinfo.value.status == 500
 
     def test_parse_departure(self, provider):
         stop = {

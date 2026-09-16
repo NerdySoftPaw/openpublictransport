@@ -5,7 +5,7 @@ import logging
 from datetime import datetime
 from difflib import SequenceMatcher
 from typing import Any, Dict, List, Optional
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 import aiohttp
 import homeassistant.helpers.config_validation as cv
@@ -19,8 +19,24 @@ from homeassistant.components.application_credentials import (
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig, SelectSelectorMode
-from openpublictransport import get_provider, get_provider_class
+from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+    TextSelector,
+    TextSelectorConfig,
+    TextSelectorType,
+)
+from openpublictransport import (
+    ApiConnectionError,
+    ApiError,
+    ApiResponseError,
+    ApiTimeoutError,
+    AuthenticationError,
+    OpenPublicTransportError,
+    get_provider,
+    get_provider_class,
+)
 
 from .const import (
     CONF_DELAY_THRESHOLD,
@@ -73,6 +89,20 @@ from .filters import filter_discriminator, filter_label
 from .trip import supports_trip_planning
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _is_http_url(url: str) -> bool:
+    """Return True for a syntactically usable http(s) URL.
+
+    The form used to lean on ``cv.url`` for this, but a bare validator function
+    cannot be serialized into a form schema, so the step never rendered. The
+    check lives here instead, where it can report a translated error.
+    """
+    try:
+        parsed = urlparse(url)
+    except ValueError:
+        return False
+    return parsed.scheme in ("http", "https") and bool(parsed.netloc)
 
 
 class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
@@ -379,7 +409,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         errors: Dict[str, str] = {}
         if user_input is not None:
             url = user_input.get(CONF_OTP_BASE_URL, "").strip()
-            if not url:
+            if not _is_http_url(url):
                 errors[CONF_OTP_BASE_URL] = "otp_url_required"
             else:
                 api_key = user_input.get(CONF_OTP_CUSTOM_API_KEY, "").strip() or None
@@ -406,12 +436,15 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                         return await self.async_step_trip_search()
                     return await self.async_step_stop_search()
 
+        # A plain string with a URL-typed selector, not cv.url: HA cannot
+        # serialize a bare validator function into a form schema, which made
+        # this whole step fail to render.
         schema = vol.Schema(
             {
                 vol.Required(
                     CONF_OTP_BASE_URL,
                     description={"suggested_value": "http://192.168.1.10:8080/otp/routers/default"},
-                ): cv.url,
+                ): TextSelector(TextSelectorConfig(type=TextSelectorType.URL)),
                 vol.Optional(CONF_OTP_CUSTOM_API_KEY): str,
             }
         )
@@ -608,7 +641,11 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     )
                     if provider_instance:
                         await provider_instance.fetch_departures(station_id, "", station_id, 1)
-                except Exception:
+                except AuthenticationError as exc:
+                    _LOGGER.error("NTA rejected the API key: %s", exc)
+                    errors["base"] = "invalid_auth"
+                except Exception as exc:  # noqa: BLE001 — any failure means "not usable yet"
+                    _LOGGER.error("NTA connectivity check failed: %s", exc)
                     errors["base"] = "cannot_connect"
 
                 if not errors:
@@ -652,6 +689,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 errors={"base": "api_key_required"},
             )
         errors = {}
+        status_placeholder: Dict[str, str] = {"status": ""}
 
         if user_input is not None:
             # User selected a stop from dropdown
@@ -669,25 +707,25 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             else:
                 try:
                     stops = await self._search_stops(search_term)
-                except Exception as exc:
-                    _LOGGER.error("Stop search raised exception: %s", exc)
-                    stops = None
-
-                if not isinstance(stops, list):
-                    cache_key = self._get_cache_key(self._provider, search_term, "stop")
-                    self._search_cache.pop(cache_key, None)
+                except Exception as exc:  # noqa: BLE001 — mapped to a user-facing error below
+                    self._forget_search(search_term)
                     self._found_stops = []
-                    errors["stop_search"] = "api_error"
-                elif not stops:
-                    errors["stop_search"] = "no_results"
-                elif len(stops) == 1:
-                    self._selected_stop = stops[0]
-                    return await self.async_step_settings()
+                    errors["stop_search"] = self._search_error_key(exc, status_placeholder)
                 else:
-                    # Store results and show selection step
-                    self._found_stops = stops
-                    self._last_search_term = search_term
-                    return await self.async_step_stop_select()
+                    if not isinstance(stops, list):
+                        self._forget_search(search_term)
+                        self._found_stops = []
+                        errors["stop_search"] = "api_error"
+                    elif not stops:
+                        errors["stop_search"] = "no_results"
+                    elif len(stops) == 1:
+                        self._selected_stop = stops[0]
+                        return await self.async_step_settings()
+                    else:
+                        # Store results and show selection step
+                        self._found_stops = stops
+                        self._last_search_term = search_term
+                        return await self.async_step_stop_select()
 
         schema = vol.Schema(
             {
@@ -701,6 +739,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             errors=errors,
             description_placeholders={
                 "provider": self._provider.upper() if self._provider else "",
+                **status_placeholder,
             },
         )
 
@@ -956,6 +995,36 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             step_id="settings", data_schema=schema, description_placeholders={"stop": stop_name}
         )
 
+    def _forget_search(self, search_term: str) -> None:
+        """Drop a cached search so a failure is never served again from cache."""
+        cache_key = self._get_cache_key(self._provider, search_term, "stop")
+        self._search_cache.pop(cache_key, None)
+
+    def _search_error_key(self, exc: Exception, placeholders: Dict[str, str]) -> str:
+        """Map a failed stop search onto a translated config-flow error key.
+
+        Before the library raised (issue #88), every one of these cases ended up
+        as "no results found", which sent users hunting for a better search term
+        during a provider outage.
+        """
+        if isinstance(exc, AuthenticationError):
+            _LOGGER.error("Stop search authentication failed: %s", exc)
+            return "invalid_auth"
+        if isinstance(exc, (ApiTimeoutError, ApiConnectionError)):
+            _LOGGER.error("Stop search could not reach the provider: %s", exc)
+            return "cannot_connect"
+        if isinstance(exc, ApiError):
+            _LOGGER.error("Stop search failed: %s", exc)
+            placeholders["status"] = str(exc.status)
+            return "api_error"
+        if isinstance(exc, ApiResponseError):
+            # A 200 the provider's own parser could not use — there is no status
+            # to show, so it must not fall into the "(HTTP {status})" message.
+            _LOGGER.error("Stop search got an unusable response: %s", exc)
+            return "invalid_response"
+        _LOGGER.error("Stop search raised exception: %s", exc, exc_info=True)
+        return "unknown"
+
     async def _search_stops(self, search_term: str) -> List[Dict[str, Any]]:
         """Search for stops/stations using STOPFINDER API with caching.
 
@@ -994,11 +1063,19 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         if provider_instance:
             try:
                 results = await provider_instance.search_stops(search_term)
-                # Store in cache
+            except OpenPublicTransportError:
+                # Let API failures reach the flow step: it has to tell the user
+                # "the provider is down" instead of "no results found" (#88).
+                raise
+            except Exception as e:  # noqa: BLE001 — unexpected provider bug, not an API failure
+                # The library reports API failures as OpenPublicTransportError
+                # (handled above). Anything else is unexpected, so the legacy
+                # inline implementation below still gets its chance.
+                _LOGGER.error("Error searching stops with provider: %s", e, exc_info=True)
+            else:
+                # Only successful searches are cached; a failure must not stick.
                 self._store_in_cache(cache_key, results)
                 return results
-            except Exception as e:
-                _LOGGER.error("Error searching stops with provider: %s", e, exc_info=True)
 
         # Fallback to old implementation
         if self._provider == PROVIDER_TRAFIKLAB_SE:
@@ -1025,47 +1102,36 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
 
         try:
             async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
-                if response.status == 200:
-                    try:
-                        # content_type=None: some EFA hosts send RapidJSON with a
-                        # text/xml header (issue #79).
-                        data = await response.json(content_type=None)
-                    except (ValueError, aiohttp.ContentTypeError) as e:
-                        _LOGGER.error("Invalid JSON response from API: %s", e)
-                        return []
+                if response.status in (401, 403):
+                    raise AuthenticationError(self._provider, response.status)
+                if response.status != 200:
+                    raise ApiError(self._provider, response.status)
 
-                    # Validate response type
-                    if not isinstance(data, dict):
-                        _LOGGER.error("API returned non-dict response: %s", type(data))
-                        return []
+                try:
+                    # content_type=None: some EFA hosts send RapidJSON with a
+                    # text/xml header (issue #79).
+                    data = await response.json(content_type=None)
+                except (ValueError, aiohttp.ContentTypeError) as e:
+                    raise ApiResponseError(f"{self._provider}: invalid JSON response ({e})") from e
+        except asyncio.TimeoutError as e:
+            raise ApiTimeoutError(f"{self._provider}: stop search timed out after 10s") from e
+        except aiohttp.ClientError as e:
+            raise ApiConnectionError(f"{self._provider}: stop search connection failed ({e})") from e
 
-                    _LOGGER.debug(
-                        "API response type: %s, locations count: %s", type(data), len(data.get("locations", []))
-                    )
+        if not isinstance(data, dict):
+            raise ApiResponseError(f"{self._provider}: API returned {type(data).__name__} instead of an object")
 
-                    result = self._parse_stopfinder_response(data, search_type="stop", search_term=search_term)
+        _LOGGER.debug("API response type: %s, locations count: %s", type(data), len(data.get("locations", [])))
 
-                    # Ensure we always return a list
-                    if not isinstance(result, list):
-                        _LOGGER.error("_parse_stopfinder_response returned %s instead of list", type(result))
-                        return []
+        result = self._parse_stopfinder_response(data, search_type="stop", search_term=search_term)
 
-                    # Store in cache before returning
-                    self._store_in_cache(cache_key, result)
+        if not isinstance(result, list):
+            raise ApiResponseError(f"{self._provider}: stop search parser returned {type(result).__name__}")
 
-                    return result
-                elif response.status == 404:
-                    _LOGGER.error("API endpoint not found (404)")
-                elif response.status >= 500:
-                    _LOGGER.error("API server error (status %s)", response.status)
-                else:
-                    _LOGGER.error("API returned status %s", response.status)
-        except asyncio.TimeoutError:
-            _LOGGER.error("API request timeout after 10 seconds")
-        except Exception as e:
-            _LOGGER.error("Error searching stops: %s", e, exc_info=True)
+        # Store in cache before returning
+        self._store_in_cache(cache_key, result)
 
-        return []
+        return result
 
     async def _search_stops_nta(self, search_term: str) -> List[Dict[str, Any]]:
         """Search for stops - NTA requires direct stop_id input.
@@ -1115,8 +1181,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             List of stop dictionaries
         """
         if not self._api_key:
-            _LOGGER.error("Trafiklab API key is required for stop search")
-            return []
+            raise AuthenticationError(self._provider, 401, "Trafiklab: an API key is required")
 
         # URL encode the search term to handle special characters
         encoded_search = quote(search_term, safe="")
@@ -1125,6 +1190,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         session = async_get_clientsession(self.hass)
 
         max_retries = 3
+        last_error: Optional[OpenPublicTransportError] = None
         for attempt in range(1, max_retries + 1):
             try:
                 async with session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=10)) as response:
@@ -1132,19 +1198,21 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                         try:
                             data = await response.json()
                         except (ValueError, aiohttp.ContentTypeError) as e:
-                            _LOGGER.error("Invalid JSON response from Trafiklab API: %s", e)
+                            last_error = ApiResponseError(f"Trafiklab: invalid JSON response ({e})")
                             if attempt < max_retries:
                                 await asyncio.sleep(2**attempt)
                                 continue
-                            return []
+                            raise last_error
 
                         # Validate response type
                         if not isinstance(data, dict):
-                            _LOGGER.error("Trafiklab API returned non-dict response: %s", type(data))
+                            last_error = ApiResponseError(
+                                f"Trafiklab: API returned {type(data).__name__} instead of an object"
+                            )
                             if attempt < max_retries:
                                 await asyncio.sleep(2**attempt)
                                 continue
-                            return []
+                            raise last_error
 
                         # Parse Trafiklab response
                         stop_groups = data.get("stop_groups", [])
@@ -1176,59 +1244,36 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                         self._store_in_cache(cache_key, results)
 
                         return results
-                    elif response.status == 401:
-                        _LOGGER.error("Trafiklab API authentication failed (401) - check API key")
-                        # Don't retry on auth errors
-                        return []
+                    elif response.status in (401, 403):
+                        # Never retry a rejected key — it will stay rejected.
+                        raise AuthenticationError(self._provider, response.status)
                     elif response.status == 404:
-                        _LOGGER.warning("Trafiklab API endpoint not found (404) - stop may not exist")
-                        # Don't retry on 404
-                        return []
-                    elif response.status >= 500:
-                        _LOGGER.warning(
-                            "Trafiklab API server error (status %s) on attempt %d/%d",
-                            response.status,
-                            attempt,
-                            max_retries,
-                        )
-                        # Retry on server errors
-                        if attempt < max_retries:
-                            await asyncio.sleep(2**attempt)
-                            continue
-                        _LOGGER.error(
-                            "Trafiklab API server error (status %s) after %d attempts. "
-                            "The Trafiklab service may be temporarily unavailable.",
-                            response.status,
-                            max_retries,
-                        )
+                        # Never retry a dead endpoint either.
+                        raise ApiError(self._provider, 404)
                     else:
                         _LOGGER.warning(
                             "Trafiklab API returned status %s on attempt %d/%d", response.status, attempt, max_retries
                         )
+                        last_error = ApiError(self._provider, response.status)
                         if attempt < max_retries:
                             await asyncio.sleep(2**attempt)
                             continue
-            except asyncio.TimeoutError:
+            except asyncio.TimeoutError as e:
                 _LOGGER.warning("Trafiklab API request timeout on attempt %d/%d", attempt, max_retries)
+                last_error = ApiTimeoutError("Trafiklab: stop search timed out after 10s")
+                last_error.__cause__ = e
                 if attempt < max_retries:
                     await asyncio.sleep(2**attempt)
                     continue
-                _LOGGER.error("Trafiklab API request timeout after %d attempts", max_retries)
             except ClientConnectorError as e:
                 _LOGGER.warning("Trafiklab API connection error on attempt %d/%d: %s", attempt, max_retries, e)
-                if attempt < max_retries:
-                    await asyncio.sleep(2**attempt)
-                    continue
-                _LOGGER.error("Trafiklab API connection failed after %d attempts: %s", max_retries, e)
-            except Exception as e:
-                _LOGGER.error(
-                    "Error searching Trafiklab stops on attempt %d/%d: %s", attempt, max_retries, e, exc_info=True
-                )
+                last_error = ApiConnectionError(f"Trafiklab: stop search connection failed ({e})")
+                last_error.__cause__ = e
                 if attempt < max_retries:
                     await asyncio.sleep(2**attempt)
                     continue
 
-        return []
+        raise last_error if last_error else ApiConnectionError("Trafiklab: stop search failed")
 
     def _parse_stopfinder_response(
         self, data: Dict[str, Any], search_type: str = "stop", search_term: str = ""
@@ -1609,6 +1654,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
     async def async_step_trip_search(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Handle trip stop search (used for both origin and destination)."""
         errors = {}
+        status_placeholder: Dict[str, str] = {"status": ""}
         phase = self._trip_search_phase  # "origin" or "destination"
 
         if user_input is not None:
@@ -1616,21 +1662,26 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             if not search_term:
                 errors["stop_search"] = "empty_search"
             else:
-                stops = await self._search_stops(search_term)
-                if not stops:
-                    errors["stop_search"] = "no_results"
-                elif len(stops) == 1:
-                    if phase == "origin":
-                        self._trip_origin = stops[0]
-                        self._trip_search_phase = "destination"
-                        return await self.async_step_trip_search()
-                    else:
-                        self._trip_destination = stops[0]
-                        return await self.async_step_trip_settings()
+                try:
+                    stops = await self._search_stops(search_term)
+                except Exception as exc:  # noqa: BLE001 — mapped to a user-facing error below
+                    self._forget_search(search_term)
+                    errors["stop_search"] = self._search_error_key(exc, status_placeholder)
                 else:
-                    self._found_stops = stops
-                    self._last_search_term = search_term
-                    return await self.async_step_trip_select()
+                    if not stops:
+                        errors["stop_search"] = "no_results"
+                    elif len(stops) == 1:
+                        if phase == "origin":
+                            self._trip_origin = stops[0]
+                            self._trip_search_phase = "destination"
+                            return await self.async_step_trip_search()
+                        else:
+                            self._trip_destination = stops[0]
+                            return await self.async_step_trip_settings()
+                    else:
+                        self._found_stops = stops
+                        self._last_search_term = search_term
+                        return await self.async_step_trip_select()
 
         if phase == "origin":
             title = "Starthaltestelle / Origin"
@@ -1645,7 +1696,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             step_id="trip_search",
             data_schema=schema,
             errors=errors,
-            description_placeholders={"title": title, "desc": desc},
+            description_placeholders={"title": title, "desc": desc, **status_placeholder},
         )
 
     async def async_step_trip_select(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:

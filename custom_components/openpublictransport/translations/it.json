@@ -138,7 +138,14 @@
       "nta_api_key_required": "L'API Key NTA è obbligatoria",
       "rmv_api_key_required": "L'API Key RMV è obbligatoria",
       "min_two_entities": "Fornisci almeno 2 ID entità",
-      "hvv_gti_credentials_required": "Sono richiesti sia il nome utente sia la password GTI (gratuiti via e-mail a api@hochbahn.de)"
+      "hvv_gti_credentials_required": "Sono richiesti sia il nome utente sia la password GTI (gratuiti via e-mail a api@hochbahn.de)",
+      "api_error": "Il fornitore ha restituito un errore (HTTP {status}). Riprova più tardi.",
+      "cannot_connect": "Impossibile raggiungere il fornitore. Controlla la connessione a Internet e l'URL.",
+      "invalid_auth": "Autenticazione non riuscita — controlla la chiave API.",
+      "station_id_required": "L'ID della stazione è obbligatorio",
+      "vbn_api_key_required": "È richiesta una chiave API VBN",
+      "invalid_response": "Il fornitore ha restituito una risposta inutilizzabile. Riprova più tardi.",
+      "unknown": "Errore imprevisto — controlla i log."
     }
   },
   "options": {

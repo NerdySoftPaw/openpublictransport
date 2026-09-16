@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from openpublictransport import ApiError, AuthenticationError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.openpublictransport import async_setup
@@ -308,6 +309,51 @@ async def test_plan_trip_raises_on_failure(hass: HomeAssistant):
         new_callable=AsyncMock, return_value=None,
     ):
         with pytest.raises((HomeAssistantError, Exception)):
+            await hass.services.async_call(
+                DOMAIN, "plan_trip",
+                {
+                    "provider": "vrr",
+                    "origin": "Düsseldorf Hbf",
+                    "origin_city": "Düsseldorf",
+                    "destination": "Köln Hbf",
+                    "destination_city": "Köln",
+                },
+                blocking=True,
+            )
+
+
+async def test_plan_trip_reports_the_http_status(hass: HomeAssistant):
+    """The action names the status instead of pointing the user at the logs (#88)."""
+    await _setup_services(hass)
+
+    with patch(
+        "custom_components.openpublictransport.async_plan_trip",
+        new_callable=AsyncMock, side_effect=ApiError("vrr", 503),
+    ):
+        with pytest.raises(HomeAssistantError) as excinfo:
+            await hass.services.async_call(
+                DOMAIN, "plan_trip",
+                {
+                    "provider": "vrr",
+                    "origin": "Düsseldorf Hbf",
+                    "origin_city": "Düsseldorf",
+                    "destination": "Köln Hbf",
+                    "destination_city": "Köln",
+                },
+                blocking=True,
+            )
+
+    assert "503" in str(excinfo.value)
+
+
+async def test_plan_trip_reports_a_rejected_key(hass: HomeAssistant):
+    await _setup_services(hass)
+
+    with patch(
+        "custom_components.openpublictransport.async_plan_trip",
+        new_callable=AsyncMock, side_effect=AuthenticationError("vrr", 401),
+    ):
+        with pytest.raises(HomeAssistantError):
             await hass.services.async_call(
                 DOMAIN, "plan_trip",
                 {

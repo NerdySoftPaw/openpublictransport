@@ -6,6 +6,7 @@ import pytest
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from openpublictransport import ApiError
 
 from custom_components.openpublictransport.const import (
     CONF_DEPARTURES,
@@ -269,7 +270,24 @@ async def test_duplicate_entry_abort(hass: HomeAssistant):
 
 
 async def test_stop_search_api_error(hass: HomeAssistant):
-    """When _search_stops raises an exception, show api_error."""
+    """A provider API failure shows api_error with the HTTP status."""
+    result = await _init_flow(hass)
+    result = await _select_provider(hass, result["flow_id"])
+
+    with patch(
+        "custom_components.openpublictransport.config_flow.OpenPublicTransportConfigFlow._search_stops",
+        side_effect=ApiError("vrr", 503),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={"stop_search": "Hauptbahnhof"}
+        )
+        assert result["step_id"] == "stop_search"
+        assert result["errors"]["stop_search"] == "api_error"
+        assert result["description_placeholders"]["status"] == "503"
+
+
+async def test_stop_search_unexpected_error(hass: HomeAssistant):
+    """An error that is not an API failure is reported as unknown, not api_error."""
     result = await _init_flow(hass)
     result = await _select_provider(hass, result["flow_id"])
 
@@ -280,8 +298,7 @@ async def test_stop_search_api_error(hass: HomeAssistant):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], user_input={"stop_search": "Hauptbahnhof"}
         )
-        assert result["step_id"] == "stop_search"
-        assert result["errors"]["stop_search"] == "api_error"
+        assert result["errors"]["stop_search"] == "unknown"
 
 
 async def test_otp_custom_url_flow(hass: HomeAssistant):

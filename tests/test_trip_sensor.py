@@ -538,3 +538,127 @@ async def test_trip_sensor_empty_result_not_stale(hass: HomeAssistant):
     coordinator.data = []  # valid empty result arrives
     assert sensor.native_value == "No connections"
     assert sensor.extra_state_attributes == {}
+
+
+# ── line / transport-type filters (issue #87) ─────────────────────────────────
+
+def _journey(*legs, departure="10:00"):
+    """Build a parsed journey out of (line, transport_type) pairs."""
+    return {
+        "departure": departure,
+        "arrival": "10:30",
+        "legs": [{"line": line, "transport_type": transport_type} for line, transport_type in legs],
+    }
+
+
+def _filtering_coordinator(hass, line_filter=None, transport_types=None):
+    return TripDataUpdateCoordinator(
+        hass,
+        provider="vrr",
+        origin="Dortmund Hbf",
+        origin_city="Dortmund",
+        destination="Dortmund Stadtgarten",
+        destination_city="Dortmund",
+        scan_interval=120,
+        line_filter=line_filter,
+        transport_types=transport_types,
+    )
+
+
+async def test_unfiltered_coordinator_keeps_every_journey(hass: HomeAssistant):
+    """Without filters the journey list is passed through untouched."""
+    coordinator = _filtering_coordinator(hass)
+    journeys = [_journey(("U43", "subway")), _journey(("400", "bus"))]
+
+    assert coordinator._apply_filters(journeys) == journeys
+
+
+async def test_line_filter_drops_journey_using_another_line(hass: HomeAssistant):
+    """The bus 400 connection disappears once only U43/U47 are wanted."""
+    coordinator = _filtering_coordinator(hass, line_filter={"u43", "u47"})
+    wanted = _journey(("U43", "subway"))
+    journeys = [wanted, _journey(("400", "bus"))]
+
+    assert coordinator._apply_filters(journeys) == [wanted]
+
+
+async def test_line_filter_rejects_journey_with_one_bad_leg(hass: HomeAssistant):
+    """One disallowed leg removes the whole connection, not just that leg."""
+    coordinator = _filtering_coordinator(hass, line_filter={"u43"})
+    journeys = [_journey(("U43", "subway"), ("400", "bus"))]
+
+    assert coordinator._apply_filters(journeys) == []
+
+
+async def test_line_filter_ignores_walking_legs(hass: HomeAssistant):
+    """A walk carries no line and must not fail the filter."""
+    coordinator = _filtering_coordinator(hass, line_filter={"u43"})
+    journey = _journey(("", "walk"), ("U43", "subway"))
+
+    assert coordinator._apply_filters([journey]) == [journey]
+
+
+async def test_transport_type_filter_drops_deselected_type(hass: HomeAssistant):
+    """Deselecting 'bus' on the device removes bus connections."""
+    coordinator = _filtering_coordinator(hass, transport_types={"subway", "tram", "train"})
+    wanted = _journey(("U43", "subway"))
+    journeys = [wanted, _journey(("400", "bus"))]
+
+    assert coordinator._apply_filters(journeys) == [wanted]
+
+
+async def test_transport_type_filter_keeps_types_the_form_never_offered(hass: HomeAssistant):
+    """A ferry leg survives the default selection, which cannot deselect it."""
+    coordinator = _filtering_coordinator(hass, transport_types={"bus", "tram", "subway", "train"})
+    journey = _journey(("F1", "ferry"))
+
+    assert coordinator._apply_filters([journey]) == [journey]
+
+
+async def test_unknown_transport_type_is_not_filtered(hass: HomeAssistant):
+    """An untypable leg is kept rather than hidden on a guess."""
+    coordinator = _filtering_coordinator(hass, transport_types={"subway"})
+    journey = _journey(("X1", "unknown"))
+
+    assert coordinator._apply_filters([journey]) == [journey]
+
+
+async def test_filters_applied_to_fetched_data(hass: HomeAssistant):
+    """The coordinator filters what the provider returns, not just in isolation."""
+    coordinator = _filtering_coordinator(hass, line_filter={"u43"})
+    fetched = [_journey(("U43", "subway")), _journey(("400", "bus"))]
+
+    with patch(
+        "custom_components.openpublictransport.trip_sensor.async_plan_trip",
+        new_callable=AsyncMock, return_value=fetched,
+    ):
+        result = await coordinator._async_update_data()
+
+    assert [leg["line"] for journey in result for leg in journey["legs"]] == ["U43"]
+
+
+async def test_setup_reads_filters_from_entry_options(hass: HomeAssistant):
+    """A trip device's configured filters reach the coordinator (issue #87)."""
+    entry = _make_trip_entry(options={"line_filter": "U43, U47", "transportation_types": ["subway", "tram"]})
+    entry.add_to_hass(hass)
+
+    with patch.object(TripDataUpdateCoordinator, "async_config_entry_first_refresh", new_callable=AsyncMock):
+        with patch("homeassistant.config_entries.ConfigEntries.async_forward_entry_setups", new_callable=AsyncMock):
+            await async_setup_trip_entry(hass, entry)
+
+    coordinator = entry.runtime_data
+    assert coordinator.line_filter == {"u43", "u47"}
+    assert coordinator.transport_types == {"subway", "tram"}
+
+
+async def test_options_update_refreshes_filters(hass: HomeAssistant):
+    """Editing the filters takes effect without a restart."""
+    coordinator = _filtering_coordinator(hass)
+    entry = _make_trip_entry(options={"line_filter": "U47", "transportation_types": ["subway"]})
+    sensor = TripSensor(coordinator, entry)
+    coordinator.async_request_refresh = AsyncMock()
+
+    await sensor._async_update_listener(hass, entry)
+
+    assert coordinator.line_filter == {"u47"}
+    assert coordinator.transport_types == {"subway"}

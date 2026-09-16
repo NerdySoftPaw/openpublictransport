@@ -11,6 +11,7 @@ from openpublictransport import ApiConnectionError, ApiError, ApiResponseError
 
 from custom_components.openpublictransport.trip import (
     _format_time,
+    _leg_transport_type,
     _ms_to_hhmm,
     _parse_journeys,
     _parse_otp_itineraries,
@@ -584,3 +585,79 @@ async def test_plan_trip_efa_non_dict_response(hass: HomeAssistant):
 
         with pytest.raises(ApiResponseError):
             await async_plan_trip(hass, "vrr", "A", "City", "B", "City")
+
+
+# ── transport type on a leg (issue #87) ───────────────────────────────────────
+
+def test_leg_transport_type_from_product_class():
+    """The provider's product-class mapping types a leg like a departure."""
+    assert _leg_transport_type({"class": 5, "name": "Stadtbus"}, {5: "bus"}) == "bus"
+    assert _leg_transport_type({"class": 2, "name": "U-Bahn"}, {2: "subway"}) == "subway"
+
+
+def test_leg_transport_type_falls_back_to_product_name():
+    """An unmapped class is typed from the product name instead of dropped."""
+    assert _leg_transport_type({"class": 42, "name": "Regionalbus"}, {5: "bus"}) == "bus"
+    assert _leg_transport_type({"class": 42, "name": "Stadtbahn"}, {}) == "tram"
+    assert _leg_transport_type({"name": "S-Bahn"}, None) == "train"
+
+
+def test_leg_transport_type_unknown_when_nothing_matches():
+    """An unrecognisable product stays 'unknown' so filters can let it pass."""
+    assert _leg_transport_type({"class": 42, "name": "Luftkissenboot"}, {}) == "unknown"
+
+
+def test_leg_transport_type_walk():
+    """A footpath is not a vehicle, whether detected by class or by name."""
+    assert _leg_transport_type({"class": 99, "name": "Fussweg"}, {99: "bus"}) == "walk"
+    assert _leg_transport_type({"name": "Fußweg"}, {}) == "walk"
+
+
+def test_parse_journeys_types_each_leg():
+    """_parse_journeys resolves a unified transport type per leg."""
+    journeys = [
+        {
+            "legs": [
+                {
+                    "origin": {"name": "A", "departureTimePlanned": "2025-01-15T10:00:00+01:00"},
+                    "destination": {"name": "B", "arrivalTimePlanned": "2025-01-15T10:05:00+01:00"},
+                    "transportation": {"number": "", "product": {"class": 99, "name": "Fussweg"}},
+                    "duration": 300,
+                },
+                {
+                    "origin": {"name": "B", "departureTimePlanned": "2025-01-15T10:10:00+01:00"},
+                    "destination": {"name": "C", "arrivalTimePlanned": "2025-01-15T10:30:00+01:00"},
+                    "transportation": {"number": "U43", "product": {"class": 2, "name": "U-Bahn"}},
+                    "duration": 1200,
+                },
+            ],
+            "interchanges": 0,
+        }
+    ]
+    legs = _parse_journeys(journeys, {2: "subway"})[0]["legs"]
+    assert [leg["transport_type"] for leg in legs] == ["walk", "subway"]
+    # The raw provider name stays available for display
+    assert legs[1]["product"] == "U-Bahn"
+
+
+def test_parse_otp_itineraries_types_each_leg():
+    """OTP modes are already unified types and are exposed as such."""
+    itineraries = [
+        {
+            "legs": [
+                {
+                    "transitLeg": True,
+                    "mode": "BUS",
+                    "startTime": 1705312200000,
+                    "endTime": 1705313400000,
+                    "from": {"name": "A"},
+                    "to": {"name": "B"},
+                    "trip": {"route": {"shortName": "400"}},
+                    "duration": 1200,
+                }
+            ]
+        }
+    ]
+    leg = _parse_otp_itineraries(itineraries)[0]["legs"][0]
+    assert leg["transport_type"] == "bus"
+    assert leg["product"] == "bus"

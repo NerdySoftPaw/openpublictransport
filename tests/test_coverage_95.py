@@ -274,7 +274,7 @@ async def _start_trafiklab_flow_to_search(hass: HomeAssistant):
 
 
 async def test_trafiklab_search_401(hass: HomeAssistant):
-    """Cover lines 980-983: Trafiklab 401 → no retry, return []."""
+    """Trafiklab 401 → no retry, reported as invalid_auth rather than "no results"."""
     flow_id = await _start_trafiklab_flow_to_search(hass)
 
     mock_resp = MagicMock()
@@ -293,11 +293,11 @@ async def test_trafiklab_search_401(hass: HomeAssistant):
                 flow_id, user_input={"stop_search": "Stockholm"}
             )
     assert result["step_id"] == "stop_search"
-    assert result.get("errors", {}).get("stop_search") == "no_results"
+    assert result.get("errors", {}).get("stop_search") == "invalid_auth"
 
 
 async def test_trafiklab_search_404(hass: HomeAssistant):
-    """Cover lines 984-987: Trafiklab 404 → no retry, return []."""
+    """Trafiklab 404 → no retry, reported as an API error."""
     flow_id = await _start_trafiklab_flow_to_search(hass)
 
     mock_resp = MagicMock()
@@ -316,10 +316,11 @@ async def test_trafiklab_search_404(hass: HomeAssistant):
                 flow_id, user_input={"stop_search": "Göteborg"}
             )
     assert result["step_id"] == "stop_search"
+    assert result.get("errors", {}).get("stop_search") == "api_error"
 
 
 async def test_trafiklab_search_500_all_retries(hass: HomeAssistant):
-    """Cover lines 988-1011: Trafiklab 500 → retry 3 times, return []."""
+    """Trafiklab 500 → retry 3 times, then report an API error."""
     flow_id = await _start_trafiklab_flow_to_search(hass)
 
     mock_resp = MagicMock()
@@ -338,10 +339,11 @@ async def test_trafiklab_search_500_all_retries(hass: HomeAssistant):
                     flow_id, user_input={"stop_search": "Malmö"}
                 )
     assert result["step_id"] == "stop_search"
+    assert result.get("errors", {}).get("stop_search") == "api_error"
 
 
 async def test_trafiklab_search_timeout(hass: HomeAssistant):
-    """Cover lines 1012-1017: Trafiklab timeout → retry exhausted, return []."""
+    """Trafiklab timeout → retry exhausted, reported as cannot_connect."""
     flow_id = await _start_trafiklab_flow_to_search(hass)
 
     with patch("custom_components.openpublictransport.config_flow.get_provider") as mock_gp:
@@ -355,10 +357,11 @@ async def test_trafiklab_search_timeout(hass: HomeAssistant):
                     flow_id, user_input={"stop_search": "Lund"}
                 )
     assert result["step_id"] == "stop_search"
+    assert result.get("errors", {}).get("stop_search") == "cannot_connect"
 
 
 async def test_trafiklab_search_connection_error(hass: HomeAssistant):
-    """Cover lines 1018-1023: Trafiklab ClientConnectorError → retry exhausted."""
+    """Trafiklab ClientConnectorError → retry exhausted, reported as cannot_connect."""
     flow_id = await _start_trafiklab_flow_to_search(hass)
 
     conn_err = ClientConnectorError(MagicMock(), OSError("refused"))
@@ -372,6 +375,7 @@ async def test_trafiklab_search_connection_error(hass: HomeAssistant):
                 result = await hass.config_entries.flow.async_configure(
                     flow_id, user_input={"stop_search": "Uppsala"}
                 )
+    assert result.get("errors", {}).get("stop_search") == "cannot_connect"
     assert result["step_id"] == "stop_search"
 
 

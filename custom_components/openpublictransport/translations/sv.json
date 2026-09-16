@@ -138,7 +138,14 @@
       "nta_api_key_required": "NTA API-nyckel krävs",
       "rmv_api_key_required": "RMV API-nyckel krävs",
       "min_two_entities": "Ange minst 2 entitets-ID:n",
-      "hvv_gti_credentials_required": "Både GTI-användarnamn och lösenord krävs (begär dem gratis via e-post till api@hochbahn.de)"
+      "hvv_gti_credentials_required": "Både GTI-användarnamn och lösenord krävs (begär dem gratis via e-post till api@hochbahn.de)",
+      "api_error": "Leverantören svarade med ett fel (HTTP {status}). Försök igen senare.",
+      "cannot_connect": "Kunde inte nå leverantören. Kontrollera internetanslutningen och adressen.",
+      "invalid_auth": "Autentiseringen misslyckades — kontrollera din API-nyckel.",
+      "station_id_required": "Hållplats-ID krävs",
+      "vbn_api_key_required": "VBN API-nyckel krävs",
+      "invalid_response": "Leverantören gav ett oanvändbart svar. Försök igen senare.",
+      "unknown": "Oväntat fel — se loggen."
     }
   },
   "options": {

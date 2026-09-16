@@ -5,6 +5,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
+from openpublictransport import (
+    ApiConnectionError,
+    ApiError,
+    ApiResponseError,
+    ApiTimeoutError,
+    AuthenticationError,
+)
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.openpublictransport.const import (
@@ -311,3 +318,137 @@ async def test_efa_stop_search_non_dict_json(hass: HomeAssistant):
             )
 
     assert result2["step_id"] == "stop_search"
+
+
+# ── outage vs. empty result (issue #88) ───────────────────────────────────────
+#
+# Before the library raised typed exceptions, every one of these ended up as
+# "no_results", so a user hit by a provider outage was told their search term
+# was wrong. Each case must now map to its own translated error key.
+
+
+async def _search_with_provider_error(hass: HomeAssistant, error: Exception):
+    """Run one stop search whose provider raises, and return the flow result."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "user"},
+        data={"entry_type": "departures", CONF_PROVIDER: PROVIDER_KVV},
+    )
+
+    with patch("custom_components.openpublictransport.config_flow.get_provider") as mock_gp:
+        mock_provider = AsyncMock()
+        mock_provider.search_stops = AsyncMock(side_effect=error)
+        mock_gp.return_value = mock_provider
+
+        return await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={"stop_search": "Marktplatz"}
+        )
+
+
+async def test_stop_search_server_error_shows_api_error(hass: HomeAssistant):
+    result = await _search_with_provider_error(hass, ApiError(PROVIDER_KVV, 503))
+
+    assert result["step_id"] == "stop_search"
+    assert result["errors"]["stop_search"] == "api_error"
+    assert result["description_placeholders"]["status"] == "503"
+
+
+async def test_stop_search_auth_error_shows_invalid_auth(hass: HomeAssistant):
+    result = await _search_with_provider_error(hass, AuthenticationError(PROVIDER_KVV, 401))
+
+    assert result["errors"]["stop_search"] == "invalid_auth"
+
+
+async def test_stop_search_timeout_shows_cannot_connect(hass: HomeAssistant):
+    result = await _search_with_provider_error(hass, ApiTimeoutError("timed out"))
+
+    assert result["errors"]["stop_search"] == "cannot_connect"
+
+
+async def test_stop_search_connection_error_shows_cannot_connect(hass: HomeAssistant):
+    result = await _search_with_provider_error(hass, ApiConnectionError("no route"))
+
+    assert result["errors"]["stop_search"] == "cannot_connect"
+
+
+async def test_stop_search_empty_result_still_shows_no_results(hass: HomeAssistant):
+    """The distinction only works if a genuinely empty search keeps its own key."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "user"},
+        data={"entry_type": "departures", CONF_PROVIDER: PROVIDER_KVV},
+    )
+
+    with patch("custom_components.openpublictransport.config_flow.get_provider") as mock_gp:
+        mock_provider = AsyncMock()
+        mock_provider.search_stops = AsyncMock(return_value=[])
+        mock_gp.return_value = mock_provider
+
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={"stop_search": "zzzzz"}
+        )
+
+    assert result2["errors"]["stop_search"] == "no_results"
+
+
+async def test_failed_stop_search_is_not_cached(hass: HomeAssistant):
+    """A retry after an outage must hit the API again, not a cached failure."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "user"},
+        data={"entry_type": "departures", CONF_PROVIDER: PROVIDER_KVV},
+    )
+
+    with patch("custom_components.openpublictransport.config_flow.get_provider") as mock_gp:
+        mock_provider = AsyncMock()
+        mock_provider.search_stops = AsyncMock(
+            side_effect=[
+                ApiError(PROVIDER_KVV, 503),
+                [{"id": "de:08212:1", "name": "Marktplatz", "place": "Karlsruhe"}],
+            ]
+        )
+        mock_gp.return_value = mock_provider
+
+        failed = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={"stop_search": "Marktplatz"}
+        )
+        assert failed["errors"]["stop_search"] == "api_error"
+
+        recovered = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={"stop_search": "Marktplatz"}
+        )
+
+    assert recovered["step_id"] == "settings"
+    assert mock_provider.search_stops.call_count == 2
+
+
+async def test_trip_search_server_error_shows_api_error(hass: HomeAssistant):
+    """The trip flow had no error handling at all — a raise escaped the step."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "user"},
+        data={"entry_type": "trip", CONF_PROVIDER: PROVIDER_KVV},
+    )
+    assert result["step_id"] == "trip_search"
+
+    with patch("custom_components.openpublictransport.config_flow.get_provider") as mock_gp:
+        mock_provider = AsyncMock()
+        mock_provider.search_stops = AsyncMock(side_effect=ApiError(PROVIDER_KVV, 503))
+        mock_gp.return_value = mock_provider
+
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={"stop_search": "Marktplatz"}
+        )
+
+    assert result2["step_id"] == "trip_search"
+    assert result2["errors"]["stop_search"] == "api_error"
+    assert result2["description_placeholders"]["status"] == "503"
+
+
+async def test_stop_search_unusable_payload_shows_invalid_response(hass: HomeAssistant):
+    """ApiResponseError has no status, so it must not land in the "(HTTP {status})" text."""
+    result = await _search_with_provider_error(hass, ApiResponseError("bad payload"))
+
+    assert result["errors"]["stop_search"] == "invalid_response"
+
+
+async def test_stop_search_unexpected_error_shows_unknown(hass: HomeAssistant):
+    result = await _search_with_provider_error(hass, RuntimeError("boom"))
+
+    assert result["errors"]["stop_search"] == "unknown"

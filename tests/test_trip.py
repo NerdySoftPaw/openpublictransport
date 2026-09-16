@@ -3,9 +3,11 @@
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import aiohttp
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
+from openpublictransport import ApiConnectionError, ApiError, ApiResponseError
 
 from custom_components.openpublictransport.trip import (
     _format_time,
@@ -518,7 +520,7 @@ async def test_plan_trip_efa_success(hass: HomeAssistant):
 
 
 async def test_plan_trip_efa_non_200(hass: HomeAssistant):
-    """Test EFA trip planning returns None on non-200 response."""
+    """A non-200 raises with the status, so the caller can say what went wrong."""
     mock_response = AsyncMock()
     mock_response.status = 500
     mock_response.__aenter__ = AsyncMock(return_value=mock_response)
@@ -529,21 +531,21 @@ async def test_plan_trip_efa_non_200(hass: HomeAssistant):
         mock_session.get = MagicMock(return_value=mock_response)
         mock_session_fn.return_value = mock_session
 
-        result = await async_plan_trip(hass, "vrr", "A", "City", "B", "City")
+        with pytest.raises(ApiError) as excinfo:
+            await async_plan_trip(hass, "vrr", "A", "City", "B", "City")
 
-    assert result is None
+    assert excinfo.value.status == 500
 
 
-async def test_plan_trip_efa_exception(hass: HomeAssistant):
-    """Test EFA trip planning handles exception gracefully."""
+async def test_plan_trip_efa_connection_error(hass: HomeAssistant):
+    """A dead connection surfaces as ApiConnectionError, not as "no connection found"."""
     with patch("custom_components.openpublictransport.trip.async_get_clientsession") as mock_session_fn:
         mock_session = MagicMock()
-        mock_session.get = MagicMock(side_effect=Exception("Network error"))
+        mock_session.get = MagicMock(side_effect=aiohttp.ClientConnectionError("Network error"))
         mock_session_fn.return_value = mock_session
 
-        result = await async_plan_trip(hass, "vrr", "A", "City", "B", "City")
-
-    assert result is None
+        with pytest.raises(ApiConnectionError):
+            await async_plan_trip(hass, "vrr", "A", "City", "B", "City")
 
 
 async def test_plan_trip_efa_with_stop_ids(hass: HomeAssistant):
@@ -568,7 +570,7 @@ async def test_plan_trip_efa_with_stop_ids(hass: HomeAssistant):
 
 
 async def test_plan_trip_efa_non_dict_response(hass: HomeAssistant):
-    """Test EFA trip planning returns None for non-dict response."""
+    """An unusable 200 payload raises rather than looking like an empty result."""
     mock_response = AsyncMock()
     mock_response.status = 200
     mock_response.json = AsyncMock(return_value=[])
@@ -580,6 +582,5 @@ async def test_plan_trip_efa_non_dict_response(hass: HomeAssistant):
         mock_session.get = MagicMock(return_value=mock_response)
         mock_session_fn.return_value = mock_session
 
-        result = await async_plan_trip(hass, "vrr", "A", "City", "B", "City")
-
-    assert result is None
+        with pytest.raises(ApiResponseError):
+            await async_plan_trip(hass, "vrr", "A", "City", "B", "City")

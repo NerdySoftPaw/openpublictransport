@@ -5,7 +5,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util import dt as dt_util
+from openpublictransport import ApiError, ApiTimeoutError, AuthenticationError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.openpublictransport.const import (
@@ -115,6 +118,47 @@ async def test_failed_lookup_does_not_stamp_a_success_time(hass: HomeAssistant):
 
     assert result is None
     assert coordinator.last_update_success_time is None
+
+
+# ── API failures make the entity unavailable (issue #88) ──────────────────────
+#
+# This coordinator had no exception handling at all: an outage left the entity
+# "available", quietly serving its last known connection.
+
+
+async def test_api_error_fails_the_update(hass: HomeAssistant):
+    coordinator = _make_trip_coordinator(hass)
+
+    with patch(
+        "custom_components.openpublictransport.trip_sensor.async_plan_trip",
+        new_callable=AsyncMock, side_effect=ApiError("vrr", 503),
+    ):
+        with pytest.raises(UpdateFailed) as excinfo:
+            await coordinator._async_update_data()
+
+    assert "503" in str(excinfo.value)
+
+
+async def test_connection_error_fails_the_update(hass: HomeAssistant):
+    coordinator = _make_trip_coordinator(hass)
+
+    with patch(
+        "custom_components.openpublictransport.trip_sensor.async_plan_trip",
+        new_callable=AsyncMock, side_effect=ApiTimeoutError("timed out"),
+    ):
+        with pytest.raises(UpdateFailed):
+            await coordinator._async_update_data()
+
+
+async def test_auth_error_triggers_reauth(hass: HomeAssistant):
+    coordinator = _make_trip_coordinator(hass)
+
+    with patch(
+        "custom_components.openpublictransport.trip_sensor.async_plan_trip",
+        new_callable=AsyncMock, side_effect=AuthenticationError("vrr", 401),
+    ):
+        with pytest.raises(ConfigEntryAuthFailed):
+            await coordinator._async_update_data()
 
 
 # ── departed connections are dropped (issue #72) ──────────────────────────────

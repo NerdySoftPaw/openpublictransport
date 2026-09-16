@@ -152,7 +152,14 @@
       "nta_api_key_required": "NTA API-Schlüssel ist erforderlich",
       "rmv_api_key_required": "RMV API-Schlüssel ist erforderlich",
       "min_two_entities": "Bitte mindestens 2 Entity-IDs angeben",
-      "hvv_gti_credentials_required": "GTI-Benutzername und -Passwort sind beide erforderlich (kostenlos anfragen per E-Mail an api@hochbahn.de)"
+      "hvv_gti_credentials_required": "GTI-Benutzername und -Passwort sind beide erforderlich (kostenlos anfragen per E-Mail an api@hochbahn.de)",
+      "api_error": "Fehler beim Anbieter (HTTP {status}). Bitte versuche es später erneut.",
+      "cannot_connect": "Der Anbieter ist nicht erreichbar. Bitte Internetverbindung und URL prüfen.",
+      "invalid_auth": "Authentifizierung fehlgeschlagen — bitte den API-Schlüssel prüfen.",
+      "station_id_required": "Stations-ID ist erforderlich",
+      "vbn_api_key_required": "VBN API-Schlüssel ist erforderlich",
+      "invalid_response": "Der Anbieter hat eine unbrauchbare Antwort geliefert. Bitte versuche es später erneut.",
+      "unknown": "Unerwarteter Fehler — bitte sieh ins Protokoll."
     },
     "abort": {
       "reauth_successful": "API-Schlüssel erfolgreich aktualisiert.",

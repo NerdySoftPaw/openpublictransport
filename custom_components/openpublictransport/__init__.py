@@ -11,6 +11,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+from openpublictransport import ApiError, AuthenticationError, OpenPublicTransportError
 
 from .const import (
     CONF_DEPARTURES,
@@ -198,16 +199,27 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
                     api_key = existing.data.get(CONF_OTP_CUSTOM_API_KEY)
                     custom_url = existing.data.get(CONF_OTP_BASE_URL)
                 break
-        journeys = await async_plan_trip(
-            hass,
-            provider,
-            origin,
-            origin_city,
-            destination,
-            destination_city,
-            api_key=api_key,
-            custom_url=custom_url,
-        )
+        try:
+            journeys = await async_plan_trip(
+                hass,
+                provider,
+                origin,
+                origin_city,
+                destination,
+                destination_city,
+                api_key=api_key,
+                custom_url=custom_url,
+            )
+        except AuthenticationError as err:
+            raise HomeAssistantError(f"Trip planning for '{provider}' failed: {err}") from err
+        except ApiError as err:
+            # Say which status came back instead of pointing at the logs (#88).
+            raise HomeAssistantError(
+                f"Trip planning for '{provider}' failed: the provider returned HTTP {err.status}"
+            ) from err
+        except OpenPublicTransportError as err:
+            raise HomeAssistantError(f"Trip planning for '{provider}' failed: {err}") from err
+
         if journeys is None:
             raise HomeAssistantError(f"Trip planning failed for provider '{provider}' — check logs for details")
         return {"journeys": journeys}

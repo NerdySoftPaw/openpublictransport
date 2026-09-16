@@ -15,6 +15,13 @@ import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.util import dt as dt_util
+from openpublictransport import (
+    ApiConnectionError,
+    ApiError,
+    ApiResponseError,
+    ApiTimeoutError,
+    AuthenticationError,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -249,20 +256,22 @@ async def async_plan_trip(
 
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:
+            if response.status in (401, 403):
+                raise AuthenticationError(provider, response.status)
             if response.status != 200:
-                _LOGGER.warning("Trip API returned status %s", response.status)
-                return None
+                raise ApiError(provider, response.status)
 
             # content_type=None: VGN sends RapidJSON with a text/xml header (issue #79).
             data = await response.json(content_type=None)
-            if not isinstance(data, dict):
-                return None
+    except asyncio.TimeoutError as e:
+        raise ApiTimeoutError(f"{provider}: trip planning timed out after 15s") from e
+    except aiohttp.ClientError as e:
+        raise ApiConnectionError(f"{provider}: trip planning connection failed ({e})") from e
 
-            return _parse_journeys(data.get("journeys", []))
+    if not isinstance(data, dict):
+        raise ApiResponseError(f"{provider}: trip API returned {type(data).__name__} instead of an object")
 
-    except Exception as e:
-        _LOGGER.warning("Trip planning failed: %s", e)
-        return None
+    return _parse_journeys(data.get("journeys", []))
 
 
 _GRAPHQL_PARENT = '{ stop(id: "%s") { parentStation { gtfsId } } }'

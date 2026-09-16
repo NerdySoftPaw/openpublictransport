@@ -138,7 +138,14 @@
       "nta_api_key_required": "NTA API Key is vereist",
       "rmv_api_key_required": "RMV API Key is vereist",
       "min_two_entities": "Geef ten minste 2 entiteits-ID's op",
-      "hvv_gti_credentials_required": "GTI-gebruikersnaam én wachtwoord zijn vereist (gratis aan te vragen per e-mail via api@hochbahn.de)"
+      "hvv_gti_credentials_required": "GTI-gebruikersnaam én wachtwoord zijn vereist (gratis aan te vragen per e-mail via api@hochbahn.de)",
+      "api_error": "De aanbieder gaf een fout terug (HTTP {status}). Probeer het later opnieuw.",
+      "cannot_connect": "Kan de aanbieder niet bereiken. Controleer je internetverbinding en URL.",
+      "invalid_auth": "Authenticatie mislukt — controleer je API-sleutel.",
+      "station_id_required": "Station-ID is verplicht",
+      "vbn_api_key_required": "VBN API-sleutel is verplicht",
+      "invalid_response": "De aanbieder gaf een onbruikbaar antwoord. Probeer het later opnieuw.",
+      "unknown": "Onverwachte fout — controleer de logs."
     }
   },
   "options": {

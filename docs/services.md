@@ -271,6 +271,7 @@ The same journey structure `plan_trip` returns, for every connection the sensor 
 {
   "journeys": [
     {
+      "id": "a3f19c4e7b02",
       "departure": "09:42",
       "arrival": "10:21",
       "departure_timestamp": "2026-09-20T09:42:00+02:00",
@@ -308,7 +309,9 @@ An empty list means the sensor has no connections to offer — either the provid
 
 ### Matching a Journey
 
-`departure_timestamp` identifies a connection across calls; the position in the list does not, because the first connection rolls off as it departs. A caller that showed a summary earlier and wants its detail now should look the journey up by that timestamp and say so plainly when it is no longer there, rather than fall back on an index and describe a different connection.
+`id` identifies a connection. It is derived from the journey's own route — each leg's line, where it is boarded and when it is timetabled to leave — so it is stable while a delay estimate moves, and the same alternatives carry it in the sensor's `next_journeys`. A caller that showed a summary earlier and wants its detail now looks the journey up by `id`.
+
+Nothing else identifies one. A position in the list does not, because the first connection rolls off as it departs. Neither does `departure_timestamp`: a board regularly holds two connections leaving on the same minute — a live VVS board had three such pairs among seven connections — and even departure, arrival, transfers and duration together can describe two different routes on parallel lines. When the `id` is not found, say the connection is gone rather than describing whichever journey took its place.
 
 ---
 

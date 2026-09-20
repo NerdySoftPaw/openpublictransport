@@ -149,6 +149,7 @@ The sensor will appear as `sensor.openpublictransport_trip_<origin>_to_<destinat
   "alternative_journeys": 3,
   "next_journeys": [
     {
+      "id": "a3f19c4e7b02",
       "departure": "08:30",
       "arrival": "08:57",
       "departure_timestamp": "2026-04-09T08:30:00+02:00",
@@ -179,6 +180,11 @@ every state change, so carrying the legs of four connections would roughly tripl
 sensor stores. To get an alternative in full — its legs, platforms and per-leg delays — call
 [`openpublictransport.get_journeys`](services.md#openpublictransportget_journeys), which reads
 the connections the coordinator already holds and asks the provider for nothing.
+
+Each alternative carries an `id` that names that connection, and the action returns the same id,
+so a caller says which one it means instead of matching on times. Two connections regularly leave
+on the same minute, and two routes on parallel lines can agree on their times and their number of
+changes as well.
 
 ## Using the plan_trip Service
 

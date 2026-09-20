@@ -236,6 +236,82 @@ For full details see the [Trip Planner guide](trip-planner.md).
 
 ---
 
+## openpublictransport.get_journeys
+
+Return every connection a trip sensor is currently holding, each with its legs.
+
+### Description
+
+A trip sensor publishes the legs of the first connection and no more than a summary of the alternatives — departure, arrival, duration, transfers, transfer risk. That is deliberate: every attribute is written to the recorder on each state change, and carrying the legs of four connections would roughly triple what a trip sensor stores. The detail is not missing, though, only unpublished: the coordinator keeps every connection whole between polls, and this action hands it over.
+
+It costs no request to the provider. It also cannot disagree with what the sensor is showing — the connections have already had the departed ones dropped and the entry's line and transport-type filters applied, which a fresh `plan_trip` would not have.
+
+This action returns a response, so it must be called with `response_variable` (in the UI: *Actions → openpublictransport.get_journeys*, then enable the response). Calling it without one is rejected rather than silently doing nothing.
+
+### Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `entity_id` | Yes | The trip sensor to read. A departure board is rejected — it has no journeys. |
+
+### Example Call
+
+```yaml
+action: openpublictransport.get_journeys
+data:
+  entity_id: sensor.trip_station_to_station
+response_variable: trip
+```
+
+### Response
+
+The same journey structure `plan_trip` returns, for every connection the sensor holds — the one in the sensor's own attributes first, then the alternatives:
+
+```json
+{
+  "journeys": [
+    {
+      "departure": "09:42",
+      "arrival": "10:21",
+      "departure_timestamp": "2026-09-20T09:42:00+02:00",
+      "arrival_timestamp": "2026-09-20T10:21:00+02:00",
+      "duration_minutes": 39,
+      "transfers": 1,
+      "connection_feasible": true,
+      "transfer_risk": "low",
+      "min_transfer_time": 6,
+      "legs": [
+        {
+          "origin": "Köln Hbf",
+          "destination": "Düsseldorf Hbf",
+          "line": "RE1",
+          "direction": "Hamm (Westf) Hbf",
+          "product": "Regional-Express",
+          "transport_type": "train",
+          "departure_planned": "09:42",
+          "departure_estimated": "09:46",
+          "arrival_planned": "09:50",
+          "arrival_estimated": "09:54",
+          "delay": 4,
+          "duration_minutes": 8,
+          "platform": "2",
+          "transfer": "Fussweg",
+          "transfer_minutes": 6
+        }
+      ]
+    }
+  ]
+}
+```
+
+An empty list means the sensor has no connections to offer — either the provider found none, or its last update failed, in which case the entity is unavailable anyway.
+
+### Matching a Journey
+
+`departure_timestamp` identifies a connection across calls; the position in the list does not, because the first connection rolls off as it departs. A caller that showed a summary earlier and wants its detail now should look the journey up by that timestamp and say so plainly when it is no longer there, rather than fall back on an index and describe a different connection.
+
+---
+
 ## openpublictransport.check_delays
 
 Check for delayed departures and fire an `openpublictransport_delay_alert` event.

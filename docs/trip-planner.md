@@ -173,6 +173,13 @@ vehicle leaves.
 Connections that have already departed are not reported — the sensor always shows the next one
 you can still reach.
 
+`legs` belongs to the connection in the state; the alternatives under `next_journeys` are
+summaries, and `alternative_journeys` is a count, not a list. Attributes go to the recorder on
+every state change, so carrying the legs of four connections would roughly triple what a trip
+sensor stores. To get an alternative in full — its legs, platforms and per-leg delays — call
+[`openpublictransport.get_journeys`](services.md#openpublictransportget_journeys), which reads
+the connections the coordinator already holds and asks the provider for nothing.
+
 ## Using the plan_trip Service
 
 You can also plan trips on demand via a service call.

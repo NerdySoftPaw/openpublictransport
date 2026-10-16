@@ -1,5 +1,14 @@
 # Changelog
 
+## v2026.10.1 — Working links to the documentation
+
+### Fixes
+
+- **Links to the documentation pointed to `/latest/…` pages that do not exist** — the repair
+  notice about the community server shutdown, the README and the issue templates linked to
+  `docs.openpublictransport.net/latest/…`, which returns "not found". They now point to the
+  real pages, e.g. [Community Server Shutdown & Our New Focus](community-server-shutdown.md).
+
 ## v2026.10.0 — The openpublictransport community server is shut down
 
 !!! warning "Please read before updating"

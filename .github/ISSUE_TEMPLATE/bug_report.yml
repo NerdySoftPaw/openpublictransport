@@ -11,7 +11,7 @@ body:
         Before you continue, please check:
         - [Existing issues](https://github.com/NerdySoftPaw/openpublictransport/issues?q=is%3Aissue) — someone may have reported this already
         - [Documentation](https://docs.openpublictransport.net/)
-        - [Migration Guide](https://docs.openpublictransport.net/latest/migration/) if you came from `vrr` / VRRAPI-HACS / hacs-publictransport
+        - [Migration Guide](https://docs.openpublictransport.net/migration/) if you came from `vrr` / VRRAPI-HACS / hacs-publictransport
 
         Have a **question** rather than a bug? Please use
         [Discussions](https://github.com/NerdySoftPaw/openpublictransport/discussions) instead.

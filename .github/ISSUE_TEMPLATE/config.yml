@@ -9,7 +9,7 @@ contact_links:
     about: Configuration, providers, sensors, actions and the trip planner.
 
   - name: 🔀 Migration from VRRAPI-HACS / hacs-publictransport
-    url: https://docs.openpublictransport.net/latest/migration/
+    url: https://docs.openpublictransport.net/migration/
     about: The domain changed from `vrr` to `openpublictransport` — start here.
 
   - name: 🎴 Dashboard card issues

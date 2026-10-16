@@ -1,6 +1,6 @@
 # openpublictransport
 
-Real-time public transport departures for Home Assistant — 43 providers across Germany, Switzerland, Austria, the Netherlands, Luxembourg, Denmark, Norway, Sweden, Ireland, the UK, the USA, and worldwide.
+Real-time public transport departures for Home Assistant — 58 providers across Germany, Switzerland, Austria, the Netherlands, Luxembourg, Denmark, Norway, Sweden, Ireland, the UK, the USA, and worldwide.
 
 !!! warning "The openpublictransport community server has been shut down"
     We had to give up our own API at `api.openpublictransport.net` for cost reasons. Entries using the
@@ -14,7 +14,7 @@ Real-time public transport departures for Home Assistant — 43 providers across
     
     **[→ Migration Guide](migration.md)** — Step-by-step instructions for both migrations.
 
-## Supported Providers (43)
+## Supported Providers (58)
 
 | Provider | Region | API Type | API Key |
 |----------|--------|----------|---------|
@@ -46,6 +46,21 @@ Real-time public transport departures for Home Assistant — 43 providers across
 | **SBB** | Switzerland (nationwide) | REST | No |
 | **TPG** | Geneva, Switzerland | HAFAS mgate | No |
 | **Trafiklab** | Sweden (nationwide) | REST | Yes (free) |
+| **VBN** | Bremen / Niedersachsen | HAFAS mgate | No |
+| **NVV** | Nordhessen (Kassel) | HAFAS mgate | No |
+| **VOS** | Osnabrück | HAFAS mgate | No |
+| **VSN** | Südniedersachsen (Göttingen) | HAFAS mgate | No |
+| **VAO** | Austria (all networks) | HAFAS mgate | No |
+| **TriMet** | Portland, Oregon, USA | OTP REST | No |
+| **iRail** | Belgium (rail) | iRail REST | No |
+| **SL** | Stockholm, Sweden | SL Transport REST | No |
+| **TTC** | Toronto, Canada | NextBus (umo IQ) | No |
+| **Hong Kong** | Hong Kong | data.gov.hk REST | No |
+| **Wiener Linien** | Vienna, Austria | Wiener Linien OGD | No |
+| **TfL** | London, UK | TfL Unified API | Optional |
+| **TfNSW** | New South Wales, Australia | EFA (TfNSW Trip Planner API) | Yes (free) |
+| **Digitransit** | Finland | OTP2 GraphQL | Yes (free) |
+| **PID** | Prague, Czech Republic | Golemio REST | Yes (free) |
 | **Transitous** | Worldwide (community) | MOTIS2 | No |
 | **VAG** | Freiburg | EFA | No |
 | **VBN (OTP)** | Bremen / Niedersachsen | OTP REST | Yes (free) |

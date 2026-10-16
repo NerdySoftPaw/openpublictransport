@@ -47,7 +47,8 @@
           "nta_api_key_secondary": "NTA Secondary API-Schlüssel (optional)",
           "rmv_api_key": "RMV API-Schlüssel",
           "hvv_gti_user": "GTI-Benutzername (Application ID)",
-          "hvv_gti_password": "GTI-Passwort"
+          "hvv_gti_password": "GTI-Passwort",
+          "api_key": "API-Schlüssel"
         },
         "data_description": {
           "trafiklab_api_key": "Trafiklab API-Schlüssel (erhältlich auf trafiklab.se)",
@@ -55,7 +56,8 @@
           "nta_api_key_secondary": "NTA Secondary API-Schlüssel (optional, als Fallback)",
           "rmv_api_key": "RMV API-Schlüssel (erhältlich auf opendata.rmv.de)",
           "hvv_gti_user": "Benutzername aus den Geofox-GTI-Zugangsdaten (geofox-auth-user)",
-          "hvv_gti_password": "Passwort aus den Geofox-GTI-Zugangsdaten. Wird zum Signieren jeder Anfrage verwendet und nicht übertragen"
+          "hvv_gti_password": "Passwort aus den Geofox-GTI-Zugangsdaten. Wird zum Signieren jeder Anfrage verwendet und nicht übertragen",
+          "api_key": "Persönlicher API-Schlüssel des Anbieters (kostenlose Registrierung, siehe Hinweis oben)"
         }
       },
       "settings": {
@@ -125,7 +127,11 @@
           "nta_api_key": "NTA API-Schlüssel (primär)",
           "nta_api_key_secondary": "NTA API-Schlüssel (sekundär, optional)",
           "otp_base_url": "OTP2-Server-URL",
-          "otp_custom_api_key": "API-Schlüssel (optional)"
+          "otp_custom_api_key": "API-Schlüssel (optional)",
+          "api_key": "API-Schlüssel"
+        },
+        "data_description": {
+          "api_key": "Persönlicher API-Schlüssel des Anbieters (kostenlose Registrierung, siehe Hinweis oben)"
         }
       }
     },

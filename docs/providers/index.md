@@ -5,7 +5,7 @@ hide:
 
 # Providers Overview
 
-The integration supports 43 transit providers across Europe and the USA. Each has its own API and data format; the integration normalizes all of them into the same entities and attributes.
+The integration supports 58 transit providers across Europe and the USA. Each has its own API and data format; the integration normalizes all of them into the same entities and attributes.
 
 ## Provider Comparison
 
@@ -39,7 +39,7 @@ pick in the config flow and what the `plan_trip` action expects.
 | [INSA](insa.md)<br>`insa` | Sachsen-Anhalt | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
 | [VMT](vmt.md)<br>`vmt` | Thüringen | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
 | [saarVV](saarvv.md)<br>`saarvv` | Saarland | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
-| [DB](db.md)<br>`db` | Germany | FPTF | – | ✅ | ✅ | ✅ | – | Auto |
+| [DB](db.md)<br>`db` | Germany | MOTIS2 | – | ✅ | ✅ | ✅ | – | Auto |
 | [VBN OTP](vbn.md)<br>`vbn_otp` | Bremen | OTP | free | ✅ | – | ✅ | ✅ | Geo¹ |
 | [VBN TRIAS](vbn.md)<br>`vbn_trias` | Bremen | TRIAS | free | ✅ | ✅ | – | – | Auto |
 | [SBB](sbb.md)<br>`sbb` | Switzerland | REST | – | ✅ | ✅ | – | – | Auto |
@@ -55,6 +55,21 @@ pick in the config flow and what the `plan_trip` action expects.
 | [National Rail](national_rail.md)<br>`national_rail` | Great Britain | SOAP | free | ✅ | ✅ | ✅⁵ | – | Auto |
 | [BART](bart.md)<br>`bart_us` | San Francisco | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
 | [DART](dart.md)<br>`dart_us` | Des Moines | mgate | – | ✅ | ~ | ✅⁵ | ✅ | Auto |
+| [VBN](vbn-hafas.md)<br>`vbn_hafas` | Bremen | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [NVV](nvv.md)<br>`nvv` | Nordhessen | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [VOS](vos.md)<br>`vos` | Osnabrück | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [VSN](vsn.md)<br>`vsn` | Südniedersachsen | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [VAO](vao.md)<br>`vao_at` | Austria | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [TriMet](trimet.md)<br>`trimet_us` | Portland | OTP | – | ✅ | – | – | – | Geo |
+| [iRail](irail.md)<br>`irail_be` | Belgium | REST | – | ✅ | ✅ | ✅⁵ | – | Auto |
+| [SL](sl.md)<br>`sl_se` | Stockholm | REST | – | ✅ | ✅ | ✅ | – | Auto |
+| [TTC](ttc.md)<br>`ttc_ca` | Toronto | NextBus | – | ✅ | – | ✅ | – | Auto |
+| [Hong Kong](hongkong.md)<br>`hongkong` | Hong Kong | REST | – | ✅ | ✅ | ✅ | – | Auto |
+| [Wiener Linien](wienerlinien.md)<br>`wienerlinien_at` | Vienna | REST | – | ✅ | ✅ | ✅ | – | Auto |
+| [TfL](tfl.md)<br>`tfl_uk` | London | REST | opt. | ✅ | ✅ | – | – | Auto |
+| [TfNSW](tfnsw.md)<br>`tfnsw_au` | New South Wales | EFA | free | ✅ | ✅ | ✅ | – | Auto |
+| [Digitransit](digitransit.md)<br>`digitransit_fi` | Finland | OTP | free | ✅ | ✅ | – | – | Auto |
+| [PID](golemio.md)<br>`golemio_cz` | Prague | REST | free | ✅ | ✅ | ✅ | – | Auto |
 | [Transitous](transitous.md)<br>`transitous` | Worldwide | MOTIS2 | – | ~ | ~ | ~ | – | Auto |
 | [OTP2 Custom](otp-custom.md)<br>`otp_custom` | Any OTP2 | OTP2 | opt. | ~ | – | – | ✅ | Prefix |
 
@@ -131,6 +146,21 @@ Each provider uses its local timezone for departure times:
 | National Rail | `national_rail` | Europe/London |
 | BART | `bart_us` | America/Los_Angeles |
 | DART | `dart_us` | America/Chicago |
+| VBN | `vbn_hafas` | Europe/Berlin |
+| NVV | `nvv` | Europe/Berlin |
+| VOS | `vos` | Europe/Berlin |
+| VSN | `vsn` | Europe/Berlin |
+| VAO | `vao_at` | Europe/Vienna |
+| TriMet | `trimet_us` | America/Los_Angeles |
+| iRail | `irail_be` | Europe/Brussels |
+| SL | `sl_se` | Europe/Stockholm |
+| TTC | `ttc_ca` | America/Toronto |
+| Hong Kong | `hongkong` | Asia/Hong_Kong |
+| Wiener Linien | `wienerlinien_at` | Europe/Vienna |
+| TfL | `tfl_uk` | Europe/London |
+| TfNSW | `tfnsw_au` | Australia/Sydney |
+| Digitransit | `digitransit_fi` | Europe/Helsinki |
+| PID | `golemio_cz` | Europe/Prague |
 | Transitous | `transitous` | Per-stop (automatic) |
 | OTP2 Custom | `otp_custom` | Europe/Berlin (or per OTP2 config) |
 

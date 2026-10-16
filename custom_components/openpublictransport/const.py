@@ -71,6 +71,14 @@ LEGACY_PROVIDER_OPT = "openpublictransport"
 PROVIDER_OTP_CUSTOM = "otp_custom"  # user-provided OTP2 instance
 CONF_OTP_BASE_URL = "otp_base_url"  # custom URL for otp_custom provider
 CONF_OTP_CUSTOM_API_KEY = "otp_custom_api_key"  # API key for custom OTP instance
+# Generic API key for providers without a dedicated config key; newer key
+# providers all use this one. Maps provider id -> where to get a key.
+CONF_API_KEY = "api_key"
+GENERIC_API_KEY_PROVIDERS = {
+    "tfnsw_au": "Transport for NSW API key required. Register for free at opendata.transport.nsw.gov.au.",
+    "digitransit_fi": "Digitransit subscription key required. Register for free at portal-api.digitransit.fi.",
+    "golemio_cz": "Golemio API key required. Register for free at api.golemio.cz/api-keys.",
+}
 PROVIDER_NATIONAL_RAIL = "national_rail"  # National Rail (UK) via OpenLDBWS
 CONF_NATIONAL_RAIL_API_KEY = "national_rail_api_key"
 PROVIDER_REJSEPLANEN = "rejseplanen"  # Rejseplanen (Denmark) via HAFAS REST API
@@ -88,6 +96,21 @@ PROVIDER_NAHSH = "nahsh"  # NAH.SH (Schleswig-Holstein) via HAFAS mgate
 PROVIDER_INSA = "insa"  # INSA (Sachsen-Anhalt) via HAFAS mgate
 PROVIDER_VMT = "vmt"  # VMT (Thüringen) via HAFAS mgate
 PROVIDER_SAARVV = "saarvv"  # saarVV (Saarland) via HAFAS mgate
+PROVIDER_VBN_HAFAS = "vbn_hafas"
+PROVIDER_NVV = "nvv"
+PROVIDER_VOS = "vos"
+PROVIDER_VSN = "vsn"
+PROVIDER_VAO_AT = "vao_at"
+PROVIDER_TRIMET_US = "trimet_us"
+PROVIDER_IRAIL_BE = "irail_be"
+PROVIDER_SL_SE = "sl_se"
+PROVIDER_TTC_CA = "ttc_ca"
+PROVIDER_HONGKONG = "hongkong"
+PROVIDER_WIENERLINIEN = "wienerlinien_at"
+PROVIDER_TFL = "tfl_uk"
+PROVIDER_TFNSW = "tfnsw_au"
+PROVIDER_DIGITRANSIT = "digitransit_fi"
+PROVIDER_GOLEMIO = "golemio_cz"
 PROVIDERS = [
     PROVIDER_VRR,
     PROVIDER_KVV,
@@ -132,6 +155,21 @@ PROVIDERS = [
     PROVIDER_INSA,
     PROVIDER_VMT,
     PROVIDER_SAARVV,
+    PROVIDER_VBN_HAFAS,
+    PROVIDER_NVV,
+    PROVIDER_VOS,
+    PROVIDER_VSN,
+    PROVIDER_VAO_AT,
+    PROVIDER_TRIMET_US,
+    PROVIDER_IRAIL_BE,
+    PROVIDER_SL_SE,
+    PROVIDER_TTC_CA,
+    PROVIDER_HONGKONG,
+    PROVIDER_WIENERLINIEN,
+    PROVIDER_TFL,
+    PROVIDER_TFNSW,
+    PROVIDER_DIGITRANSIT,
+    PROVIDER_GOLEMIO,
 ]
 
 # Transportation types mapping

@@ -15,6 +15,7 @@ from homeassistant.helpers import issue_registry as ir
 from openpublictransport import ApiError, AuthenticationError, OpenPublicTransportError
 
 from .const import (
+    CONF_API_KEY,
     CONF_DEPARTURES,
     CONF_HVV_GTI_PASSWORD,
     CONF_HVV_GTI_USER,
@@ -33,6 +34,7 @@ from .const import (
     DEFAULT_DEPARTURES,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    GENERIC_API_KEY_PROVIDERS,
     PROVIDER_HVV_GTI,
     PROVIDER_NATIONAL_RAIL,
     PROVIDER_NTA_IE,
@@ -124,6 +126,7 @@ async def _async_migrate_credential(hass: HomeAssistant, entry: ConfigEntry) -> 
         PROVIDER_NATIONAL_RAIL: (CONF_NATIONAL_RAIL_API_KEY, ""),
     }
 
+    key_map.update({p: (CONF_API_KEY, "") for p in GENERIC_API_KEY_PROVIDERS})
     if provider not in key_map:
         return
 
@@ -427,6 +430,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         api_key = national_rail_api_key
     elif provider == PROVIDER_HVV_GTI:
         api_key = hvv_gti_user
+    elif provider in GENERIC_API_KEY_PROVIDERS:
+        api_key = entry.data.get(CONF_API_KEY)
 
     departures = entry.options.get(CONF_DEPARTURES, entry.data.get(CONF_DEPARTURES, DEFAULT_DEPARTURES))
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))

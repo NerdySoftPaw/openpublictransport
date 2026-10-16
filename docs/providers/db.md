@@ -1,14 +1,13 @@
 # DB (Deutsche Bahn)
 
 Nationwide departures for Germany, from long-distance ICE services down to local
-buses, through the community-run `v6.db.transport.rest` API.
+buses, served through [Transitous](transitous.md) (MOTIS 2), which carries the
+nationwide DELFI timetable together with DB real-time data.
 
-!!! note "Community proxy, not an official DB service"
-    `v6.db.transport.rest` is maintained by [derhuerst](https://github.com/derhuerst)
-    and is free and open, but it is not operated or supported by Deutsche Bahn.
-    Availability is not guaranteed — occasional downtime is normal. For
-    nationwide data under your own control, self-host an OTP2 server and use
-    [OTP2 Custom](otp-custom.md).
+!!! info "New backend since v2026.10.0"
+    The provider used to query the community proxy `v6.db.transport.rest`, which has
+    been unavailable since autumn 2026. Existing DB entries keep working: their old
+    station numbers are matched to the Transitous stop by name on the first update.
 
 ## Coverage Area
 
@@ -20,27 +19,24 @@ buses, through the community-run `v6.db.transport.rest` API.
 
 | Property | Value |
 |----------|-------|
-| **Base URL** | `https://v6.db.transport.rest` |
-| **API Type** | FPTF REST |
+| **Base URL** | `https://api.transitous.org/api` |
+| **API Type** | MOTIS 2 REST |
 | **API Key** | Not required |
 | **Timezone** | Europe/Berlin |
 
 ## Transport Types
 
-DB uses FPTF (Friendly Public Transport Format) product types:
+Transitous reports GTFS route types; the mapping is the same as for the
+[Transitous](transitous.md) provider:
 
-| Product | Type | Description |
-|---------|------|-------------|
-| nationalExpress | train | ICE |
-| national | train | IC / EC |
-| regionalExpress | train | RE |
-| regional | train | RB |
-| suburban | train | S-Bahn |
-| subway | subway | U-Bahn |
-| tram | tram | Tram / Straßenbahn |
-| bus | bus | Bus services |
-| ferry | ferry | Ferry |
-| taxi | taxi | Rufbus / Anruf-Sammeltaxi |
+| Transitous mode | Type | Description |
+|-----------------|------|-------------|
+| HIGHSPEED_RAIL / LONG_DISTANCE / NIGHT_RAIL | train | ICE, IC / EC, night trains |
+| REGIONAL_FAST_RAIL / REGIONAL_RAIL / SUBURBAN | train | RE, RB, S-Bahn |
+| SUBWAY | subway | U-Bahn |
+| TRAM | tram | Tram / Straßenbahn |
+| BUS / COACH / ODM | bus | Bus, long-distance coach, on-demand |
+| FERRY | ferry | Ferry |
 
 ## Configuration
 
@@ -67,12 +63,12 @@ changes come through the same as on the regional providers.
 
 ### Notices
 
-Service messages are read from the FPTF `remarks` list — disruptions, cancellations
-and operator notes appear in the departure attributes.
+Cancellations and service notes from the real-time feed appear in the departure
+attributes.
 
 ## Limitations
 
 - Trip planning is not available for this provider; use an EFA provider or
   a self-hosted [OTP2 Custom](otp-custom.md) instance for A-to-B routing.
-- The proxy applies its own rate limits. The integration's default scan interval of
-  60 seconds is well within them.
+- Transitous is a community service with a fair-use policy. The integration's default
+  scan interval of 60 seconds is well within it.

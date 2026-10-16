@@ -46,6 +46,40 @@ with real-time data. None of them needs an API key.
 | [VMT](providers/vmt.md) | Thüringen (Erfurt, Jena, Weimar) | HAFAS mgate | ✅ |
 | [saarVV](providers/saarvv.md) | Saarland | HAFAS mgate | ✅ |
 
+### Even more providers (15 new, 58 in total)
+
+**Germany** — HAFAS mgate with trip planning, no API key:
+
+- [VBN without key](providers/vbn-hafas.md) (Bremen / Niedersachsen), alongside the key-based VBN OTP / TRIAS
+- [NVV](providers/nvv.md) (Nordhessen / Kassel), [VOS](providers/vos.md) (Osnabrück), [VSN](providers/vsn.md) (Göttingen)
+
+**Europe:**
+
+- [VAO](providers/vao.md) — all of Austria with trip planning
+- [Wiener Linien](providers/wienerlinien.md) (Vienna), [iRail](providers/irail.md) (Belgian rail), [SL](providers/sl.md) (Stockholm, no key), [TfL](providers/tfl.md) (London)
+- With a free API key: [Digitransit](providers/digitransit.md) (Finland), [PID / Golemio](providers/golemio.md) (Prague)
+
+**Worldwide:**
+
+- [Hong Kong](providers/hongkong.md) (KMB buses and MTR), [TTC](providers/ttc.md) (Toronto streetcars and buses), [TriMet](providers/trimet.md) (Portland)
+- With a free API key: [Transport for NSW](providers/tfnsw.md) (Sydney / NSW)
+
+The three key-based providers (Digitransit, PID, Transport for NSW) were built from the official
+documentation and could not be tested with a real key yet — feedback is welcome.
+
+### DB is back
+
+The community proxy `v6.db.transport.rest` behind the [DB provider](providers/db.md) has been
+down for weeks. DB now runs on [Transitous](providers/transitous.md) instead, with nationwide
+real-time data for trains, S-Bahn, U-Bahn, trams and buses. Existing DB entries keep working
+without reconfiguration.
+
+### Fixes for HAFAS providers
+
+- Signed HAFAS requests now use the salt like hafas-client (hex-decoded), which VSN needs.
+- HAFAS providers send the client extension (`ext`) some networks expect.
+- OTP REST providers no longer fail when the server has no alerts endpoint.
+
 ### Trip planning for every HAFAS mgate provider
 
 The trip planner now also works with all HAFAS mgate providers — NAH.SH, INSA, VMT, saarVV,

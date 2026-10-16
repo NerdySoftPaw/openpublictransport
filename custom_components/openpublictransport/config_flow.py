@@ -52,7 +52,9 @@ from .const import (
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
     CONF_OTP_BASE_URL,
+    CONF_API_KEY,
     CONF_OTP_CUSTOM_API_KEY,
+    GENERIC_API_KEY_PROVIDERS,
     CONF_PLATFORM_FILTER,
     CONF_PROVIDER,
     CONF_REJSEPLANEN_API_KEY,
@@ -112,12 +114,15 @@ _PROVIDER_OPTIONS = [
     {"value": "bvg", "label": "BVG — Berlin / Brandenburg"},
     {"value": "dart_us", "label": "DART — USA (Des Moines)"},
     {"value": "db", "label": "DB — Deutsche Bahn (Community API)"},
+    {"value": "digitransit_fi", "label": "Digitransit — Finnland (API Key)"},
     {"value": "ding", "label": "DING — Ulm / Donau-Iller"},
     {"value": "entur_no", "label": "Entur — Norwegen"},
     {"value": "gvh", "label": "GVH — Hannover"},
+    {"value": "hongkong", "label": "Hong Kong — KMB / MTR"},
     {"value": "hvv", "label": "HVV — Hamburg"},
     {"value": "hvv_gti", "label": "HVV — Hamburg (Geofox GTI, Zugangsdaten)"},
     {"value": "insa", "label": "INSA — Sachsen-Anhalt"},
+    {"value": "irail_be", "label": "iRail — Belgien (SNCB / NMBS)"},
     {"value": "irishrail_ie", "label": "Irish Rail — Irland"},
     {"value": "kvv", "label": "KVV — Karlsruhe"},
     {"value": "mobiliteit_lu", "label": "mobilitéit.lu — Luxemburg"},
@@ -127,27 +132,39 @@ _PROVIDER_OPTIONS = [
     {"value": "ns_nl", "label": "NS — Niederlande"},
     {"value": "nta_ie", "label": "NTA — Irland (API Key)"},
     {"value": "nvbw", "label": "NVBW — Baden-Württemberg"},
+    {"value": "nvv", "label": "NVV — Nordhessen (Kassel)"},
     {"value": "nwl", "label": "NWL — Westfalen-Lippe"},
-    {"value": "oebb", "label": "ÖBB — Österreich"},
+    {"value": "otp_custom", "label": "OTP2 — Eigene Instanz (URL + optionaler API Key)"},
+    {"value": "golemio_cz", "label": "PID — Tschechien (Prag, API Key)"},
     {"value": "rejseplanen", "label": "Rejseplanen — Dänemark (API Key)"},
     {"value": "rmv", "label": "RMV — Frankfurt / Rhein-Main (API Key)"},
     {"value": "rvv", "label": "RVV — Regensburg"},
     {"value": "saarvv", "label": "saarVV — Saarland"},
     {"value": "sbb", "label": "SBB — Schweiz"},
+    {"value": "sl_se", "label": "SL — Schweden (Stockholm, ohne API Key)"},
+    {"value": "tfl_uk", "label": "TfL — Großbritannien (London)"},
+    {"value": "tfnsw_au", "label": "TfNSW — Australien (Sydney / NSW, API Key)"},
     {"value": "tpg_ch", "label": "TPG — Schweiz (Genf)"},
     {"value": "trafiklab_se", "label": "Trafiklab — Schweden (API Key)"},
-    {"value": "otp_custom", "label": "OTP2 — Eigene Instanz (URL + optionaler API Key)"},
     {"value": "transitous", "label": "Transitous — Weltweit (Community, Beta)"},
+    {"value": "trimet_us", "label": "TriMet — USA (Portland)"},
+    {"value": "ttc_ca", "label": "TTC — Kanada (Toronto)"},
     {"value": "vagfr", "label": "VAG — Freiburg"},
+    {"value": "vao_at", "label": "VAO — Österreich (alle Verkehrsverbünde)"},
+    {"value": "vbn_hafas", "label": "VBN — Bremen / Niedersachsen (ohne API Key)"},
     {"value": "vbn_otp", "label": "VBN — Bremen / Niedersachsen — OTP (API Key)"},
     {"value": "vbn_trias", "label": "VBN — Bremen / Niedersachsen — TRIAS (API Key)"},
     {"value": "vgn", "label": "VGN — Nürnberg"},
     {"value": "vmt", "label": "VMT — Thüringen (Erfurt / Jena / Weimar)"},
     {"value": "vmv", "label": "VMV — Mecklenburg-Vorpommern"},
+    {"value": "vos", "label": "VOS — Osnabrück"},
     {"value": "vrn", "label": "VRN — Rhein-Neckar"},
     {"value": "vrr", "label": "VRR — Rhein-Ruhr (NRW)"},
+    {"value": "vsn", "label": "VSN — Südniedersachsen (Göttingen)"},
     {"value": "vvo", "label": "VVO — Dresden"},
     {"value": "vvs", "label": "VVS — Stuttgart"},
+    {"value": "wienerlinien_at", "label": "Wiener Linien — Österreich (Wien)"},
+    {"value": "oebb", "label": "ÖBB — Österreich"},
 ]
 
 
@@ -259,6 +276,8 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             secondary_key = credential.client_secret
             if not api_key:
                 return {}
+            if provider in GENERIC_API_KEY_PROVIDERS:
+                return {CONF_API_KEY: api_key}
             if provider == PROVIDER_OTP_CUSTOM:
                 return {CONF_OTP_CUSTOM_API_KEY: api_key}
             if provider == PROVIDER_TRAFIKLAB_SE:
@@ -304,6 +323,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         # Fall back to searching existing config entries (legacy / first-run)
         key_map: Dict[str, list] = {
             PROVIDER_OTP_CUSTOM: [CONF_OTP_CUSTOM_API_KEY, CONF_OTP_BASE_URL],
+            **{provider: [CONF_API_KEY] for provider in GENERIC_API_KEY_PROVIDERS},
             PROVIDER_VBN_OTP: [CONF_VBN_API_KEY],
             PROVIDER_VBN_TRIAS: [CONF_VBN_API_KEY],
             PROVIDER_TRAFIKLAB_SE: [CONF_TRAFIKLAB_API_KEY],
@@ -441,7 +461,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         # Auto-reuse credentials from an existing entry for this provider
         if user_input is None and not self._api_key:
             creds = self._find_existing_credentials(self._provider or "")
-            if self._provider == PROVIDER_TRAFIKLAB_SE and creds.get(CONF_TRAFIKLAB_API_KEY):
+            if self._provider in GENERIC_API_KEY_PROVIDERS and creds.get(CONF_API_KEY):
+                self._api_key = creds[CONF_API_KEY]
+                return await self._async_next_step_after_api_key()
+            elif self._provider == PROVIDER_TRAFIKLAB_SE and creds.get(CONF_TRAFIKLAB_API_KEY):
                 self._api_key = creds[CONF_TRAFIKLAB_API_KEY]
                 return await self._async_next_step_after_api_key()
             elif self._provider == PROVIDER_RMV and creds.get(CONF_RMV_API_KEY):
@@ -466,7 +489,14 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 return await self._async_next_step_after_api_key()
 
         if user_input is not None:
-            if self._provider == PROVIDER_TRAFIKLAB_SE:
+            if self._provider in GENERIC_API_KEY_PROVIDERS:
+                api_key = user_input.get(CONF_API_KEY, "").strip()
+                if not api_key:
+                    errors[CONF_API_KEY] = "api_key_required"
+                else:
+                    self._api_key = api_key
+                    return await self._async_next_step_after_api_key()
+            elif self._provider == PROVIDER_TRAFIKLAB_SE:
                 api_key = user_input.get(CONF_TRAFIKLAB_API_KEY, "").strip()
                 if not api_key:
                     errors[CONF_TRAFIKLAB_API_KEY] = "trafiklab_api_key_required"
@@ -523,7 +553,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     return await self._async_next_step_after_api_key()
 
         # Show appropriate schema based on provider
-        if self._provider == PROVIDER_TRAFIKLAB_SE:
+        if self._provider in GENERIC_API_KEY_PROVIDERS:
+            schema = vol.Schema({vol.Required(CONF_API_KEY): str})
+            description = GENERIC_API_KEY_PROVIDERS[self._provider]
+        elif self._provider == PROVIDER_TRAFIKLAB_SE:
             schema = vol.Schema(
                 {
                     vol.Required(CONF_TRAFIKLAB_API_KEY): str,
@@ -902,6 +935,9 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 if self._api_key:
                     data[CONF_OTP_CUSTOM_API_KEY] = self._api_key
 
+            if self._provider in GENERIC_API_KEY_PROVIDERS and self._api_key:
+                data[CONF_API_KEY] = self._api_key
+
             # Persist API key in Application Credentials store
             if self._provider:
                 await self._async_store_credential(self._provider)
@@ -909,7 +945,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             # Create title (self._selected_stop validated above)
             place = self._selected_stop.get("place", "")
             name = self._selected_stop.get("name", "")
-            title = f"{_provider_short_name(self._provider)} {place} - {name}".strip()
+            title = f"{' '.join(part for part in (_provider_short_name(self._provider), place) if part)} - {name}"
 
             # A filtered entry says what it is filtered to, both in its title and
             # in the device name, so two entries for one station are tellable
@@ -1752,6 +1788,9 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     if self._otp_custom_url:
                         data[CONF_OTP_BASE_URL] = self._otp_custom_url
 
+            if self._provider in GENERIC_API_KEY_PROVIDERS and self._api_key:
+                data[CONF_API_KEY] = self._api_key
+
             # Persist API key in Application Credentials store
             if self._provider:
                 await self._async_store_credential(self._provider)
@@ -1850,7 +1889,14 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         if user_input is not None:
             new_data = dict(entry.data)
 
-            if self._provider == PROVIDER_TRAFIKLAB_SE:
+            if self._provider in GENERIC_API_KEY_PROVIDERS:
+                api_key = user_input.get(CONF_API_KEY, "").strip()
+                if not api_key:
+                    errors[CONF_API_KEY] = "api_key_required"
+                else:
+                    new_data[CONF_API_KEY] = api_key
+                    self._api_key = api_key
+            elif self._provider == PROVIDER_TRAFIKLAB_SE:
                 api_key = user_input.get(CONF_TRAFIKLAB_API_KEY, "").strip()
                 if not api_key:
                     errors[CONF_TRAFIKLAB_API_KEY] = "trafiklab_api_key_required"
@@ -1901,7 +1947,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 )
 
         # Build provider-specific schema pre-filled with current key
-        if self._provider == PROVIDER_TRAFIKLAB_SE:
+        if self._provider in GENERIC_API_KEY_PROVIDERS:
+            schema = vol.Schema({vol.Required(CONF_API_KEY, default=entry.data.get(CONF_API_KEY, "")): str})
+            description = GENERIC_API_KEY_PROVIDERS[self._provider]
+        elif self._provider == PROVIDER_TRAFIKLAB_SE:
             schema = vol.Schema(
                 {vol.Required(CONF_TRAFIKLAB_API_KEY, default=entry.data.get(CONF_TRAFIKLAB_API_KEY, "")): str}
             )

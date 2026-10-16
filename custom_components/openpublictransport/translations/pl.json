@@ -47,7 +47,8 @@
           "nta_api_key_secondary": "Dodatkowy klucz API NTA (opcjonalnie)",
           "rmv_api_key": "Klucz API RMV",
           "hvv_gti_user": "Nazwa użytkownika GTI (application ID)",
-          "hvv_gti_password": "Hasło GTI"
+          "hvv_gti_password": "Hasło GTI",
+          "api_key": "API key"
         },
         "data_description": {
           "trafiklab_api_key": "Klucz API Trafiklab (dostępny na trafiklab.se)",
@@ -55,7 +56,8 @@
           "nta_api_key_secondary": "Dodatkowy klucz API NTA (opcjonalnie, używany jako zapasowy)",
           "rmv_api_key": "Klucz API RMV (do uzyskania na opendata.rmv.de)",
           "hvv_gti_user": "Nazwa użytkownika z danych dostępowych Geofox GTI (geofox-auth-user)",
-          "hvv_gti_password": "Hasło z danych dostępowych Geofox GTI. Służy do podpisywania każdego żądania i nigdy nie jest przesyłane"
+          "hvv_gti_password": "Hasło z danych dostępowych Geofox GTI. Służy do podpisywania każdego żądania i nigdy nie jest przesyłane",
+          "api_key": "Personal API key from the provider (free registration, see the note above)"
         }
       },
       "settings": {

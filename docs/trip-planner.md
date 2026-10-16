@@ -44,6 +44,11 @@ providers.
 |----------|-------------|--------|
 | BART | `bart_us` | San Francisco, USA |
 | DART | `dart_us` | Des Moines, USA |
+| VBN | `vbn_hafas` | Bremen / Niedersachsen |
+| NVV | `nvv` | Nordhessen (Kassel) |
+| VOS | `vos` | Osnabrück |
+| VSN | `vsn` | Südniedersachsen (Göttingen) |
+| VAO | `vao_at` | Austria (all networks) |
 | Irish Rail | `irishrail_ie` | Ireland |
 | TPG | `tpg_ch` | Geneva, Switzerland |
 | NAH.SH | `nahsh` | Schleswig-Holstein |

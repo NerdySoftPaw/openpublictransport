@@ -98,6 +98,21 @@ nav:
       - National Rail (UK): providers/national_rail.md
       - BART (USA · San Francisco): providers/bart.md
       - DART (USA · Des Moines): providers/dart.md
+      - VBN ohne Key (Bremen / Niedersachsen): providers/vbn-hafas.md
+      - NVV (Nordhessen): providers/nvv.md
+      - VOS (Osnabrück): providers/vos.md
+      - VSN (Südniedersachsen): providers/vsn.md
+      - VAO (Österreich): providers/vao.md
+      - TriMet (USA · Portland): providers/trimet.md
+      - iRail (Belgien): providers/irail.md
+      - SL (Stockholm): providers/sl.md
+      - TTC (Kanada · Toronto): providers/ttc.md
+      - Hong Kong (KMB / MTR): providers/hongkong.md
+      - Wiener Linien (Wien): providers/wienerlinien.md
+      - TfL (London): providers/tfl.md
+      - TfNSW (Australien · NSW): providers/tfnsw.md
+      - Digitransit (Finnland): providers/digitransit.md
+      - PID (Prag): providers/golemio.md
       - Transitous (Worldwide): providers/transitous.md
       - OTP2 Custom Instance: providers/otp-custom.md
   - Sensors & Attributes: sensors.md

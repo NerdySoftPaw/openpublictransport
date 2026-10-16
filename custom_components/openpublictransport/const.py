@@ -65,11 +65,20 @@ PROVIDER_DB = "db"
 PROVIDER_VBN_OTP = "vbn_otp"
 PROVIDER_VBN_TRIAS = "vbn_trias"
 CONF_VBN_API_KEY = "vbn_api_key"
-PROVIDER_OPT = "openpublictransport"  # community server at api.openpublictransport.net
+# Former community server at api.openpublictransport.net — shut down in 2026.10.0.
+# Only kept so leftover config entries can be detected and removed on startup.
+LEGACY_PROVIDER_OPT = "openpublictransport"
 PROVIDER_OTP_CUSTOM = "otp_custom"  # user-provided OTP2 instance
 CONF_OTP_BASE_URL = "otp_base_url"  # custom URL for otp_custom provider
-CONF_OPT_API_KEY = "opt_api_key"  # API key for community OTP server
 CONF_OTP_CUSTOM_API_KEY = "otp_custom_api_key"  # API key for custom OTP instance
+# Generic API key for providers without a dedicated config key; newer key
+# providers all use this one. Maps provider id -> where to get a key.
+CONF_API_KEY = "api_key"
+GENERIC_API_KEY_PROVIDERS = {
+    "tfnsw_au": "Transport for NSW API key required. Register for free at opendata.transport.nsw.gov.au.",
+    "digitransit_fi": "Digitransit subscription key required. Register for free at portal-api.digitransit.fi.",
+    "golemio_cz": "Golemio API key required. Register for free at api.golemio.cz/api-keys.",
+}
 PROVIDER_NATIONAL_RAIL = "national_rail"  # National Rail (UK) via OpenLDBWS
 CONF_NATIONAL_RAIL_API_KEY = "national_rail_api_key"
 PROVIDER_REJSEPLANEN = "rejseplanen"  # Rejseplanen (Denmark) via HAFAS REST API
@@ -81,6 +90,27 @@ PROVIDER_BART_US = "bart_us"  # BART (San Francisco) via HAFAS mgate
 PROVIDER_DART_US = "dart_us"  # DART (Des Moines) via HAFAS mgate
 PROVIDER_IRISHRAIL_IE = "irishrail_ie"  # Iarnród Éireann / Irish Rail via HAFAS mgate
 PROVIDER_TPG_CH = "tpg_ch"  # TPG (Geneva) via HAFAS mgate
+PROVIDER_VMV = "vmv"  # VMV (Mecklenburg-Vorpommern) via EFA
+PROVIDER_GVH = "gvh"  # GVH (Hannover) via EFA
+PROVIDER_NAHSH = "nahsh"  # NAH.SH (Schleswig-Holstein) via HAFAS mgate
+PROVIDER_INSA = "insa"  # INSA (Sachsen-Anhalt) via HAFAS mgate
+PROVIDER_VMT = "vmt"  # VMT (Thüringen) via HAFAS mgate
+PROVIDER_SAARVV = "saarvv"  # saarVV (Saarland) via HAFAS mgate
+PROVIDER_VBN_HAFAS = "vbn_hafas"
+PROVIDER_NVV = "nvv"
+PROVIDER_VOS = "vos"
+PROVIDER_VSN = "vsn"
+PROVIDER_VAO_AT = "vao_at"
+PROVIDER_TRIMET_US = "trimet_us"
+PROVIDER_IRAIL_BE = "irail_be"
+PROVIDER_SL_SE = "sl_se"
+PROVIDER_TTC_CA = "ttc_ca"
+PROVIDER_HONGKONG = "hongkong"
+PROVIDER_WIENERLINIEN = "wienerlinien_at"
+PROVIDER_TFL = "tfl_uk"
+PROVIDER_TFNSW = "tfnsw_au"
+PROVIDER_DIGITRANSIT = "digitransit_fi"
+PROVIDER_GOLEMIO = "golemio_cz"
 PROVIDERS = [
     PROVIDER_VRR,
     PROVIDER_KVV,
@@ -109,7 +139,6 @@ PROVIDERS = [
     PROVIDER_DB,
     PROVIDER_VBN_OTP,
     PROVIDER_VBN_TRIAS,
-    PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
     PROVIDER_NATIONAL_RAIL,
     PROVIDER_REJSEPLANEN,
@@ -120,6 +149,27 @@ PROVIDERS = [
     PROVIDER_DART_US,
     PROVIDER_IRISHRAIL_IE,
     PROVIDER_TPG_CH,
+    PROVIDER_VMV,
+    PROVIDER_GVH,
+    PROVIDER_NAHSH,
+    PROVIDER_INSA,
+    PROVIDER_VMT,
+    PROVIDER_SAARVV,
+    PROVIDER_VBN_HAFAS,
+    PROVIDER_NVV,
+    PROVIDER_VOS,
+    PROVIDER_VSN,
+    PROVIDER_VAO_AT,
+    PROVIDER_TRIMET_US,
+    PROVIDER_IRAIL_BE,
+    PROVIDER_SL_SE,
+    PROVIDER_TTC_CA,
+    PROVIDER_HONGKONG,
+    PROVIDER_WIENERLINIEN,
+    PROVIDER_TFL,
+    PROVIDER_TFNSW,
+    PROVIDER_DIGITRANSIT,
+    PROVIDER_GOLEMIO,
 ]
 
 # Transportation types mapping
@@ -129,7 +179,7 @@ TRANSPORTATION_TYPES = {"bus": "Bus", "tram": "Tram", "subway": "U-Bahn", "train
 API_RATE_LIMIT_PER_MINUTE = 60
 API_RATE_LIMIT_PER_HOUR = 1000
 API_RATE_LIMIT_PER_DAY = 60000
-API_BASE_URL_VRR = "https://openservice-test.vrr.de/static03/XML_DM_REQUEST"
+API_BASE_URL_VRR = "https://openservice.vrr.de/static03/XML_DM_REQUEST"
 API_BASE_URL_KVV = "https://projekte.kvv-efa.de/sl3-alone/XSLT_DM_REQUEST"
 API_BASE_URL_HVV = "https://hvv.efa.de/efa/XML_DM_REQUEST"
 API_BASE_URL_TRAFIKLAB = "https://realtime-api.trafiklab.se/v1"
@@ -166,7 +216,6 @@ PROVIDER_ICONS = {
     "beg": "mdi:train",
     "vbn_otp": "mdi:bus-clock",
     "vbn_trias": "mdi:bus-clock",
-    "openpublictransport": "mdi:train-variant",
     "otp_custom": "mdi:server-network",
     "national_rail": "mdi:train",
     "rejseplanen": "mdi:train",
@@ -203,7 +252,6 @@ PROVIDER_ENTITY_PICTURES = {
     "db": "https://www.bahn.de/favicon.ico",
     "vbn_otp": "https://www.vbn.de/favicon.ico",
     "vbn_trias": "https://www.vbn.de/favicon.ico",
-    "openpublictransport": "https://openpublictransport.net/favicon.ico",
     "national_rail": "https://www.nationalrail.co.uk/favicon.ico",
     "rejseplanen": "https://www.rejseplanen.dk/favicon.ico",
 }

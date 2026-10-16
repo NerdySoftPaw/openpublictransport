@@ -9,10 +9,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import (
+    CONF_API_KEY,
     CONF_NATIONAL_RAIL_API_KEY,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
-    CONF_OPT_API_KEY,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_REJSEPLANEN_API_KEY,
     CONF_RMV_API_KEY,
@@ -38,10 +38,10 @@ TO_REDACT = {
     CONF_NTA_API_KEY_SECONDARY,
     CONF_RMV_API_KEY,
     CONF_VBN_API_KEY,
-    CONF_OPT_API_KEY,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_NATIONAL_RAIL_API_KEY,
     CONF_REJSEPLANEN_API_KEY,
+    CONF_API_KEY,
 }
 
 

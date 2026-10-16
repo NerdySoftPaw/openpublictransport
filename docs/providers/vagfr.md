@@ -64,11 +64,11 @@ Platform information is extracted from the `location.disassembledName` field in 
 ### Stop Search
 
 ```
-https://efa.vagfr.de/vagfr3/XML_STOPFINDER_REQUEST?outputFormat=RapidJSON&locationServerActive=1&type_sf=stop&name_sf=Hauptbahnhof
+https://efa.vagfr.de/vagfr3/XML_STOPFINDER_REQUEST?outputFormat=rapidJSON&locationServerActive=1&type_sf=stop&name_sf=Hauptbahnhof
 ```
 
 ### Departures
 
 ```
-https://efa.vagfr.de/vagfr3/XML_DM_REQUEST?outputFormat=RapidJSON&stateless=1&type_dm=any&name_dm=STATION_ID&mode=direct&useRealtime=1&limit=10
+https://efa.vagfr.de/vagfr3/XML_DM_REQUEST?outputFormat=rapidJSON&stateless=1&type_dm=any&name_dm=STATION_ID&mode=direct&useRealtime=1&limit=10
 ```

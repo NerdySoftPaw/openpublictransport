@@ -5,7 +5,7 @@ hide:
 
 # Providers Overview
 
-The integration supports 38 transit providers across Europe and the USA. Each has its own API and data format; the integration normalizes all of them into the same entities and attributes.
+The integration supports 58 transit providers across Europe and the USA. Each has its own API and data format; the integration normalizes all of them into the same entities and attributes.
 
 ## Provider Comparison
 
@@ -33,12 +33,17 @@ pick in the config flow and what the `plan_trip` action expects.
 | [NWL](nwl.md)<br>`nwl` | Westfalen-Lippe | EFA | – | ✅ | ✅ | ✅ | ✅ | Auto |
 | [NVBW](nvbw.md)<br>`nvbw` | Bad.-Württ. | EFA | – | ✅ | ✅ | ✅ | – | Auto |
 | [BEG](beg.md)<br>`beg` | Bavaria | EFA | – | ✅ | ✅ | ✅ | – | Auto |
-| [DB](db.md)<br>`db` | Germany | FPTF | – | ✅ | ✅ | ✅ | – | Auto |
+| [VMV](vmv.md)<br>`vmv` | Mecklenburg-Vorpommern | EFA | – | ✅ | ✅ | ✅ | ✅ | Auto |
+| [GVH](gvh.md)<br>`gvh` | Hannover | EFA | – | ✅ | ✅ | ✅ | ✅ | Auto |
+| [NAH.SH](nahsh.md)<br>`nahsh` | Schleswig-Holstein | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [INSA](insa.md)<br>`insa` | Sachsen-Anhalt | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [VMT](vmt.md)<br>`vmt` | Thüringen | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [saarVV](saarvv.md)<br>`saarvv` | Saarland | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [DB](db.md)<br>`db` | Germany | MOTIS2 | – | ✅ | ✅ | ✅ | – | Auto |
 | [VBN OTP](vbn.md)<br>`vbn_otp` | Bremen | OTP | free | ✅ | – | ✅ | ✅ | Geo¹ |
 | [VBN TRIAS](vbn.md)<br>`vbn_trias` | Bremen | TRIAS | free | ✅ | ✅ | – | – | Auto |
-| [openpublictransport](openpublictransport.md)<br>`openpublictransport` | Germany | OTP2 | free² | ✅ | – | – | ✅ | Prefix |
 | [SBB](sbb.md)<br>`sbb` | Switzerland | REST | – | ✅ | ✅ | – | – | Auto |
-| [TPG](tpg.md)<br>`tpg_ch` | Geneva | mgate | – | ✅ | ✅ | ✅⁵ | – | Auto |
+| [TPG](tpg.md)<br>`tpg_ch` | Geneva | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
 | [ÖBB](oebb.md)<br>`oebb` | Austria | Scotty | – | ✅ | ✅ | ✅ | – | Auto |
 | [NS](ns.md)<br>`ns_nl` | Netherlands | Scotty | – | ✅ | ✅ | ✅ | – | Auto |
 | [mobilitéit.lu](mobiliteit_lu.md)<br>`mobiliteit_lu` | Luxembourg | Scotty | – | ✅ | ✅ | ✅ | – | Auto |
@@ -46,10 +51,25 @@ pick in the config flow and what the `plan_trip` action expects.
 | [Entur](entur.md)<br>`entur_no` | Norway | OTP | – | ✅ | ✅ | ✅⁵ | – | Geo |
 | [Trafiklab](trafiklab.md)<br>`trafiklab_se` | Sweden | REST | free | ✅ | ✅ | – | – | Auto |
 | [NTA](nta.md)<br>`nta_ie` | Ireland | GTFS-RT | free | ✅ | ~ | ✅ | – | ID |
-| [Irish Rail](irishrail.md)<br>`irishrail_ie` | Ireland | mgate | – | ✅ | ✅ | ✅⁵ | – | Auto |
+| [Irish Rail](irishrail.md)<br>`irishrail_ie` | Ireland | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
 | [National Rail](national_rail.md)<br>`national_rail` | Great Britain | SOAP | free | ✅ | ✅ | ✅⁵ | – | Auto |
-| [BART](bart.md)<br>`bart_us` | San Francisco | mgate | – | ✅ | ✅ | ✅⁵ | – | Auto |
-| [DART](dart.md)<br>`dart_us` | Des Moines | mgate | – | ✅ | ~ | ✅⁵ | – | Auto |
+| [BART](bart.md)<br>`bart_us` | San Francisco | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [DART](dart.md)<br>`dart_us` | Des Moines | mgate | – | ✅ | ~ | ✅⁵ | ✅ | Auto |
+| [VBN](vbn-hafas.md)<br>`vbn_hafas` | Bremen | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [NVV](nvv.md)<br>`nvv` | Nordhessen | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [VOS](vos.md)<br>`vos` | Osnabrück | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [VSN](vsn.md)<br>`vsn` | Südniedersachsen | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [VAO](vao.md)<br>`vao_at` | Austria | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [TriMet](trimet.md)<br>`trimet_us` | Portland | OTP | – | ✅ | – | – | – | Geo |
+| [iRail](irail.md)<br>`irail_be` | Belgium | REST | – | ✅ | ✅ | ✅⁵ | – | Auto |
+| [SL](sl.md)<br>`sl_se` | Stockholm | REST | – | ✅ | ✅ | ✅ | – | Auto |
+| [TTC](ttc.md)<br>`ttc_ca` | Toronto | NextBus | – | ✅ | – | ✅ | – | Auto |
+| [Hong Kong](hongkong.md)<br>`hongkong` | Hong Kong | REST | – | ✅ | ✅ | ✅ | – | Auto |
+| [Wiener Linien](wienerlinien.md)<br>`wienerlinien_at` | Vienna | REST | – | ✅ | ✅ | ✅ | – | Auto |
+| [TfL](tfl.md)<br>`tfl_uk` | London | REST | opt. | ✅ | ✅ | – | – | Auto |
+| [TfNSW](tfnsw.md)<br>`tfnsw_au` | New South Wales | EFA | free | ✅ | ✅ | ✅ | – | Auto |
+| [Digitransit](digitransit.md)<br>`digitransit_fi` | Finland | OTP | free | ✅ | ✅ | – | – | Auto |
+| [PID](golemio.md)<br>`golemio_cz` | Prague | REST | free | ✅ | ✅ | ✅ | – | Auto |
 | [Transitous](transitous.md)<br>`transitous` | Worldwide | MOTIS2 | – | ~ | ~ | ~ | – | Auto |
 | [OTP2 Custom](otp-custom.md)<br>`otp_custom` | Any OTP2 | OTP2 | opt. | ~ | – | – | ✅ | Prefix |
 
@@ -69,7 +89,6 @@ do not expose them.
 
 ¹ VBN OTP has no native name-based stop search. The integration geocodes your search term via Nominatim (OpenStreetMap) and finds stops within 500 m of the resolved coordinates.
 
-² API key for the community server is free — [request it here](https://openpublictransport.net/api-key).
 
 ³ HVV Geofox GTI is HOCHBAHN's official API on behalf of the HVV. Credentials are free and
 requested by email at api@hochbahn.de. It exposes delays, cancellations and platform changes that
@@ -106,9 +125,14 @@ Each provider uses its local timezone for departure times:
 | NVBW | `nvbw` | Europe/Berlin |
 | BEG | `beg` | Europe/Berlin |
 | DB | `db` | Europe/Berlin |
+| VMV | `vmv` | Europe/Berlin |
+| GVH | `gvh` | Europe/Berlin |
+| NAH.SH | `nahsh` | Europe/Berlin |
+| INSA | `insa` | Europe/Berlin |
+| VMT | `vmt` | Europe/Berlin |
+| saarVV | `saarvv` | Europe/Berlin |
 | VBN OTP | `vbn_otp` | Europe/Berlin |
 | VBN TRIAS | `vbn_trias` | Europe/Berlin |
-| openpublictransport | `openpublictransport` | Europe/Berlin |
 | SBB | `sbb` | Europe/Zurich |
 | TPG | `tpg_ch` | Europe/Zurich |
 | ÖBB | `oebb` | Europe/Vienna |
@@ -122,6 +146,21 @@ Each provider uses its local timezone for departure times:
 | National Rail | `national_rail` | Europe/London |
 | BART | `bart_us` | America/Los_Angeles |
 | DART | `dart_us` | America/Chicago |
+| VBN | `vbn_hafas` | Europe/Berlin |
+| NVV | `nvv` | Europe/Berlin |
+| VOS | `vos` | Europe/Berlin |
+| VSN | `vsn` | Europe/Berlin |
+| VAO | `vao_at` | Europe/Vienna |
+| TriMet | `trimet_us` | America/Los_Angeles |
+| iRail | `irail_be` | Europe/Brussels |
+| SL | `sl_se` | Europe/Stockholm |
+| TTC | `ttc_ca` | America/Toronto |
+| Hong Kong | `hongkong` | Asia/Hong_Kong |
+| Wiener Linien | `wienerlinien_at` | Europe/Vienna |
+| TfL | `tfl_uk` | Europe/London |
+| TfNSW | `tfnsw_au` | Australia/Sydney |
+| Digitransit | `digitransit_fi` | Europe/Helsinki |
+| PID | `golemio_cz` | Europe/Prague |
 | Transitous | `transitous` | Per-stop (automatic) |
 | OTP2 Custom | `otp_custom` | Europe/Berlin (or per OTP2 config) |
 
@@ -252,7 +291,7 @@ Mapped from the product category (the token after `#` in the board's `prod` attr
 | Bus / O-Bus | bus | Bus / trolleybus |
 | F / Schiff / Fähre | ferry | Ferry |
 
-### HAFAS mgate Categories (BART, DART, Irish Rail, TPG)
+### HAFAS mgate Categories (BART, DART, Irish Rail, TPG, NAH.SH, INSA, VMT, saarVV)
 
 Mapped from the product `prodCtx.catOut` label (the `cls` bitmask is intentionally **not** used — its meaning differs per deployment, e.g. `128` is a ferry for ÖBB but *Metro* for BART).
 

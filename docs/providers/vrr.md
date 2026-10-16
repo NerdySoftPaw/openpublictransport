@@ -16,7 +16,7 @@ VRR is the transit authority for the Rhein-Ruhr metropolitan area in North Rhine
 
 | Property | Value |
 |----------|-------|
-| **Base URL** | `https://openservice-test.vrr.de/static03/` |
+| **Base URL** | `https://openservice.vrr.de/static03/` |
 | **API Key** | Not required |
 | **Rate Limit** | 60,000 calls/day |
 | **Timezone** | Europe/Berlin |
@@ -56,19 +56,19 @@ VRR is the transit authority for the Rhein-Ruhr metropolitan area in North Rhine
 ### Stop Search (STOPFINDER)
 
 ```
-https://openservice-test.vrr.de/static03/XML_STOPFINDER_REQUEST?outputFormat=RapidJSON&locationServerActive=1&type_sf=stop&name_sf=Düsseldorf%20Hauptbahnhof
+https://openservice.vrr.de/static03/XML_STOPFINDER_REQUEST?outputFormat=rapidJSON&locationServerActive=1&type_sf=stop&name_sf=Düsseldorf%20Hauptbahnhof
 ```
 
 ### Departures (DM_REQUEST)
 
 Using Station ID:
 ```
-https://openservice-test.vrr.de/static03/XML_DM_REQUEST?outputFormat=RapidJSON&stateless=1&type_dm=any&name_dm=20018235&mode=direct&useRealtime=1&limit=10
+https://openservice.vrr.de/static03/XML_DM_REQUEST?outputFormat=rapidJSON&stateless=1&type_dm=any&name_dm=20018235&mode=direct&useRealtime=1&limit=10
 ```
 
 Using Place and Name:
 ```
-https://openservice-test.vrr.de/static03/XML_DM_REQUEST?outputFormat=RapidJSON&place_dm=Düsseldorf&type_dm=stop&name_dm=Hauptbahnhof&mode=direct&useRealtime=1&limit=10
+https://openservice.vrr.de/static03/XML_DM_REQUEST?outputFormat=rapidJSON&place_dm=Düsseldorf&type_dm=stop&name_dm=Hauptbahnhof&mode=direct&useRealtime=1&limit=10
 ```
 
 ## Features

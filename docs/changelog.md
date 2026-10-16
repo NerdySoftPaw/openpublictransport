@@ -1,5 +1,109 @@
 # Changelog
 
+## v2026.10.0 — The openpublictransport community server is shut down
+
+!!! warning "Please read before updating"
+    We had to give up our own API at `api.openpublictransport.net` **for cost reasons**. Entries
+    that use the `openpublictransport` provider are deleted on update. All other providers are
+    unaffected. The full background is in
+    [Community Server Shutdown & Our New Focus](community-server-shutdown.md).
+
+### Why
+
+Running a Germany-wide OpenTripPlanner 2 server for everyone — a large machine running 24/7,
+the weekly rebuild of the routing graph, real-time polling every 30 seconds, traffic, backups
+and monitoring — turned out to be far more expensive than a free hobby project can carry.
+Donations helped, but never covered the running costs, and the gap grew with every new user.
+Instead of letting the service slowly degrade, we decided to shut it down cleanly.
+
+### Breaking changes
+
+- **The `openpublictransport` provider has been removed.** On the first start after the update,
+  every departure and trip entry that still uses this provider is **deleted together with its
+  devices and entities**, and a repair notice under **Settings → System → Repairs** lists the
+  removed entries by name. Confirm the notice to dismiss it.
+- **Replacement:** set the stops up again with the official provider of your transit network
+  (VRR, KVV, MVV, VVS, RMV, HVV, BVG, VVO and many more — see the
+  [provider overview](providers/index.md)), or host the same server yourself with the
+  [`otp-gtfsde`](https://github.com/NerdySoftPaw/otp-gtfsde) Docker image and connect it with
+  the **OTP2 — Eigene Instanz** (`otp_custom`) provider. See the
+  [Migration Guide](migration.md#migration-3-openpublictransport-provider-self-hosted-otp2-v2026100).
+- Requires `python-openpublictransport` 0.3.0, which no longer ships the `openpublictransport`
+  provider.
+
+### New providers
+
+The first step of the new focus ships with this release: six German networks that so far had
+no coverage or timetable data only (through NVBW's nationwide feed) now have their own provider
+with real-time data. None of them needs an API key.
+
+| Provider | Region | API | Trip planner |
+|----------|--------|-----|:------------:|
+| [VMV](providers/vmv.md) | Mecklenburg-Vorpommern (Rostock, Schwerin, …) | EFA | ✅ |
+| [GVH](providers/gvh.md) | Hannover | EFA | ✅ |
+| [NAH.SH](providers/nahsh.md) | Schleswig-Holstein (Kiel, Lübeck, …) | HAFAS mgate | ✅ |
+| [INSA](providers/insa.md) | Sachsen-Anhalt (Magdeburg, Halle, …) | HAFAS mgate | ✅ |
+| [VMT](providers/vmt.md) | Thüringen (Erfurt, Jena, Weimar) | HAFAS mgate | ✅ |
+| [saarVV](providers/saarvv.md) | Saarland | HAFAS mgate | ✅ |
+
+### Even more providers (15 new, 58 in total)
+
+**Germany** — HAFAS mgate with trip planning, no API key:
+
+- [VBN without key](providers/vbn-hafas.md) (Bremen / Niedersachsen), alongside the key-based VBN OTP / TRIAS
+- [NVV](providers/nvv.md) (Nordhessen / Kassel), [VOS](providers/vos.md) (Osnabrück), [VSN](providers/vsn.md) (Göttingen)
+
+**Europe:**
+
+- [VAO](providers/vao.md) — all of Austria with trip planning
+- [Wiener Linien](providers/wienerlinien.md) (Vienna), [iRail](providers/irail.md) (Belgian rail), [SL](providers/sl.md) (Stockholm, no key), [TfL](providers/tfl.md) (London)
+- With a free API key: [Digitransit](providers/digitransit.md) (Finland), [PID / Golemio](providers/golemio.md) (Prague)
+
+**Worldwide:**
+
+- [Hong Kong](providers/hongkong.md) (KMB buses and MTR), [TTC](providers/ttc.md) (Toronto streetcars and buses), [TriMet](providers/trimet.md) (Portland)
+- With a free API key: [Transport for NSW](providers/tfnsw.md) (Sydney / NSW)
+
+The three key-based providers (Digitransit, PID, Transport for NSW) were built from the official
+documentation and could not be tested with a real key yet — feedback is welcome.
+
+### DB is back
+
+The community proxy `v6.db.transport.rest` behind the [DB provider](providers/db.md) has been
+down for weeks. DB now runs on [Transitous](providers/transitous.md) instead, with nationwide
+real-time data for trains, S-Bahn, U-Bahn, trams and buses. Existing DB entries keep working
+without reconfiguration.
+
+### Fixes for HAFAS providers
+
+- Signed HAFAS requests now use the salt like hafas-client (hex-decoded), which VSN needs.
+- HAFAS providers send the client extension (`ext`) some networks expect.
+- OTP REST providers no longer fail when the server has no alerts endpoint.
+
+### Trip planning for every HAFAS mgate provider
+
+The trip planner now also works with all HAFAS mgate providers — NAH.SH, INSA, VMT, saarVV,
+TPG, Irish Rail, BART and DART — through the mgate `TripSearch` service, with real-time delays,
+platforms and transfer rating like the EFA and OTP providers. Connections with a cancelled leg
+are left out. Pick both stops in the config flow, as for OTP.
+
+The HAFAS mgate providers use the access id of the operator's own app (from the
+public-transport/transport-apis catalogue), not an officially issued key, so it may change
+without notice.
+
+### Fixes
+
+- **BEG departure boards failed with "authentication failed (HTTP 403)"** — the firewall in front
+  of bahnland-bayern.de rejects the `RapidJSON` spelling of the output format. All EFA providers
+  now request `rapidJSON`, which every EFA server accepts.
+
+### What's next: more transit networks
+
+From now on, development focuses on **connecting more transit networks (Verkehrsverbünde)
+directly** through their official interfaces — official data from the source, no central
+server, no running costs and no single point of failure. Missing your network?
+[Request it here](https://github.com/NerdySoftPaw/openpublictransport/issues/new?template=provider_request.yml).
+
 ## v2026.9.1 — Trip sensors honour their filters
 
 ### Fixes

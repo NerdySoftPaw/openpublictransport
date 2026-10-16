@@ -417,32 +417,6 @@ async def test_stop_search_exception_returns_empty(hass: HomeAssistant):
 
 # ── reauth for OPT and OTP_CUSTOM ─────────────────────────────────────────────
 
-async def test_reauth_opt_valid_key(hass: HomeAssistant):
-    """Test reauth for OPT provider."""
-    from custom_components.openpublictransport.const import CONF_OPT_API_KEY, PROVIDER_OPT
-    from custom_components.openpublictransport.config_flow import OpenPublicTransportConfigFlow
-
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        data={CONF_PROVIDER: PROVIDER_OPT, CONF_OPT_API_KEY: "old-key"},
-    )
-    entry.add_to_hass(hass)
-
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={"source": "reauth", "entry_id": entry.entry_id},
-        data=entry.data,
-    )
-    assert result["step_id"] == "reauth_confirm"
-
-    with patch.object(OpenPublicTransportConfigFlow, "_async_store_credential", new_callable=AsyncMock):
-        result2 = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input={CONF_OPT_API_KEY: "new-key"}
-        )
-    assert result2["type"] == "abort"
-    assert result2["reason"] == "reauth_successful"
-
-
 async def test_reauth_otp_custom(hass: HomeAssistant):
     """Test reauth for OTP Custom provider."""
     from custom_components.openpublictransport.const import (

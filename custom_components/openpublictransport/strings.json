@@ -26,16 +26,6 @@
           "stop": "Haltestelle"
         }
       },
-      "opt_key": {
-        "title": "API-Schlüssel (openpublictransport.net)",
-        "description": "Gib deinen kostenlosen API-Schlüssel für den Community-OTP2-Server ein. Schlüssel anfordern auf openpublictransport.net/api-key.",
-        "data": {
-          "opt_api_key": "API-Schlüssel"
-        },
-        "data_description": {
-          "opt_api_key": "Kostenloser API-Schlüssel (erforderlich) — erhältlich auf openpublictransport.net/api-key"
-        }
-      },
       "otp_custom_url": {
         "title": "Eigene OTP2-Instanz konfigurieren",
         "description": "Gib die Basis-URL deines OTP2-Servers ein. Format: http://host:8080/otp/routers/default",
@@ -57,7 +47,8 @@
           "nta_api_key_secondary": "NTA Secondary API-Schlüssel (optional)",
           "rmv_api_key": "RMV API-Schlüssel",
           "hvv_gti_user": "GTI-Benutzername (Application ID)",
-          "hvv_gti_password": "GTI-Passwort"
+          "hvv_gti_password": "GTI-Passwort",
+          "api_key": "API-Schlüssel"
         },
         "data_description": {
           "trafiklab_api_key": "Trafiklab API-Schlüssel (erhältlich auf trafiklab.se)",
@@ -65,7 +56,8 @@
           "nta_api_key_secondary": "NTA Secondary API-Schlüssel (optional, als Fallback)",
           "rmv_api_key": "RMV API-Schlüssel (erhältlich auf opendata.rmv.de)",
           "hvv_gti_user": "Benutzername aus den Geofox-GTI-Zugangsdaten (geofox-auth-user)",
-          "hvv_gti_password": "Passwort aus den Geofox-GTI-Zugangsdaten. Wird zum Signieren jeder Anfrage verwendet und nicht übertragen"
+          "hvv_gti_password": "Passwort aus den Geofox-GTI-Zugangsdaten. Wird zum Signieren jeder Anfrage verwendet und nicht übertragen",
+          "api_key": "Persönlicher API-Schlüssel des Anbieters (kostenlose Registrierung, siehe Hinweis oben)"
         }
       },
       "settings": {
@@ -134,9 +126,12 @@
           "vbn_api_key": "VBN API-Schlüssel",
           "nta_api_key": "NTA API-Schlüssel (primär)",
           "nta_api_key_secondary": "NTA API-Schlüssel (sekundär, optional)",
-          "opt_api_key": "API-Schlüssel",
           "otp_base_url": "OTP2-Server-URL",
-          "otp_custom_api_key": "API-Schlüssel (optional)"
+          "otp_custom_api_key": "API-Schlüssel (optional)",
+          "api_key": "API-Schlüssel"
+        },
+        "data_description": {
+          "api_key": "Persönlicher API-Schlüssel des Anbieters (kostenlose Registrierung, siehe Hinweis oben)"
         }
       }
     },
@@ -145,7 +140,6 @@
       "empty_search": "Bitte geben Sie einen Suchbegriff ein",
       "no_results": "Keine Ergebnisse gefunden. Bitte versuchen Sie einen anderen Suchbegriff.",
       "trip_not_supported": "Dieser Anbieter unterstützt nur die Abfahrtsanzeige — eine Verbindungssuche ist nicht möglich. Bitte wähle einen EFA- oder OTP2-Anbieter oder den Eintragstyp „Abfahrtsanzeige“.",
-      "opt_api_key_required": "API-Schlüssel ist erforderlich (kostenlos anfordern auf openpublictransport.net/api-key)",
       "otp_url_required": "Bitte gib eine gültige URL für deinen OTP2-Server ein",
       "api_key_required": "API-Schlüssel ist erforderlich",
       "trafiklab_api_key_required": "Trafiklab API-Schlüssel ist erforderlich",
@@ -230,6 +224,17 @@
     "api_error": {
       "title": "API-Fehler",
       "description": "Es gab einen Fehler beim Abrufen der Daten von {provider}. Bitte überprüfen Sie Ihre Stations-ID oder Haltestelleninformationen in den Einstellungen."
+    },
+    "opt_provider_removed": {
+      "title": "Community-Server openpublictransport.net eingestellt",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Community-Server openpublictransport.net eingestellt",
+            "description": "Wir mussten unsere eigene API unter {server} aus Kostengründen einstellen. Folgende Einträge und ihre Entitäten wurden entfernt: {entries}.\n\nRichte deine Haltestellen mit dem offiziellen Provider deines Verkehrsverbunds neu ein (z. B. VRR, KVV, MVV, VVS, RMV, HVV, BVG, VVO) oder hoste denselben Server selbst (Docker-Image {image}) und verbinde ihn über den Provider „OTP2 — Eigene Instanz“.\n\nAb jetzt konzentrieren wir uns darauf, mehr Verkehrsverbünde direkt anzubinden. Deiner fehlt? Wünsch ihn dir auf GitHub. Alle Hintergründe: {url}\n\nBestätige, um diesen Hinweis zu schließen."
+          }
+        }
+      }
     }
   }
 }

@@ -26,16 +26,6 @@
           "stop": "Fermata"
         }
       },
-      "opt_key": {
-        "title": "API Key (openpublictransport.net)",
-        "description": "Enter your free API key for the community OTP2 server. Request one at openpublictransport.net/api-key.",
-        "data": {
-          "opt_api_key": "API Key"
-        },
-        "data_description": {
-          "opt_api_key": "Free API key (required) — request at openpublictransport.net/api-key"
-        }
-      },
       "otp_custom_url": {
         "title": "Configure Custom OTP2 Instance",
         "description": "Enter the base URL of your OTP2 server. Format: http://host:8080/otp/routers/default",
@@ -57,7 +47,8 @@
           "nta_api_key_secondary": "API Key secondaria NTA (facoltativa)",
           "rmv_api_key": "API Key RMV",
           "hvv_gti_user": "Nome utente GTI (ID applicazione)",
-          "hvv_gti_password": "Password GTI"
+          "hvv_gti_password": "Password GTI",
+          "api_key": "API key"
         },
         "data_description": {
           "trafiklab_api_key": "API Key Trafiklab (disponibile su trafiklab.se)",
@@ -65,7 +56,8 @@
           "nta_api_key_secondary": "API Key secondaria NTA (facoltativa, usata come riserva)",
           "rmv_api_key": "API Key RMV (da richiedere su opendata.rmv.de)",
           "hvv_gti_user": "Nome utente delle credenziali Geofox GTI (geofox-auth-user)",
-          "hvv_gti_password": "Password delle credenziali Geofox GTI. Serve a firmare ogni richiesta e non viene mai trasmessa"
+          "hvv_gti_password": "Password delle credenziali Geofox GTI. Serve a firmare ogni richiesta e non viene mai trasmessa",
+          "api_key": "Personal API key from the provider (free registration, see the note above)"
         }
       },
       "settings": {
@@ -127,7 +119,6 @@
       }
     },
     "error": {
-      "opt_api_key_required": "API key is required (request a free key at openpublictransport.net/api-key)",
       "otp_url_required": "Please enter a valid URL for your OTP2 server",
       "missing_location": "Fornisci un ID stazione oppure una posizione e un nome di fermata",
       "empty_search": "Inserisci un termine di ricerca",
@@ -211,6 +202,17 @@
     "api_error": {
       "title": "Errore API",
       "description": "Si è verificato un errore durante il recupero dei dati da {provider}. Verifica l'ID stazione o le informazioni sulla fermata nelle impostazioni."
+    },
+    "opt_provider_removed": {
+      "title": "openpublictransport.net community server shut down",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "openpublictransport.net community server shut down",
+            "description": "We had to shut down our own API at {server} for cost reasons. The following entries and their entities were removed: {entries}.\n\nTo set your stops up again, use the official provider of your transit network (e.g. VRR, KVV, MVV, VVS, RMV, HVV, BVG, VVO), or host the same server yourself (Docker image {image}) and connect it with the \"OTP2 — Eigene Instanz\" provider.\n\nFrom now on, we focus on connecting more transit networks directly. Missing yours? Request it on GitHub. Full background: {url}\n\nConfirm to dismiss this notice."
+          }
+        }
+      }
     }
   }
 }

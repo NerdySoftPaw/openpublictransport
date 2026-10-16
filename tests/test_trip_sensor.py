@@ -12,7 +12,6 @@ from openpublictransport import ApiError, ApiTimeoutError, AuthenticationError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.openpublictransport.const import (
-    CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_SCAN_INTERVAL,
@@ -268,18 +267,6 @@ async def test_async_setup_trip_entry_vbn_otp(hass: HomeAssistant):
             await async_setup_trip_entry(hass, entry)
 
     assert entry.runtime_data.api_key == "my-vbn-key"
-
-
-async def test_async_setup_trip_entry_opt(hass: HomeAssistant):
-    """Test trip entry uses OPT API key."""
-    entry = _make_trip_entry(provider="openpublictransport", extra_data={CONF_OPT_API_KEY: "opt-key"})
-    entry.add_to_hass(hass)
-
-    with patch.object(TripDataUpdateCoordinator, "async_config_entry_first_refresh", new_callable=AsyncMock):
-        with patch("homeassistant.config_entries.ConfigEntries.async_forward_entry_setups", new_callable=AsyncMock):
-            await async_setup_trip_entry(hass, entry)
-
-    assert entry.runtime_data.api_key == "opt-key"
 
 
 async def test_async_setup_trip_entry_otp_custom(hass: HomeAssistant):

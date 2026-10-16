@@ -44,3 +44,4 @@ DART provides departures for the Des Moines, Iowa (USA) transit network via the 
 
 - Realtime departure data with delay in minutes
 - No API key required
+- Trip planning (HAFAS `TripSearch`), including real-time delays and transfers

@@ -26,16 +26,6 @@
           "stop": "Hållplats"
         }
       },
-      "opt_key": {
-        "title": "API Key (openpublictransport.net)",
-        "description": "Enter your free API key for the community OTP2 server. Request one at openpublictransport.net/api-key.",
-        "data": {
-          "opt_api_key": "API Key"
-        },
-        "data_description": {
-          "opt_api_key": "Free API key (required) — request at openpublictransport.net/api-key"
-        }
-      },
       "otp_custom_url": {
         "title": "Configure Custom OTP2 Instance",
         "description": "Enter the base URL of your OTP2 server. Format: http://host:8080/otp/routers/default",
@@ -57,7 +47,8 @@
           "nta_api_key_secondary": "NTA sekundär API-nyckel (valfritt)",
           "rmv_api_key": "RMV API-nyckel",
           "hvv_gti_user": "GTI-användarnamn (applikations-ID)",
-          "hvv_gti_password": "GTI-lösenord"
+          "hvv_gti_password": "GTI-lösenord",
+          "api_key": "API key"
         },
         "data_description": {
           "trafiklab_api_key": "Trafiklab API-nyckel (tillgänglig på trafiklab.se)",
@@ -65,7 +56,8 @@
           "nta_api_key_secondary": "NTA sekundär API-nyckel (valfritt, används som reserv)",
           "rmv_api_key": "RMV API-nyckel (begär på opendata.rmv.de)",
           "hvv_gti_user": "Användarnamn från dina Geofox GTI-uppgifter (geofox-auth-user)",
-          "hvv_gti_password": "Lösenord från dina Geofox GTI-uppgifter. Används för att signera varje begäran och skickas aldrig"
+          "hvv_gti_password": "Lösenord från dina Geofox GTI-uppgifter. Används för att signera varje begäran och skickas aldrig",
+          "api_key": "Personal API key from the provider (free registration, see the note above)"
         }
       },
       "settings": {
@@ -127,7 +119,6 @@
       }
     },
     "error": {
-      "opt_api_key_required": "API key is required (request a free key at openpublictransport.net/api-key)",
       "otp_url_required": "Please enter a valid URL for your OTP2 server",
       "missing_location": "Ange antingen ett stations-ID eller en plats och hållplatsnamn",
       "empty_search": "Ange en sökterm",
@@ -211,6 +202,17 @@
     "api_error": {
       "title": "API-fel",
       "description": "Ett fel uppstod vid hämtning av data från {provider}. Kontrollera ditt stations-ID eller hållplatsinformation i inställningarna."
+    },
+    "opt_provider_removed": {
+      "title": "openpublictransport.net community server shut down",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "openpublictransport.net community server shut down",
+            "description": "We had to shut down our own API at {server} for cost reasons. The following entries and their entities were removed: {entries}.\n\nTo set your stops up again, use the official provider of your transit network (e.g. VRR, KVV, MVV, VVS, RMV, HVV, BVG, VVO), or host the same server yourself (Docker image {image}) and connect it with the \"OTP2 — Eigene Instanz\" provider.\n\nFrom now on, we focus on connecting more transit networks directly. Missing yours? Request it on GitHub. Full background: {url}\n\nConfirm to dismiss this notice."
+          }
+        }
+      }
     }
   }
 }

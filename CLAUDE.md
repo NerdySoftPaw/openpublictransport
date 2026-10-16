@@ -42,7 +42,7 @@ custom_components/openpublictransport/
     ├── base.py            BaseProvider ABC — takes aiohttp.ClientSession, no HA dep
     ├── efa_base.py        EFA/XML base → VRR KVV HVV MVV VVS VGN VAG VRN VVO
     ├── trias_base.py      TRIAS/SOAP base → RMV NWL NVBW
-    ├── otp_base.py        OTP2 REST/GraphQL base → OPT VBN OTP_CUSTOM
+    ├── otp_base.py        OTP2 REST/GraphQL base → VBN OTP_CUSTOM
     ├── fptf_base.py       FPTF REST base → Transitous
     └── [24 concrete provider modules]
 
@@ -225,8 +225,11 @@ All 18 tracked Bronze rules are done or exempt.
 
 ## Key Constraints / Do Not Break
 
-- **All 38 providers must keep working** — never remove a provider or change its
+- **All providers must keep working** — never remove a provider or change its
   `provider_id` constant; existing config entries depend on these strings.
+  Exception: `openpublictransport` (community server, shut down in 2026.10.0) —
+  its entries are deleted on startup via `_async_remove_legacy_opt_entries`;
+  keep `LEGACY_PROVIDER_OPT` so that cleanup keeps working.
 - **Application Credentials integration** — API keys must stay in the AC store
   (`application_credentials.py`), not revert to `config_entry.data`.
 - **Migration path** — `_async_migrate_credential` in `__init__.py` must keep

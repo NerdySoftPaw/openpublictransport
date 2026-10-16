@@ -91,11 +91,11 @@ HVV real-time data is detected by comparing `departureTimePlanned` with `departu
 ### Stop Search
 
 ```
-https://hvv.efa.de/efa/XML_STOPFINDER_REQUEST?outputFormat=RapidJSON&locationServerActive=1&type_sf=stop&name_sf=Hamburg%20Hauptbahnhof
+https://hvv.efa.de/efa/XML_STOPFINDER_REQUEST?outputFormat=rapidJSON&locationServerActive=1&type_sf=stop&name_sf=Hamburg%20Hauptbahnhof
 ```
 
 ### Departures
 
 ```
-https://hvv.efa.de/efa/XML_DM_REQUEST?outputFormat=RapidJSON&stateless=1&type_dm=any&name_dm=STATION_ID&mode=direct&useRealtime=1&limit=10
+https://hvv.efa.de/efa/XML_DM_REQUEST?outputFormat=rapidJSON&stateless=1&type_dm=any&name_dm=STATION_ID&mode=direct&useRealtime=1&limit=10
 ```

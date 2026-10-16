@@ -1,5 +1,18 @@
 # Changelog
 
+## v2026.10.5 — Routine notices are no longer shown as disruptions
+
+### Fixes
+
+- **Routine information appeared as a disruption** ([card#15](https://github.com/NerdySoftPaw/openpublictransport-card/issues/15), thanks @deZeus89) —
+  on EFA providers (VRR, KVV, GVH, …), notices such as "Fahrradmitnahme begrenzt möglich",
+  "behindertengerechtes Fahrzeug" or "Bordrestaurant" counted as disruptions. Each departure now
+  has a `disruptions` attribute with only the real disruptions (delays, construction work,
+  closures), and the disruption event fires only for those. `notices` still lists everything.
+  The departure card 1.10.1 uses the new attribute for its warning banner.
+
+Requires `python-openpublictransport` 0.3.3.
+
 ## v2026.10.4 — Trip duration includes transfer time
 
 ### Fixes

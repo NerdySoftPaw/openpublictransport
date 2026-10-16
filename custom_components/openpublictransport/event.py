@@ -88,9 +88,12 @@ class DisruptionEventEntity(CoordinatorEntity, EventEntity):
             if not dep:
                 continue
 
-            # Collect notices
-            if dep.notices:
-                for notice in dep.notices:
+            # Collect disruptions. Routine notices such as bicycle rules or
+            # on-board facilities are not disruptions (card#15); a library
+            # without the distinction leaves it None, then every notice counts.
+            disruptions = dep.notices if dep.disruptions is None else dep.disruptions
+            if disruptions:
+                for notice in disruptions:
                     current_notices.add(notice)
 
             # Collect platform changes

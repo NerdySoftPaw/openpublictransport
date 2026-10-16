@@ -7,7 +7,7 @@ The integration creates up to **7 entity types** for each configured stop:
 | **Sensor** | Next departure time with full departure list |
 | **Binary Sensor** | Delay detection (configurable threshold) |
 | **Calendar** | Each departure as a calendar event |
-| **Event** | Fires on disruption notices |
+| **Event** | Fires on disruptions (not on routine notices) |
 | **Camera** | Rendered departure board image (yellow-on-black) — also available for Multi-Stop entries (disabled by default, enable it on the device) |
 | **Trip Sensor** | Route A→B with transfers and delays |
 | **Statistics** | Per-line punctuality tracking |
@@ -73,6 +73,8 @@ Each departure in the `departures` list contains:
 | `minutes_until_departure` | Integer | Minutes until departure |
 | `description` | String | Route description (optional) |
 | `agency` | String | Operating agency/operator name |
+| `notices` | List | All notices for the departure, routine information included (e.g. "Fahrradmitnahme begrenzt möglich", "behindertengerechtes Fahrzeug") |
+| `disruptions` | List | The notices that report an actual disruption (delays, construction work, closures). Present whenever `notices` is, possibly empty |
 | `line_color` | String | Route background color in `#RRGGBB` format (OTP providers) |
 | `line_text_color` | String | Route text color in `#RRGGBB` format (OTP providers) |
 

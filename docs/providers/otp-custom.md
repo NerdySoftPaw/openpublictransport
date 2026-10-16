@@ -3,7 +3,7 @@
 The `otp_custom` provider lets you connect any self-hosted [OpenTripPlanner 2](https://www.opentripplanner.org/) server to Home Assistant. This is useful if you run your own OTP2 instance — for example a local gtfs.de deployment, a private GTFS feed, or the `otp-gtfsde` Docker image on your own hardware.
 
 !!! info "Replaces the openpublictransport community server"
-    The hosted community server at `api.openpublictransport.net` was shut down in v2026.10.0. For Germany-wide data, run the `otp-gtfsde` image yourself (see [Self-Hosting with gtfs.de](#self-hosting-with-gtfsde)) and connect it with this provider.
+    The hosted community server at `api.openpublictransport.net` was shut down in v2026.10.0. For Germany-wide data, run the `otp-gtfsde` image yourself (see [Self-Hosting with gtfs.de](#self-hosting-with-gtfsde)) and connect it with this provider. Background: [Community Server Shutdown & Our New Focus](../community-server-shutdown.md).
 
 ## When to Use This
 

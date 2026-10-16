@@ -54,6 +54,7 @@ nav:
   - Home: index.md
   - Installation: installation.md
   - Migration Guide: migration.md
+  - Community Server Shutdown: community-server-shutdown.md
   - Configuration: configuration.md
   - Providers:
       - Overview: providers/index.md

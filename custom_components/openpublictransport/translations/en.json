@@ -211,7 +211,7 @@
         "step": {
           "confirm": {
             "title": "openpublictransport.net community server shut down",
-            "description": "The community server api.openpublictransport.net has been shut down. The following entries and their entities were removed: {entries}.\n\nYou can host your own OpenTripPlanner 2 server (e.g. the Docker image ghcr.io/nerdysoftpaw/otp-gtfsde) and set it up again with the \"OTP2 — Eigene Instanz\" provider, or choose a different provider.\n\nConfirm to dismiss this notice."
+            "description": "We had to shut down our own API at api.openpublictransport.net for cost reasons. The following entries and their entities were removed: {entries}.\n\nTo set your stops up again, use the official provider of your transit network (e.g. VRR, KVV, MVV, VVS, RMV, HVV, BVG, VVO), or host the same server yourself (Docker image ghcr.io/nerdysoftpaw/otp-gtfsde) and connect it with the \"OTP2 — Eigene Instanz\" provider.\n\nFrom now on, we focus on connecting more transit networks directly. Missing yours? Request it on GitHub. Full background: https://docs.openpublictransport.net/latest/community-server-shutdown/\n\nConfirm to dismiss this notice."
           }
         }
       }

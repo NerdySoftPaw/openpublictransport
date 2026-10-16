@@ -1,13 +1,20 @@
 # openpublictransport
 
-Real-time public transport departures for Home Assistant — 38 providers across Germany, Switzerland, Austria, the Netherlands, Luxembourg, Denmark, Norway, Sweden, Ireland, the UK, the USA, and worldwide.
+Real-time public transport departures for Home Assistant — 37 providers across Germany, Switzerland, Austria, the Netherlands, Luxembourg, Denmark, Norway, Sweden, Ireland, the UK, the USA, and worldwide.
+
+!!! warning "The openpublictransport community server has been shut down"
+    We had to give up our own API at `api.openpublictransport.net` for cost reasons. Entries using the
+    `openpublictransport` provider are removed when you update to v2026.10.0 — all other providers are
+    unaffected. Our focus now is on connecting **more transit networks (Verkehrsverbünde) directly**.
+
+    **[→ Read the full announcement](community-server-shutdown.md)**
 
 !!! tip "Coming from VRRAPI-HACS or hacs-publictransport?"
     This is the new official repository! The domain changed from `vrr` to `openpublictransport` — entity IDs and services have new names.
     
     **[→ Migration Guide](migration.md)** — Step-by-step instructions for both migrations.
 
-## Supported Providers (38)
+## Supported Providers (37)
 
 | Provider | Region | API Type | API Key |
 |----------|--------|----------|---------|

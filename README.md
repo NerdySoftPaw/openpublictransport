@@ -13,9 +13,16 @@
 [![Code Quality](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml)
 [![Tests](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml)
 
-Real-time public transport departures for Home Assistant — 35 providers across Germany, Austria, Switzerland, the Netherlands, Luxembourg, Norway, Sweden, Ireland, the USA, and worldwide.
+Real-time public transport departures for Home Assistant — 37 providers across Germany, Austria, Switzerland, the Netherlands, Luxembourg, Norway, Sweden, Ireland, the USA, and worldwide.
 
 **Website**: [openpublictransport.net](https://openpublictransport.net) | **Docs**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
+
+> **The openpublictransport community server has been shut down (v2026.10.0).**
+> We had to give up our own API at `api.openpublictransport.net` for cost reasons. Entries using the
+> `openpublictransport` provider are removed on update — all other providers are unaffected.
+> From now on, our focus is on connecting **more transit networks (Verkehrsverbünde) directly**.
+> Read the full announcement: [Community Server Shutdown & Our New Focus](https://docs.openpublictransport.net/latest/community-server-shutdown/)
+> — and [request your network](https://github.com/NerdySoftPaw/openpublictransport/issues/new?template=provider_request.yml)!
 
 > **Coming from VRRAPI-HACS or hacs-publictransport?**
 > The domain changed from `vrr` to `openpublictransport` — entity IDs and actions have new names.
@@ -23,7 +30,7 @@ Real-time public transport departures for Home Assistant — 35 providers across
 
 ---
 
-## Supported Providers (38)
+## Supported Providers (37)
 
 | Provider | Region | API Key | Trip Planner |
 |----------|--------|---------|--------------|

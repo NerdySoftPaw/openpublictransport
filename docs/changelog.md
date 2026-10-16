@@ -2,22 +2,41 @@
 
 ## v2026.10.0 — The openpublictransport community server is shut down
 
+!!! warning "Please read before updating"
+    We had to give up our own API at `api.openpublictransport.net` **for cost reasons**. Entries
+    that use the `openpublictransport` provider are deleted on update. All other providers are
+    unaffected. The full background is in
+    [Community Server Shutdown & Our New Focus](community-server-shutdown.md).
+
+### Why
+
+Running a Germany-wide OpenTripPlanner 2 server for everyone — a large machine running 24/7,
+the weekly rebuild of the routing graph, real-time polling every 30 seconds, traffic, backups
+and monitoring — turned out to be far more expensive than a free hobby project can carry.
+Donations helped, but never covered the running costs, and the gap grew with every new user.
+Instead of letting the service slowly degrade, we decided to shut it down cleanly.
+
 ### Breaking changes
 
-- **The `openpublictransport` provider has been removed** — the hosted OTP2 server at
-  `api.openpublictransport.net` is no longer operated. On the first start after the update,
+- **The `openpublictransport` provider has been removed.** On the first start after the update,
   every departure and trip entry that still uses this provider is **deleted together with its
   devices and entities**, and a repair notice under **Settings → System → Repairs** lists the
-  removed entries. Confirm the notice to dismiss it.
-
-    To keep Germany-wide GTFS.DE data, host your own OpenTripPlanner 2 server — for example the
-    [`otp-gtfsde`](https://github.com/NerdySoftPaw/otp-gtfsde) Docker image — and set the stops
-    up again with the **OTP2 — Eigene Instanz** (`otp_custom`) provider. See
-    [OTP2 Custom Instance](providers/otp-custom.md). Any other provider covering your region
-    works as well.
-
+  removed entries by name. Confirm the notice to dismiss it.
+- **Replacement:** set the stops up again with the official provider of your transit network
+  (VRR, KVV, MVV, VVS, RMV, HVV, BVG, VVO and many more — see the
+  [provider overview](providers/index.md)), or host the same server yourself with the
+  [`otp-gtfsde`](https://github.com/NerdySoftPaw/otp-gtfsde) Docker image and connect it with
+  the **OTP2 — Eigene Instanz** (`otp_custom`) provider. See the
+  [Migration Guide](migration.md#migration-3-openpublictransport-provider-self-hosted-otp2-v2026100).
 - Requires `python-openpublictransport` 0.3.0, which no longer ships the `openpublictransport`
   provider.
+
+### What's next: more transit networks
+
+From now on, development focuses on **connecting more transit networks (Verkehrsverbünde)
+directly** through their official interfaces — official data from the source, no central
+server, no running costs and no single point of failure. Missing your network?
+[Request it here](https://github.com/NerdySoftPaw/openpublictransport/issues/new?template=provider_request.yml).
 
 ## v2026.9.1 — Trip sensors honour their filters
 

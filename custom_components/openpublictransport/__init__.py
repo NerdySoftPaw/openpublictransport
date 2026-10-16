@@ -186,7 +186,7 @@ async def _async_remove_legacy_opt_entries(hass: HomeAssistant) -> None:
             "entries": ", ".join(titles),
             "server": "api.openpublictransport.net",
             "image": "ghcr.io/nerdysoftpaw/otp-gtfsde",
-            "url": "https://docs.openpublictransport.net/latest/community-server-shutdown/",
+            "url": "https://docs.openpublictransport.net/community-server-shutdown/",
         },
     )
 

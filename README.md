@@ -21,12 +21,12 @@ Real-time public transport departures for Home Assistant — 58 providers across
 > We had to give up our own API at `api.openpublictransport.net` for cost reasons. Entries using the
 > `openpublictransport` provider are removed on update — all other providers are unaffected.
 > From now on, our focus is on connecting **more transit networks (Verkehrsverbünde) directly**.
-> Read the full announcement: [Community Server Shutdown & Our New Focus](https://docs.openpublictransport.net/latest/community-server-shutdown/)
+> Read the full announcement: [Community Server Shutdown & Our New Focus](https://docs.openpublictransport.net/community-server-shutdown/)
 > — and [request your network](https://github.com/NerdySoftPaw/openpublictransport/issues/new?template=provider_request.yml)!
 
 > **Coming from VRRAPI-HACS or hacs-publictransport?**
 > The domain changed from `vrr` to `openpublictransport` — entity IDs and actions have new names.
-> See the [Migration Guide](https://docs.openpublictransport.net/latest/migration/) for step-by-step instructions.
+> See the [Migration Guide](https://docs.openpublictransport.net/migration/) for step-by-step instructions.
 
 ---
 

@@ -87,6 +87,46 @@ def test_parse_journeys_single_leg():
     assert result[0]["legs"][0]["line"] == "ICE 1"
 
 
+def test_parse_journeys_duration_includes_transfer_wait():
+    """The total spans first departure to last arrival, not the sum of legs (#105)."""
+    journeys = [
+        {
+            "legs": [
+                {
+                    "origin": {"name": "Garbsen", "departureTimePlanned": "2026-10-16T22:47:06+02:00"},
+                    "destination": {"name": "Hannover/Kröpcke", "arrivalTimePlanned": "2026-10-16T23:13:00+02:00"},
+                    "transportation": {"number": "4", "product": {"name": "Stadtbahn"}},
+                    "duration": 26 * 60,
+                },
+                {
+                    "origin": {"name": "Hannover/Kröpcke", "departureTimePlanned": "2026-10-16T23:30:00+02:00"},
+                    "destination": {"name": "Altwarmbüchen/Zentrum", "arrivalTimePlanned": "2026-10-16T23:52:30+02:00"},
+                    "transportation": {"number": "3", "product": {"name": "Stadtbahn"}},
+                    "duration": 22 * 60,
+                },
+            ],
+            "interchanges": 1,
+        }
+    ]
+    result = _parse_journeys(journeys)
+    assert result[0]["duration_minutes"] == 65
+    assert [leg["duration_minutes"] for leg in result[0]["legs"]] == [26, 22]
+
+
+def test_parse_journeys_duration_falls_back_to_leg_sum():
+    """Without usable timestamps the total is still the sum of the legs."""
+    journeys = [
+        {
+            "legs": [
+                {"origin": {}, "destination": {}, "transportation": {}, "duration": 600},
+                {"origin": {}, "destination": {}, "transportation": {}, "duration": 900},
+            ],
+            "interchanges": 1,
+        }
+    ]
+    assert _parse_journeys(journeys)[0]["duration_minutes"] == 25
+
+
 def test_parse_journeys_with_delay():
     """Test _parse_journeys calculates delay correctly."""
     journeys = [

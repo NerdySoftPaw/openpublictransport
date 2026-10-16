@@ -881,6 +881,15 @@ def _parse_journeys(
         connection_feasible, transfer_risk, min_transfer_time = _rate_transfers(transit_legs)
         departure_ts, arrival_ts = _journey_bounds(legs)
 
+        # The journey lasts from the first departure to the last arrival. Leg
+        # durations only cover time on board (and walking), so their sum leaves
+        # out the wait at every change (#105). Fall back to that sum only when
+        # the timestamps are missing.
+        start_s = legs[0].get("_departure_s") or 0
+        end_s = legs[-1].get("_arrival_s") or 0
+        if start_s and end_s and end_s >= start_s:
+            total_duration = end_s - start_s
+
         for leg_data in legs:
             leg_data.pop("_departure_s", None)
             leg_data.pop("_arrival_s", None)

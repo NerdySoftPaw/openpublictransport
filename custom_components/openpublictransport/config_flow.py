@@ -40,6 +40,7 @@ from openpublictransport import (
 
 from .const import (
     CONF_API_KEY,
+    CONF_API_KEY_SECONDARY,
     CONF_DELAY_THRESHOLD,
     CONF_DEPARTURES,
     CONF_DESTINATION_FILTER,
@@ -83,6 +84,7 @@ from .const import (
     PROVIDER_VBN_OTP,
     PROVIDER_VBN_TRIAS,
     PROVIDER_VRR,
+    SECONDARY_API_KEY_PROVIDERS,
     TRANSPORTATION_TYPES,
 )
 from .filters import filter_discriminator, filter_label
@@ -112,6 +114,7 @@ _PROVIDER_OPTIONS = [
     {"value": "beg", "label": "BEG — Bayern"},
     {"value": "bsvg", "label": "BSVG — Braunschweig"},
     {"value": "bvg", "label": "BVG — Berlin / Brandenburg"},
+    {"value": "cta_us", "label": "CTA — USA (Chicago, API Key)"},
     {"value": "dart_us", "label": "DART — USA (Des Moines)"},
     {"value": "db", "label": "DB — Deutsche Bahn (Community API)"},
     {"value": "digitransit_fi", "label": "Digitransit — Finnland (API Key)"},
@@ -166,6 +169,22 @@ _PROVIDER_OPTIONS = [
     {"value": "wienerlinien_at", "label": "Wiener Linien — Österreich (Wien)"},
     {"value": "oebb", "label": "ÖBB — Österreich"},
 ]
+
+
+# Free-text filter fields. They are offered as suggested values, not defaults:
+# with a default, clearing a field made the frontend omit it and voluptuous put
+# the old value back, so a filter could never be removed (issue #98).
+TEXT_FILTER_KEYS = (CONF_LINE_FILTER, CONF_DESTINATION_FILTER, CONF_PLATFORM_FILTER, CONF_FAVORITE_LINES)
+
+
+def _text_field(key: str, current: Any) -> vol.Optional:
+    """Optional free-text field pre-filled with the current value but clearable."""
+    return vol.Optional(key, description={"suggested_value": current or ""})
+
+
+def _with_cleared_text_fields(user_input: Dict[str, Any]) -> Dict[str, Any]:
+    """Store an emptied free-text field as "" instead of dropping it."""
+    return {**{key: "" for key in TEXT_FILTER_KEYS}, **user_input}
 
 
 def _provider_short_name(provider: Optional[str]) -> str:
@@ -277,7 +296,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             if not api_key:
                 return {}
             if provider in GENERIC_API_KEY_PROVIDERS:
-                return {CONF_API_KEY: api_key}
+                result = {CONF_API_KEY: api_key}
+                if provider in SECONDARY_API_KEY_PROVIDERS and secondary_key:
+                    result[CONF_API_KEY_SECONDARY] = secondary_key
+                return result
             if provider == PROVIDER_OTP_CUSTOM:
                 return {CONF_OTP_CUSTOM_API_KEY: api_key}
             if provider == PROVIDER_TRAFIKLAB_SE:
@@ -323,7 +345,14 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         # Fall back to searching existing config entries (legacy / first-run)
         key_map: Dict[str, list] = {
             PROVIDER_OTP_CUSTOM: [CONF_OTP_CUSTOM_API_KEY, CONF_OTP_BASE_URL],
-            **{provider: [CONF_API_KEY] for provider in GENERIC_API_KEY_PROVIDERS},
+            **{
+                provider: (
+                    [CONF_API_KEY, CONF_API_KEY_SECONDARY]
+                    if provider in SECONDARY_API_KEY_PROVIDERS
+                    else [CONF_API_KEY]
+                )
+                for provider in GENERIC_API_KEY_PROVIDERS
+            },
             PROVIDER_VBN_OTP: [CONF_VBN_API_KEY],
             PROVIDER_VBN_TRIAS: [CONF_VBN_API_KEY],
             PROVIDER_TRAFIKLAB_SE: [CONF_TRAFIKLAB_API_KEY],
@@ -461,8 +490,11 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         # Auto-reuse credentials from an existing entry for this provider
         if user_input is None and not self._api_key:
             creds = self._find_existing_credentials(self._provider or "")
-            if self._provider in GENERIC_API_KEY_PROVIDERS and creds.get(CONF_API_KEY):
-                self._api_key = creds[CONF_API_KEY]
+            if self._provider in GENERIC_API_KEY_PROVIDERS and (
+                creds.get(CONF_API_KEY) or creds.get(CONF_API_KEY_SECONDARY)
+            ):
+                self._api_key = creds.get(CONF_API_KEY) or None
+                self._api_key_secondary = creds.get(CONF_API_KEY_SECONDARY) or None
                 return await self._async_next_step_after_api_key()
             elif self._provider == PROVIDER_TRAFIKLAB_SE and creds.get(CONF_TRAFIKLAB_API_KEY):
                 self._api_key = creds[CONF_TRAFIKLAB_API_KEY]
@@ -489,7 +521,16 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 return await self._async_next_step_after_api_key()
 
         if user_input is not None:
-            if self._provider in GENERIC_API_KEY_PROVIDERS:
+            if self._provider in SECONDARY_API_KEY_PROVIDERS:
+                api_key = user_input.get(CONF_API_KEY, "").strip()
+                secondary = user_input.get(CONF_API_KEY_SECONDARY, "").strip()
+                if not api_key and not secondary:
+                    errors["base"] = "api_key_required"
+                else:
+                    self._api_key = api_key or None
+                    self._api_key_secondary = secondary or None
+                    return await self._async_next_step_after_api_key()
+            elif self._provider in GENERIC_API_KEY_PROVIDERS:
                 api_key = user_input.get(CONF_API_KEY, "").strip()
                 if not api_key:
                     errors[CONF_API_KEY] = "api_key_required"
@@ -553,7 +594,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     return await self._async_next_step_after_api_key()
 
         # Show appropriate schema based on provider
-        if self._provider in GENERIC_API_KEY_PROVIDERS:
+        if self._provider in SECONDARY_API_KEY_PROVIDERS:
+            schema = vol.Schema({vol.Optional(CONF_API_KEY): str, vol.Optional(CONF_API_KEY_SECONDARY): str})
+            description = GENERIC_API_KEY_PROVIDERS[self._provider]
+        elif self._provider in GENERIC_API_KEY_PROVIDERS:
             schema = vol.Schema({vol.Required(CONF_API_KEY): str})
             description = GENERIC_API_KEY_PROVIDERS[self._provider]
         elif self._provider == PROVIDER_TRAFIKLAB_SE:
@@ -812,6 +856,8 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
 
     async def async_step_settings(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Handle settings step - departures, transport types, scan interval."""
+        if user_input is not None:
+            user_input = _with_cleared_text_fields(user_input)
         # Define schema first (needed for error handling)
         schema = vol.Schema(
             {
@@ -831,10 +877,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 vol.Optional(
                     CONF_DELAY_THRESHOLD, default=self._settings_default(CONF_DELAY_THRESHOLD, DEFAULT_DELAY_THRESHOLD)
                 ): vol.All(int, vol.Range(min=1, max=30)),
-                vol.Optional(CONF_LINE_FILTER, default=self._settings_default(CONF_LINE_FILTER, "")): str,
-                vol.Optional(CONF_DESTINATION_FILTER, default=self._settings_default(CONF_DESTINATION_FILTER, "")): str,
-                vol.Optional(CONF_PLATFORM_FILTER, default=self._settings_default(CONF_PLATFORM_FILTER, "")): str,
-                vol.Optional(CONF_FAVORITE_LINES, default=self._settings_default(CONF_FAVORITE_LINES, "")): str,
+                _text_field(CONF_LINE_FILTER, self._settings_default(CONF_LINE_FILTER, "")): str,
+                _text_field(CONF_DESTINATION_FILTER, self._settings_default(CONF_DESTINATION_FILTER, "")): str,
+                _text_field(CONF_PLATFORM_FILTER, self._settings_default(CONF_PLATFORM_FILTER, "")): str,
+                _text_field(CONF_FAVORITE_LINES, self._settings_default(CONF_FAVORITE_LINES, "")): str,
                 vol.Optional(
                     CONF_WALKING_TIME, default=self._settings_default(CONF_WALKING_TIME, DEFAULT_WALKING_TIME)
                 ): vol.All(int, vol.Range(min=0, max=30)),
@@ -935,8 +981,11 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 if self._api_key:
                     data[CONF_OTP_CUSTOM_API_KEY] = self._api_key
 
-            if self._provider in GENERIC_API_KEY_PROVIDERS and self._api_key:
-                data[CONF_API_KEY] = self._api_key
+            if self._provider in GENERIC_API_KEY_PROVIDERS:
+                if self._api_key:
+                    data[CONF_API_KEY] = self._api_key
+                if self._api_key_secondary and self._provider in SECONDARY_API_KEY_PROVIDERS:
+                    data[CONF_API_KEY_SECONDARY] = self._api_key_secondary
 
             # Persist API key in Application Credentials store
             if self._provider:
@@ -1788,8 +1837,11 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                     if self._otp_custom_url:
                         data[CONF_OTP_BASE_URL] = self._otp_custom_url
 
-            if self._provider in GENERIC_API_KEY_PROVIDERS and self._api_key:
-                data[CONF_API_KEY] = self._api_key
+            if self._provider in GENERIC_API_KEY_PROVIDERS:
+                if self._api_key:
+                    data[CONF_API_KEY] = self._api_key
+                if self._api_key_secondary and self._provider in SECONDARY_API_KEY_PROVIDERS:
+                    data[CONF_API_KEY_SECONDARY] = self._api_key_secondary
 
             # Persist API key in Application Credentials store
             if self._provider:
@@ -1889,7 +1941,17 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         if user_input is not None:
             new_data = dict(entry.data)
 
-            if self._provider in GENERIC_API_KEY_PROVIDERS:
+            if self._provider in SECONDARY_API_KEY_PROVIDERS:
+                api_key = user_input.get(CONF_API_KEY, "").strip()
+                secondary = user_input.get(CONF_API_KEY_SECONDARY, "").strip()
+                if not api_key and not secondary:
+                    errors["base"] = "api_key_required"
+                else:
+                    new_data[CONF_API_KEY] = api_key
+                    new_data[CONF_API_KEY_SECONDARY] = secondary
+                    self._api_key = api_key or None
+                    self._api_key_secondary = secondary or None
+            elif self._provider in GENERIC_API_KEY_PROVIDERS:
                 api_key = user_input.get(CONF_API_KEY, "").strip()
                 if not api_key:
                     errors[CONF_API_KEY] = "api_key_required"
@@ -1947,7 +2009,18 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 )
 
         # Build provider-specific schema pre-filled with current key
-        if self._provider in GENERIC_API_KEY_PROVIDERS:
+        if self._provider in SECONDARY_API_KEY_PROVIDERS:
+            schema = vol.Schema(
+                {
+                    vol.Optional(CONF_API_KEY, description={"suggested_value": entry.data.get(CONF_API_KEY, "")}): str,
+                    vol.Optional(
+                        CONF_API_KEY_SECONDARY,
+                        description={"suggested_value": entry.data.get(CONF_API_KEY_SECONDARY, "")},
+                    ): str,
+                }
+            )
+            description = GENERIC_API_KEY_PROVIDERS[self._provider]
+        elif self._provider in GENERIC_API_KEY_PROVIDERS:
             schema = vol.Schema({vol.Required(CONF_API_KEY, default=entry.data.get(CONF_API_KEY, "")): str})
             description = GENERIC_API_KEY_PROVIDERS[self._provider]
         elif self._provider == PROVIDER_TRAFIKLAB_SE:
@@ -2017,7 +2090,7 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_init(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Manage the options."""
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            return self.async_create_entry(title="", data=_with_cleared_text_fields(user_input))
 
         # Get current values from options or fall back to data
         current_departures = self.config_entry.options.get(
@@ -2069,12 +2142,12 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(CONF_DELAY_THRESHOLD, default=current_delay_threshold): vol.All(
                     int, vol.Range(min=1, max=30)
                 ),
-                vol.Optional(CONF_LINE_FILTER, default=current_line_filter): str,
-                vol.Optional(CONF_DESTINATION_FILTER, default=current_destination_filter): str,
-                vol.Optional(CONF_PLATFORM_FILTER, default=current_platform_filter): str,
-                vol.Optional(
+                _text_field(CONF_LINE_FILTER, current_line_filter): str,
+                _text_field(CONF_DESTINATION_FILTER, current_destination_filter): str,
+                _text_field(CONF_PLATFORM_FILTER, current_platform_filter): str,
+                _text_field(
                     CONF_FAVORITE_LINES,
-                    default=self.config_entry.options.get(
+                    self.config_entry.options.get(
                         CONF_FAVORITE_LINES, self.config_entry.data.get(CONF_FAVORITE_LINES, "")
                     ),
                 ): str,

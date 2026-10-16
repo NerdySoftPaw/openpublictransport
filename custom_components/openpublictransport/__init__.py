@@ -16,6 +16,7 @@ from openpublictransport import ApiError, AuthenticationError, OpenPublicTranspo
 
 from .const import (
     CONF_API_KEY,
+    CONF_API_KEY_SECONDARY,
     CONF_DEPARTURES,
     CONF_HVV_GTI_PASSWORD,
     CONF_HVV_GTI_USER,
@@ -45,6 +46,7 @@ from .const import (
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_VBN_OTP,
     PROVIDER_VBN_TRIAS,
+    SECONDARY_API_KEY_PROVIDERS,
 )
 from .sensor import PublicTransportDataUpdateCoordinator
 from .trip import async_plan_trip
@@ -126,7 +128,12 @@ async def _async_migrate_credential(hass: HomeAssistant, entry: ConfigEntry) -> 
         PROVIDER_NATIONAL_RAIL: (CONF_NATIONAL_RAIL_API_KEY, ""),
     }
 
-    key_map.update({p: (CONF_API_KEY, "") for p in GENERIC_API_KEY_PROVIDERS})
+    key_map.update(
+        {
+            p: (CONF_API_KEY, CONF_API_KEY_SECONDARY if p in SECONDARY_API_KEY_PROVIDERS else "")
+            for p in GENERIC_API_KEY_PROVIDERS
+        }
+    )
     if provider not in key_map:
         return
 
@@ -484,9 +491,18 @@ async def async_remove_config_entry_device(
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload Open Public Transport config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(
-        entry, ["sensor", "binary_sensor", "calendar", "event", "camera"]
-    )
+    # Unload exactly what the entry type set up: trip and multi-stop entries
+    # never load the binary_sensor/calendar/event platforms, and asking Home
+    # Assistant to unload those raised "Config entry was never loaded".
+    if entry.data.get("is_multi_stop"):
+        from .multi_stop import MULTI_STOP_PLATFORMS
+
+        platforms = MULTI_STOP_PLATFORMS
+    elif entry.data.get("is_trip"):
+        platforms = ["sensor"]
+    else:
+        platforms = ["sensor", "binary_sensor", "calendar", "event", "camera"]
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, platforms)
 
     # Shutdown coordinator resources (e.g. GTFS data); runtime_data is auto-cleared by HA
     coordinator = getattr(entry, "runtime_data", None)

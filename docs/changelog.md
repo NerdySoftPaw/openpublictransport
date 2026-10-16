@@ -1,5 +1,38 @@
 # Changelog
 
+## v2026.10.2 — Clearable filters, exclude filters, ICE names, CTA
+
+### Fixes
+
+- **Filters could not be removed** ([#98](https://github.com/NerdySoftPaw/openpublictransport/issues/98)) —
+  clearing the line, destination or platform filter or the favourite lines under **Configure**
+  had no effect: the old value came back after saving. Emptied fields are now saved as empty.
+  The same applied when reconfiguring an entry.
+- **Long-distance trains showed only a number** ([#99](https://github.com/NerdySoftPaw/openpublictransport/issues/99)) —
+  ICE, IC and EC trains appeared as "620" or "29" on EFA providers (VRR, KVV, NVBW, …), on
+  Transitous and on DB. They now read "ICE 620"; regional trains with a bare number become
+  "RE 5" as well.
+- **Few departures from VBN OTP** ([#92](https://github.com/NerdySoftPaw/openpublictransport/issues/92)) —
+  OTP providers only looked two hours ahead, so a line running once an hour showed one or two
+  departures. Departure boards now look 12 hours ahead, trip planning four hours. Tip: the new
+  **VBN (no key)** provider covers the same area with real-time data and trip planning.
+- **Unloading trip and multi-stop entries** no longer tries to unload platforms they never
+  loaded ("Config entry was never loaded").
+
+### New
+
+- **Exclude filters** ([#93](https://github.com/NerdySoftPaw/openpublictransport/issues/93)) —
+  a leading `!` hides a value: `!Hauptbahnhof` in the destination filter, `U43, !U47` in the
+  line filter, `!3` in the platform filter. See [Departure Filters](configuration.md#departure-filters).
+- **Departure board camera for Multi-Stop entries** ([#100](https://github.com/NerdySoftPaw/openpublictransport/issues/100)) —
+  disabled by default; enable it on the multi-stop device. Existing multi-stop entries get it
+  after a reload.
+- **CTA (Chicago)** ([#101](https://github.com/NerdySoftPaw/openpublictransport/issues/101)) —
+  'L' trains and buses with real-time data via the official Train Tracker and Bus Tracker APIs
+  (free keys). See [CTA](providers/cta.md). 59 providers in total.
+
+Requires `python-openpublictransport` 0.3.1.
+
 ## v2026.10.1 — Working links to the documentation
 
 ### Fixes

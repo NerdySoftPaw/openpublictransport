@@ -13,6 +13,7 @@ from custom_components.openpublictransport.const import (
     DOMAIN,
     GENERIC_API_KEY_PROVIDERS,
     PROVIDERS,
+    SECONDARY_API_KEY_PROVIDERS,
 )
 from custom_components.openpublictransport.trip import supports_trip_planning
 
@@ -53,7 +54,7 @@ def test_generic_key_providers_require_a_key():
         assert get_provider_class(provider)(None).requires_api_key, provider
 
 
-@pytest.mark.parametrize("provider", sorted(GENERIC_API_KEY_PROVIDERS))
+@pytest.mark.parametrize("provider", sorted(set(GENERIC_API_KEY_PROVIDERS) - SECONDARY_API_KEY_PROVIDERS))
 async def test_generic_api_key_step(hass: HomeAssistant, provider):
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": "user"}, data={"entry_type": "departures", CONF_PROVIDER: provider}

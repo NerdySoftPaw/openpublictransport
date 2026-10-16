@@ -78,7 +78,13 @@ GENERIC_API_KEY_PROVIDERS = {
     "tfnsw_au": "Transport for NSW API key required. Register for free at opendata.transport.nsw.gov.au.",
     "digitransit_fi": "Digitransit subscription key required. Register for free at portal-api.digitransit.fi.",
     "golemio_cz": "Golemio API key required. Register for free at api.golemio.cz/api-keys.",
+    "cta_us": (
+        "CTA uses two free keys: enter your Bus Tracker key in the first field (ctabustracker.com → My Account → Developer API) and your Train Tracker key in the second (transitchicago.com/developers). One of them is enough if you only need buses or only 'L' trains."
+    ),
 }
+CONF_API_KEY_SECONDARY = "api_key_secondary"
+# Generic-key providers that take a second key; at least one of the two is required.
+SECONDARY_API_KEY_PROVIDERS = frozenset({"cta_us"})
 PROVIDER_NATIONAL_RAIL = "national_rail"  # National Rail (UK) via OpenLDBWS
 CONF_NATIONAL_RAIL_API_KEY = "national_rail_api_key"
 PROVIDER_REJSEPLANEN = "rejseplanen"  # Rejseplanen (Denmark) via HAFAS REST API
@@ -111,6 +117,7 @@ PROVIDER_TFL = "tfl_uk"
 PROVIDER_TFNSW = "tfnsw_au"
 PROVIDER_DIGITRANSIT = "digitransit_fi"
 PROVIDER_GOLEMIO = "golemio_cz"
+PROVIDER_CTA_US = "cta_us"
 PROVIDERS = [
     PROVIDER_VRR,
     PROVIDER_KVV,
@@ -170,6 +177,7 @@ PROVIDERS = [
     PROVIDER_TFNSW,
     PROVIDER_DIGITRANSIT,
     PROVIDER_GOLEMIO,
+    PROVIDER_CTA_US,
 ]
 
 # Transportation types mapping

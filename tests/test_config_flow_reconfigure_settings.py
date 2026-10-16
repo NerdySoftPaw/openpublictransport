@@ -31,6 +31,13 @@ from custom_components.openpublictransport.const import (
 NEW_STOP = [{"id": "de:05111:99", "name": "Bilk S", "place": "Düsseldorf"}]
 
 
+
+def _prefill(key):
+    """What the form shows for a field: its default, or its suggested value (clearable text fields)."""
+    if callable(getattr(key, "default", None)):
+        return key.default()
+    return (getattr(key, "description", None) or {}).get("suggested_value")
+
 def _configured_entry(hass: HomeAssistant, *, in_options: bool) -> MockConfigEntry:
     """An entry with non-default settings, stored where the given era put them.
 
@@ -91,7 +98,7 @@ async def _reconfigure_to_new_stop(hass: HomeAssistant, entry: MockConfigEntry) 
 
     # Submit whatever the form offers, which is what a user who only wants to
     # change the stop actually does.
-    defaults = {str(key): key.default() for key in result["data_schema"].schema if hasattr(key, "default")}
+    defaults = {str(key): _prefill(key) for key in result["data_schema"].schema}
     return await hass.config_entries.flow.async_configure(result["flow_id"], user_input=defaults)
 
 
@@ -158,7 +165,7 @@ async def test_reconfigure_form_is_prefilled(hass: HomeAssistant):
             result["flow_id"], user_input={"stop": "de:05111:99"}
         )
 
-    defaults = {str(key): key.default() for key in result["data_schema"].schema if hasattr(key, "default")}
+    defaults = {str(key): _prefill(key) for key in result["data_schema"].schema}
 
     assert defaults[CONF_DEPARTURES] == 15
     assert defaults[CONF_SCAN_INTERVAL] == 300
@@ -188,7 +195,7 @@ async def test_fresh_setup_still_uses_plain_defaults(hass: HomeAssistant):
             result["flow_id"], user_input={"stop": "de:05111:99"}
         )
 
-    defaults = {str(key): key.default() for key in result["data_schema"].schema if hasattr(key, "default")}
+    defaults = {str(key): _prefill(key) for key in result["data_schema"].schema}
 
     assert defaults[CONF_DEPARTURES] == 10
     assert defaults[CONF_SCAN_INTERVAL] == 60

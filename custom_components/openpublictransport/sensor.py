@@ -27,6 +27,7 @@ from openpublictransport.parsers import normalize_platform
 
 from .const import (
     API_RATE_LIMIT_PER_DAY,
+    CONF_API_KEY_SECONDARY,
     CONF_DEPARTURES,
     CONF_DESTINATION_FILTER,
     CONF_ENTRY_LABEL,
@@ -48,9 +49,10 @@ from .const import (
     PROVIDER_ENTITY_PICTURES,
     PROVIDER_HVV_GTI,
     PROVIDER_NTA_IE,
+    SECONDARY_API_KEY_PROVIDERS,
     TRANSPORTATION_TYPES,
 )
-from .filters import current_filters, filter_label
+from .filters import current_filters, filter_label, matches_filter, split_filter
 
 _LOGGER = logging.getLogger(__name__)
 PARALLEL_UPDATES = 0
@@ -160,6 +162,7 @@ class PublicTransportDataUpdateCoordinator(DataUpdateCoordinator):
         secondary_key_conf = {
             PROVIDER_NTA_IE: CONF_NTA_API_KEY_SECONDARY,
             PROVIDER_HVV_GTI: CONF_HVV_GTI_PASSWORD,
+            **{p: CONF_API_KEY_SECONDARY for p in SECONDARY_API_KEY_PROVIDERS},
         }.get(provider)
         if secondary_key_conf and config_entry:
             self.api_key_secondary = config_entry.data.get(secondary_key_conf)
@@ -428,28 +431,25 @@ class MultiProviderSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
 
         # Get line filter from options/data
         line_filter_str = config_entry.options.get(CONF_LINE_FILTER, config_entry.data.get(CONF_LINE_FILTER, ""))
-        self._line_filter: set[str] = (
-            {line.strip().lower() for line in line_filter_str.split(",") if line.strip()} if line_filter_str else set()
-        )
+        line_include, line_exclude = split_filter(line_filter_str, str.lower)
+        self._line_filter: set[str] = set(line_include)
+        self._line_exclude: set[str] = set(line_exclude)
 
         # Get destination filter from options/data (substring match, case-insensitive)
         dest_filter_str = config_entry.options.get(
             CONF_DESTINATION_FILTER, config_entry.data.get(CONF_DESTINATION_FILTER, "")
         )
-        self._destination_filter: list[str] = (
-            [d.strip().lower() for d in dest_filter_str.split(",") if d.strip()] if dest_filter_str else []
-        )
+        # A leading "!" excludes a destination instead (issue #93)
+        self._destination_filter, self._destination_exclude = split_filter(dest_filter_str, str.lower)
 
         # Get platform filter from options/data (exact match on the normalized
         # track, so "3" and "Gleis 3" are interchangeable — issue #57)
         platform_filter_str = config_entry.options.get(
             CONF_PLATFORM_FILTER, config_entry.data.get(CONF_PLATFORM_FILTER, "")
         )
-        self._platform_filter: set[str] = (
-            {normalize_platform(p) for p in platform_filter_str.split(",") if normalize_platform(p)}
-            if platform_filter_str
-            else set()
-        )
+        platform_include, platform_exclude = split_filter(platform_filter_str, normalize_platform)
+        self._platform_filter: set[str] = set(platform_include)
+        self._platform_exclude: set[str] = set(platform_exclude)
 
         # Get favorite lines from options/data
         fav_str = config_entry.options.get(CONF_FAVORITE_LINES, config_entry.data.get(CONF_FAVORITE_LINES, ""))
@@ -668,13 +668,18 @@ class MultiProviderSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
             dep = provider_instance.parse_departure(stop, tz, now)
             # Filter by configured transportation types and line filter
             if dep and dep.transportation_type in transport_types_set:
-                if self._line_filter and dep.line.lower() not in self._line_filter:
+                if not matches_filter(dep.line.lower(), self._line_filter, self._line_exclude, substring=False):
                     continue
-                if self._destination_filter and not any(
-                    term in (dep.destination or "").lower() for term in self._destination_filter
+                if not matches_filter(
+                    (dep.destination or "").lower(),
+                    self._destination_filter,
+                    self._destination_exclude,
+                    substring=True,
                 ):
                     continue
-                if self._platform_filter and normalize_platform(dep.platform) not in self._platform_filter:
+                if not matches_filter(
+                    normalize_platform(dep.platform), self._platform_filter, self._platform_exclude, substring=False
+                ):
                     continue
                 departures.append(dep)
 

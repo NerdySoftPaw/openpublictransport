@@ -23,6 +23,13 @@ from custom_components.openpublictransport.const import (
 )
 
 
+
+def _prefill(key):
+    """What the form shows for a field: its default, or its suggested value (clearable text fields)."""
+    if callable(getattr(key, "default", None)):
+        return key.default()
+    return (getattr(key, "description", None) or {}).get("suggested_value")
+
 def _make_entry():
     return MockConfigEntry(
         domain=DOMAIN,
@@ -108,7 +115,7 @@ async def test_options_flow_prefills_platform_filter(hass: HomeAssistant):
 
     result = await hass.config_entries.options.async_init(entry.entry_id)
 
-    defaults = {str(key): key.default() for key in result["data_schema"].schema if hasattr(key, "default")}
+    defaults = {str(key): _prefill(key) for key in result["data_schema"].schema}
     assert defaults[CONF_PLATFORM_FILTER] == "3"
 
 

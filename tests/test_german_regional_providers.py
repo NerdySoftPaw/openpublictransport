@@ -47,6 +47,7 @@ def _hafas_leg(line, dep, arr, dep_planned=None, mode="transit", cancelled=False
     at = lambda hhmm: datetime(2026, 10, 16, int(hhmm[:2]), int(hhmm[2:]), tzinfo=tz)  # noqa: E731
     return {
         "mode": mode, "origin": f"{line} from", "destination": f"{line} to", "line": line, "product": "Zug",
+        "direction": f"{line} direction",
         "transport_type": "train" if mode == "transit" else "walk", "platform": "4", "cancelled": cancelled,
         "departure_planned": at(dep_planned or dep), "departure": at(dep),
         "arrival_planned": at(arr), "arrival": at(arr),
@@ -75,6 +76,9 @@ async def test_parse_hafas_trips_into_unified_journeys(hass: HomeAssistant):
     assert journey["transfers"] == 1
     assert [leg["line"] for leg in journey["legs"]] == ["RE1", "5"]  # walks are not legs
     assert journey["legs"][0]["delay"] == 16
+    assert journey["legs"][0]["direction"] == "RE1 direction"
+    # #95: the wait at the change out of the first leg
+    assert journey["legs"][0]["transfer_minutes"] == 2
     assert journey["legs"][0]["departure_planned"] == "19:52"
     # 20:33 arrival, 20:35 departure: a 2-minute transfer is high risk
     assert (journey["connection_feasible"], journey["transfer_risk"], journey["min_transfer_time"]) == (True, "high", 2)

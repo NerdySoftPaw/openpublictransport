@@ -711,6 +711,8 @@ def _parse_hafas_trips(trips: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                     "line": leg.get("line", ""),
                     "product": leg.get("product", ""),
                     "transport_type": leg.get("transport_type", "unknown"),
+                    # The vehicle's headsign, same as the EFA legs (#95)
+                    "direction": leg.get("direction", ""),
                     "departure_planned": dt_util.as_local(dep_planned).strftime("%H:%M"),
                     "departure_estimated": dt_util.as_local(dep).strftime("%H:%M"),
                     "arrival_planned": dt_util.as_local(arr_planned).strftime("%H:%M"),

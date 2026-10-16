@@ -470,7 +470,7 @@ async def test_plan_trip_unsupported_provider(hass: HomeAssistant):
 async def test_plan_trip_otp2_missing_ids(hass: HomeAssistant):
     """Test OTP2 plan_trip returns None when stop IDs missing."""
     result = await async_plan_trip(
-        hass, "openpublictransport", "A", "City", "B", "City",
+        hass, "otp_custom", "A", "City", "B", "City",
         origin_id=None, dest_id=None,
     )
     assert result is None

@@ -24,7 +24,6 @@ from custom_components.openpublictransport.const import (
     CONF_LINE_FILTER,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
-    CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_PROVIDER,
@@ -40,7 +39,6 @@ from custom_components.openpublictransport.const import (
     PROVIDER_HVV,
     PROVIDER_KVV,
     PROVIDER_NTA_IE,
-    PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
@@ -672,34 +670,6 @@ async def test_settings_rmv_no_api_key(hass: HomeAssistant):
 # config_flow.py — _find_credentials_from_application_credentials
 # ══════════════════════════════════════════════════════════════════════════════
 
-async def test_find_credentials_from_ac_store_returns_opt_key(hass: HomeAssistant):
-    """Cover lines 185-186: AC store returns OPT api_key."""
-    from custom_components.openpublictransport.config_flow import OpenPublicTransportConfigFlow
-
-    flow = _make_flow(provider=PROVIDER_OPT)
-    flow.hass = hass
-
-    mock_cred = MagicMock()
-    mock_cred.client_id = "opt-key-123"
-    mock_cred.client_secret = ""
-
-    mock_storage = MagicMock()
-    mock_storage.async_client_credentials = MagicMock(
-        return_value={f"{DOMAIN}.{PROVIDER_OPT}": mock_cred}
-    )
-
-    with patch.dict(hass.data, {"application_credentials": mock_storage}):
-        with patch(
-            "custom_components.openpublictransport.config_flow.DATA_COMPONENT",
-            "application_credentials",
-            create=True,
-        ):
-            result = flow._find_credentials_from_application_credentials(PROVIDER_OPT)
-
-    # Should have returned {} or the key (depending on import mock)
-    assert isinstance(result, dict)
-
-
 async def test_find_credentials_ac_store_exception(hass: HomeAssistant):
     """Cover lines 200-201: exception in AC store lookup → returns {}."""
     flow = _make_flow(provider=PROVIDER_VRR)
@@ -805,39 +775,6 @@ async def test_trip_select_origin_selected_goes_to_destination(hass: HomeAssista
 # config_flow.py — trip_settings with OPT and OTP_CUSTOM API key
 # ══════════════════════════════════════════════════════════════════════════════
 
-async def test_trip_settings_with_opt_api_key(hass: HomeAssistant):
-    """Cover lines 1535-1536: trip_settings stores OPT api_key in data."""
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={"source": "user"},
-        data={"entry_type": "trip", CONF_PROVIDER: PROVIDER_OPT},
-    )
-    result2 = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_OPT_API_KEY: "opt-key"}
-    )
-    assert result2["step_id"] == "trip_search"
-
-    mock_stops = [{"id": "opt:1", "name": "Berlin Hbf", "place": "Berlin"}]
-    with patch("custom_components.openpublictransport.config_flow.get_provider") as mock_gp:
-        mock_provider = AsyncMock()
-        mock_provider.search_stops = AsyncMock(side_effect=[mock_stops, mock_stops])
-        mock_gp.return_value = mock_provider
-        result3 = await hass.config_entries.flow.async_configure(
-            result2["flow_id"], user_input={"stop_search": "Berlin"}
-        )
-        result4 = await hass.config_entries.flow.async_configure(
-            result3["flow_id"] if "flow_id" in result3 else result["flow_id"],
-            user_input={"stop_search": "Hamburg"},
-        )
-
-    with patch.object(OpenPublicTransportConfigFlow, "_async_store_credential", new_callable=AsyncMock):
-        final = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input={CONF_SCAN_INTERVAL: 120}
-        )
-    assert final["type"] == "create_entry"
-    assert final["data"].get(CONF_OPT_API_KEY) == "opt-key"
-
-
 async def test_trip_settings_with_otp_custom_api_key(hass: HomeAssistant):
     """Cover lines 1537-1540: trip_settings stores OTP_CUSTOM api_key and URL."""
     result = await hass.config_entries.flow.async_init(
@@ -918,16 +855,6 @@ async def test_reauth_nta_empty_key_error(hass: HomeAssistant):
     )
     assert result2["step_id"] == "reauth_confirm"
     assert CONF_NTA_API_KEY in result2.get("errors", {})
-
-
-async def test_reauth_opt_empty_key_error(hass: HomeAssistant):
-    """Cover line 1667: reauth for OPT with empty key → error."""
-    result = await _start_reauth_flow(hass, PROVIDER_OPT, {CONF_OPT_API_KEY: "old-key"})
-    result2 = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_OPT_API_KEY: ""}
-    )
-    assert result2["step_id"] == "reauth_confirm"
-    assert CONF_OPT_API_KEY in result2.get("errors", {})
 
 
 # ══════════════════════════════════════════════════════════════════════════════

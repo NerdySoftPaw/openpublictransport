@@ -23,16 +23,6 @@
           "stop": "Stop"
         }
       },
-      "opt_key": {
-        "title": "API Key (openpublictransport.net)",
-        "description": "Enter your free API key for the community OTP2 server. Request one at openpublictransport.net/api-key.",
-        "data": {
-          "opt_api_key": "API Key"
-        },
-        "data_description": {
-          "opt_api_key": "Free API key (required) — request at openpublictransport.net/api-key"
-        }
-      },
       "otp_custom_url": {
         "title": "Configure Custom OTP2 Instance",
         "description": "Enter the base URL of your OTP2 server. Format: http://host:8080/otp/routers/default",
@@ -135,7 +125,6 @@
       "empty_search": "Please enter a search term",
       "no_results": "No results found. Please try a different search term.",
       "trip_not_supported": "This provider only supports the departure monitor — trip planning is not available. Choose an EFA or OTP2 provider, or pick the \"Departure Monitor\" entry type.",
-      "opt_api_key_required": "API key is required (request a free key at openpublictransport.net/api-key)",
       "otp_url_required": "Please enter a valid URL for your OTP2 server",
       "api_key_required": "API key is required",
       "trafiklab_api_key_required": "Trafiklab API key is required",
@@ -215,6 +204,17 @@
     "api_error": {
       "title": "API Error",
       "description": "There was an error retrieving data from {provider}. Please check your station ID or stop information in the settings."
+    },
+    "opt_provider_removed": {
+      "title": "openpublictransport.net community server shut down",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "openpublictransport.net community server shut down",
+            "description": "The community server api.openpublictransport.net has been shut down. The following entries and their entities were removed: {entries}.\n\nYou can host your own OpenTripPlanner 2 server (e.g. the Docker image ghcr.io/nerdysoftpaw/otp-gtfsde) and set it up again with the \"OTP2 — Eigene Instanz\" provider, or choose a different provider.\n\nConfirm to dismiss this notice."
+          }
+        }
+      }
     }
   }
 }

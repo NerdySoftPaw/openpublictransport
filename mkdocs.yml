@@ -92,7 +92,6 @@ nav:
       - BART (USA · San Francisco): providers/bart.md
       - DART (USA · Des Moines): providers/dart.md
       - Transitous (Worldwide): providers/transitous.md
-      - openpublictransport (Deutschland): providers/openpublictransport.md
       - OTP2 Custom Instance: providers/otp-custom.md
   - Sensors & Attributes: sensors.md
   - Services: services.md

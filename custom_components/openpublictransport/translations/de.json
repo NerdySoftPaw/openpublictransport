@@ -23,16 +23,6 @@
           "stop": "Haltestelle"
         }
       },
-      "opt_key": {
-        "title": "API-Schlüssel (openpublictransport.net)",
-        "description": "Gib deinen kostenlosen API-Schlüssel für den Community-OTP2-Server ein. Schlüssel anfordern auf openpublictransport.net/api-key.",
-        "data": {
-          "opt_api_key": "API-Schlüssel"
-        },
-        "data_description": {
-          "opt_api_key": "Kostenloser API-Schlüssel (erforderlich) — erhältlich auf openpublictransport.net/api-key"
-        }
-      },
       "otp_custom_url": {
         "title": "Eigene OTP2-Instanz konfigurieren",
         "description": "Gib die Basis-URL deines OTP2-Servers ein. Format: http://host:8080/otp/routers/default",
@@ -126,7 +116,6 @@
       }
     },
     "error": {
-      "opt_api_key_required": "API-Schlüssel ist erforderlich (kostenlos anfordern auf openpublictransport.net/api-key)",
       "otp_url_required": "Bitte gib eine gültige URL für deinen OTP2-Server ein",
       "missing_location": "Bitte geben Sie entweder eine Stations-ID oder Ort und Haltestelle an",
       "empty_search": "Bitte geben Sie einen Suchbegriff ein",
@@ -210,6 +199,17 @@
     "api_error": {
       "title": "API-Fehler",
       "description": "Es gab einen Fehler beim Abrufen der Daten von {provider}. Bitte überprüfen Sie Ihre Stations-ID oder Haltestelleninformationen in den Einstellungen."
+    },
+    "opt_provider_removed": {
+      "title": "Community-Server openpublictransport.net eingestellt",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Community-Server openpublictransport.net eingestellt",
+            "description": "Der Community-Server api.openpublictransport.net wurde eingestellt. Folgende Einträge und ihre Entitäten wurden entfernt: {entries}.\n\nDu kannst einen eigenen OpenTripPlanner-2-Server hosten (z. B. das Docker-Image ghcr.io/nerdysoftpaw/otp-gtfsde) und ihn über den Provider „OTP2 — Eigene Instanz“ neu einrichten, oder einen anderen Provider wählen.\n\nBestätige, um diesen Hinweis zu schließen."
+          }
+        }
+      }
     }
   }
 }

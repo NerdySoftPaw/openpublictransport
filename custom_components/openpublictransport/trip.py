@@ -44,7 +44,7 @@ EFA_TRIP_ENDPOINTS = {
 }
 
 # OTP-based providers plan trips through their own endpoints, not EFA.
-OTP2_TRIP_PROVIDERS = frozenset({"openpublictransport", "otp_custom"})
+OTP2_TRIP_PROVIDERS = frozenset({"otp_custom"})
 OTP_REST_TRIP_PROVIDERS = frozenset({"vbn_otp"})
 
 # Every provider that can plan a trip. Providers outside this set (HAFAS, FPTF,
@@ -236,14 +236,14 @@ async def async_plan_trip(
 ) -> Optional[List[Dict[str, Any]]]:
     """Plan a trip from origin to destination.
 
-    Dispatches to OTP2 GraphQL for otp_custom/openpublictransport,
+    Dispatches to OTP2 GraphQL for otp_custom,
     OTP REST for vbn_otp, EFA XML for all other supported providers.
     Uses stop IDs when available (more reliable), falls back to name+place search.
     Returns a list of journey options, each with legs and transfer info.
     """
     from openpublictransport import get_provider
 
-    # OTP2 GraphQL providers (community server + custom instance)
+    # OTP2 GraphQL providers (self-hosted instances)
     if provider in OTP2_TRIP_PROVIDERS:
         if not origin_id or not dest_id:
             _LOGGER.warning("OTP2 trip planning requires stop IDs — search for stops first")
@@ -340,7 +340,7 @@ async def _async_plan_trip_otp2_graphql(
     departure_time: Optional[datetime],
     provider_instance,
 ) -> Optional[List[Dict[str, Any]]]:
-    """Plan a trip via the OTP2 planConnection query (community server + custom instances).
+    """Plan a trip via the OTP2 planConnection query (self-hosted instances).
 
     Routes stop-to-stop using `stopLocationId`, so OTP takes the transit stops
     directly as origin/destination — no coordinates, no street-network

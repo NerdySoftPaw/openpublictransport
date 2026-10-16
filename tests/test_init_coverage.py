@@ -9,13 +9,11 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.openpublictransport import async_setup, async_setup_entry
 from custom_components.openpublictransport.const import (
-    CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_PROVIDER,
     CONF_VBN_API_KEY,
     DOMAIN,
-    PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
     PROVIDER_VBN_OTP,
     PROVIDER_VRR,
@@ -52,33 +50,6 @@ async def test_plan_trip_resolves_vbn_api_key(hass: HomeAssistant):
     # Verify API key was passed
     call_kwargs = mock_trip.call_args
     assert call_kwargs.kwargs.get("api_key") == "vbn-123" or "vbn-123" in str(call_kwargs)
-
-
-async def test_plan_trip_resolves_opt_api_key(hass: HomeAssistant):
-    """Test plan_trip picks up OPT API key from existing entry."""
-    await async_setup(hass, {})
-
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        data={CONF_PROVIDER: PROVIDER_OPT, CONF_OPT_API_KEY: "opt-key-abc"},
-    )
-    entry.add_to_hass(hass)
-
-    mock_journeys = [{"departure": "12:00"}]
-    with patch(
-        "custom_components.openpublictransport.async_plan_trip",
-        new_callable=AsyncMock, return_value=mock_journeys,
-    ):
-        result = await hass.services.async_call(
-            DOMAIN, "plan_trip",
-            {
-                "provider": PROVIDER_OPT,
-                "origin": "A", "origin_city": "City",
-                "destination": "B", "destination_city": "City",
-            },
-            blocking=True, return_response=True,
-        )
-    assert result["journeys"] == mock_journeys
 
 
 async def test_plan_trip_resolves_otp_custom_url(hass: HomeAssistant):

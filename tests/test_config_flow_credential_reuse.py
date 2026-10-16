@@ -8,7 +8,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.openpublictransport.config_flow import OpenPublicTransportConfigFlow
 from custom_components.openpublictransport.const import (
-    CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_PROVIDER,
@@ -17,7 +16,6 @@ from custom_components.openpublictransport.const import (
     CONF_TRAFIKLAB_API_KEY,
     CONF_VBN_API_KEY,
     DOMAIN,
-    PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
@@ -28,39 +26,6 @@ from custom_components.openpublictransport.const import (
 
 
 # ── OPT credential auto-reuse ─────────────────────────────────────────────────
-
-async def test_opt_reuses_existing_credential(hass: HomeAssistant):
-    """Test opt_key step auto-reuses key from existing config entry."""
-    existing = MockConfigEntry(
-        domain=DOMAIN,
-        entry_id="existing_opt",
-        data={CONF_PROVIDER: PROVIDER_OPT, CONF_OPT_API_KEY: "existing-opt-key"},
-    )
-    existing.add_to_hass(hass)
-
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"},
-        data={"entry_type": "departures", CONF_PROVIDER: PROVIDER_OPT},
-    )
-    # Should skip opt_key form since key already exists
-    assert result["step_id"] in ("stop_search", "opt_key")
-
-
-async def test_opt_trip_reuses_existing_credential(hass: HomeAssistant):
-    """Test opt_key for trip entry type with existing key goes to trip_search."""
-    existing = MockConfigEntry(
-        domain=DOMAIN,
-        entry_id="existing_opt",
-        data={CONF_PROVIDER: PROVIDER_OPT, CONF_OPT_API_KEY: "existing-opt-key"},
-    )
-    existing.add_to_hass(hass)
-
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"},
-        data={"entry_type": "trip", CONF_PROVIDER: PROVIDER_OPT},
-    )
-    assert result["step_id"] in ("trip_search", "opt_key")
-
 
 # ── OTP Custom credential auto-reuse ──────────────────────────────────────────
 

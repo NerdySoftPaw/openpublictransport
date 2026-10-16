@@ -1,6 +1,32 @@
 # Migration Guide
 
-There have been two major migrations in the project's history. Follow the section that applies to you.
+There have been three major migrations in the project's history. Follow the section that applies to you.
+
+---
+
+## Migration 3: `openpublictransport` provider → self-hosted OTP2 (v2026.10.0)
+
+The hosted community server at `api.openpublictransport.net` has been shut down, and the
+`openpublictransport` provider was removed with it.
+
+### What Happens on Update
+
+- Every entry using the `openpublictransport` provider (departure boards and trip planners) is
+  deleted on the first start, together with its devices and entities.
+- A repair notice under **Settings → System → Repairs** lists the removed entries.
+- Dashboards and automations that referenced those entities have to be pointed at the new
+  entities afterwards.
+
+### Migration Steps
+
+1. Host your own OpenTripPlanner 2 server, e.g. with the
+   [`otp-gtfsde`](https://github.com/NerdySoftPaw/otp-gtfsde) Docker image
+   (see [OTP2 Custom Instance](providers/otp-custom.md#self-hosting-with-gtfsde)).
+2. Add the integration again and pick **OTP2 — Eigene Instanz** as provider, with the URL of
+   your server (e.g. `https://your-server/otp/routers/default`).
+3. Search and select your stops as before, then update dashboards and automations.
+
+Alternatively, pick any other provider that covers your region.
 
 ---
 

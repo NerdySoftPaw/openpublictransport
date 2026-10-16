@@ -40,7 +40,6 @@ providers.
 
 | Provider | Provider ID | Region |
 |----------|-------------|--------|
-| openpublictransport | `openpublictransport` | Germany (nationwide, community OTP2 server) |
 | OTP2 Custom | `otp_custom` | Any self-hosted OTP2 instance |
 | VBN | `vbn_otp` | Bremen / Niedersachsen |
 

@@ -32,7 +32,6 @@ Real-time public transport departures for Home Assistant — 38 providers across
 | **NVBW** | Baden-Württemberg | EFA | No |
 | **NWL** | Westfalen-Lippe | EFA | No |
 | **ÖBB** | Austria (nationwide) | HAFAS Scotty | No |
-| **openpublictransport** | Germany (nationwide, GTFS.DE + GTFS-RT) | OTP2 GraphQL | Yes (free) |
 | **OTP2 Custom** | Any self-hosted OTP2 instance | OTP2 GraphQL | Optional |
 | **Rejseplanen** | Denmark (nationwide) | HAFAS REST | Yes (free) |
 | **RMV** | Frankfurt / Rhein-Main | HAFAS | Yes (free) |

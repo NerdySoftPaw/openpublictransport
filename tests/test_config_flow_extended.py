@@ -11,7 +11,6 @@ from custom_components.openpublictransport.config_flow import OpenPublicTranspor
 from custom_components.openpublictransport.const import (
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
-    CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_PROVIDER,
@@ -20,7 +19,6 @@ from custom_components.openpublictransport.const import (
     CONF_VBN_API_KEY,
     DOMAIN,
     PROVIDER_NTA_IE,
-    PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
@@ -60,16 +58,6 @@ async def test_step_user_rmv_goes_to_api_key(hass: HomeAssistant):
     assert result["step_id"] == "api_key"
 
 
-async def test_step_user_opt_goes_to_opt_key(hass: HomeAssistant):
-    """Test user step with OPT goes to opt_key."""
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"},
-        data={"entry_type": "departures", CONF_PROVIDER: PROVIDER_OPT},
-    )
-    assert result["type"] == "form"
-    assert result["step_id"] == "opt_key"
-
-
 async def test_step_user_otp_custom_goes_to_custom_url(hass: HomeAssistant):
     """Test user step with OTP_CUSTOM goes to otp_custom_url."""
     result = await hass.config_entries.flow.async_init(
@@ -78,34 +66,6 @@ async def test_step_user_otp_custom_goes_to_custom_url(hass: HomeAssistant):
     )
     assert result["type"] == "form"
     assert result["step_id"] == "otp_custom_url"
-
-
-# ── opt_key step ──────────────────────────────────────────────────────────────
-
-async def test_opt_key_empty_shows_error(hass: HomeAssistant):
-    """Test opt_key step with empty key shows error."""
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"},
-        data={"entry_type": "departures", CONF_PROVIDER: PROVIDER_OPT},
-    )
-    result2 = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_OPT_API_KEY: ""}
-    )
-    assert result2["type"] == "form"
-    assert "opt_api_key_required" in str(result2.get("errors", {}))
-
-
-async def test_opt_key_valid_goes_to_stop_search(hass: HomeAssistant):
-    """Test opt_key step with valid key goes to stop_search."""
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"},
-        data={"entry_type": "departures", CONF_PROVIDER: PROVIDER_OPT},
-    )
-    result2 = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_OPT_API_KEY: "my-api-key"}
-    )
-    assert result2["type"] == "form"
-    assert result2["step_id"] == "stop_search"
 
 
 # ── otp_custom_url step ───────────────────────────────────────────────────────

@@ -48,7 +48,6 @@ Real-time public transport departures for Home Assistant — 35 providers across
 | **NVBW** | Baden-Württemberg | No | No |
 | **NWL** | Westfalen-Lippe | No | Yes |
 | **ÖBB** | Austria (nationwide) | No | No |
-| **openpublictransport** | Germany (nationwide, GTFS.DE + GTFS-RT, community OTP2) | Yes ([request](https://openpublictransport.net/api-key)) | Yes |
 | **OTP2 Custom** | Any OTP2 instance (self-hosted) | Optional | Yes |
 | **Rejseplanen** | Denmark (nationwide) | Yes (free) | No |
 | **RMV** | Frankfurt / Rhein-Main | Yes (free) | No |

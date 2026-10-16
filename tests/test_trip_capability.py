@@ -29,7 +29,7 @@ DOCS_TRIP_PLANNER = Path(__file__).resolve().parents[1] / "docs" / "trip-planner
 
 def test_capability_set_covers_every_dispatch_branch():
     assert EFA_TRIP_ENDPOINTS.keys() <= TRIP_CAPABLE_PROVIDERS
-    assert supports_trip_planning("openpublictransport")
+    assert not supports_trip_planning("openpublictransport")
     assert supports_trip_planning("otp_custom")
     assert supports_trip_planning("vbn_otp")
     assert not supports_trip_planning(PROVIDER_OEBB)

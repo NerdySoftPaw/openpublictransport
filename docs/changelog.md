@@ -1,5 +1,24 @@
 # Changelog
 
+## v2026.10.0 — The openpublictransport community server is shut down
+
+### Breaking changes
+
+- **The `openpublictransport` provider has been removed** — the hosted OTP2 server at
+  `api.openpublictransport.net` is no longer operated. On the first start after the update,
+  every departure and trip entry that still uses this provider is **deleted together with its
+  devices and entities**, and a repair notice under **Settings → System → Repairs** lists the
+  removed entries. Confirm the notice to dismiss it.
+
+    To keep Germany-wide GTFS.DE data, host your own OpenTripPlanner 2 server — for example the
+    [`otp-gtfsde`](https://github.com/NerdySoftPaw/otp-gtfsde) Docker image — and set the stops
+    up again with the **OTP2 — Eigene Instanz** (`otp_custom`) provider. See
+    [OTP2 Custom Instance](providers/otp-custom.md). Any other provider covering your region
+    works as well.
+
+- Requires `python-openpublictransport` 0.3.0, which no longer ships the `openpublictransport`
+  provider.
+
 ## v2026.9.1 — Trip sensors honour their filters
 
 ### Fixes

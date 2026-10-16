@@ -51,7 +51,6 @@ from .const import (
     CONF_NATIONAL_RAIL_API_KEY,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
-    CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_PLATFORM_FILTER,
@@ -75,7 +74,6 @@ from .const import (
     PROVIDER_KVV,
     PROVIDER_NATIONAL_RAIL,
     PROVIDER_NTA_IE,
-    PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
     PROVIDER_REJSEPLANEN,
     PROVIDER_RMV,
@@ -165,10 +163,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             {"value": "sbb", "label": "SBB — Schweiz"},
             {"value": "tpg_ch", "label": "TPG — Schweiz (Genf)"},
             {"value": "trafiklab_se", "label": "Trafiklab — Schweden (API Key)"},
-            {
-                "value": "openpublictransport",
-                "label": "openpublictransport.net (Deutschlandweit, API Key)",
-            },
             {"value": "otp_custom", "label": "OTP2 — Eigene Instanz (URL + optionaler API Key)"},
             {"value": "transitous", "label": "Transitous — Weltweit (Community, Beta)"},
             {"value": "vagfr", "label": "VAG — Freiburg"},
@@ -201,9 +195,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             else:
                 if self._provider == PROVIDER_OTP_CUSTOM:
                     return await self.async_step_otp_custom_url()
-
-                if self._provider == PROVIDER_OPT:
-                    return await self.async_step_opt_key()
 
                 provider_class = get_provider_class(self._provider)
                 if provider_class and provider_class(None).requires_api_key:  # type: ignore[arg-type]
@@ -250,8 +241,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             secondary_key = credential.client_secret
             if not api_key:
                 return {}
-            if provider == PROVIDER_OPT:
-                return {CONF_OPT_API_KEY: api_key}
             if provider == PROVIDER_OTP_CUSTOM:
                 return {CONF_OTP_CUSTOM_API_KEY: api_key}
             if provider == PROVIDER_TRAFIKLAB_SE:
@@ -296,7 +285,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
 
         # Fall back to searching existing config entries (legacy / first-run)
         key_map: Dict[str, list] = {
-            PROVIDER_OPT: [CONF_OPT_API_KEY],
             PROVIDER_OTP_CUSTOM: [CONF_OTP_CUSTOM_API_KEY, CONF_OTP_BASE_URL],
             PROVIDER_VBN_OTP: [CONF_VBN_API_KEY],
             PROVIDER_VBN_TRIAS: [CONF_VBN_API_KEY],
@@ -319,7 +307,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         return {}
 
     _PROVIDER_CREDENTIAL_NAMES: Dict[str, str] = {
-        PROVIDER_OPT: "openpublictransport.net (Deutschlandweit)",
         PROVIDER_OTP_CUSTOM: "OTP2 Eigene Instanz",
         PROVIDER_TRAFIKLAB_SE: "Trafiklab (Schweden)",
         PROVIDER_RMV: "RMV (Rhein-Main)",
@@ -355,43 +342,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             )
         except Exception as exc:
             _LOGGER.debug("Could not store credential in application_credentials: %s", exc)
-
-    async def async_step_opt_key(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
-        """Required API key step for the openpublictransport community server."""
-        # Auto-reuse key from an existing entry for this provider
-        if user_input is None and not self._api_key:
-            creds = self._find_existing_credentials(PROVIDER_OPT)
-            if creds.get(CONF_OPT_API_KEY):
-                self._api_key = creds[CONF_OPT_API_KEY]
-                if self._entry_type == "trip":
-                    self._trip_search_phase = "origin"
-                    return await self.async_step_trip_search()
-                return await self.async_step_stop_search()
-
-        errors: Dict[str, str] = {}
-        if user_input is not None:
-            key = user_input.get(CONF_OPT_API_KEY, "").strip()
-            if not key:
-                errors[CONF_OPT_API_KEY] = "opt_api_key_required"
-            else:
-                self._api_key = key
-                if self._entry_type == "trip":
-                    self._trip_search_phase = "origin"
-                    return await self.async_step_trip_search()
-                return await self.async_step_stop_search()
-
-        schema = vol.Schema({vol.Required(CONF_OPT_API_KEY): str})
-        return self.async_show_form(
-            step_id="opt_key",
-            data_schema=schema,
-            errors=errors,
-            description_placeholders={
-                "info": (
-                    "API key for api.openpublictransport.net — required. "
-                    "Request a free key at openpublictransport.net/api-key."
-                )
-            },
-        )
 
     async def async_step_otp_custom_url(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """URL + optional API key for a user-provided OTP2 instance."""
@@ -928,9 +878,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                         errors={"base": "rejseplanen_api_key_required"},
                     )
                 data[CONF_REJSEPLANEN_API_KEY] = self._api_key
-            elif self._provider == PROVIDER_OPT:
-                if self._api_key:
-                    data[CONF_OPT_API_KEY] = self._api_key
             elif self._provider == PROVIDER_OTP_CUSTOM:
                 if self._otp_custom_url:
                     data[CONF_OTP_BASE_URL] = self._otp_custom_url
@@ -1782,8 +1729,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             if self._api_key:
                 if self._provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
                     data[CONF_VBN_API_KEY] = self._api_key
-                elif self._provider == PROVIDER_OPT:
-                    data[CONF_OPT_API_KEY] = self._api_key
                 elif self._provider == PROVIDER_OTP_CUSTOM:
                     data[CONF_OTP_CUSTOM_API_KEY] = self._api_key
                     if self._otp_custom_url:
@@ -1919,13 +1864,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                         new_data[CONF_NTA_API_KEY_SECONDARY] = secondary
                     self._api_key = api_key
                     self._api_key_secondary = secondary or None
-            elif self._provider == PROVIDER_OPT:
-                api_key = user_input.get(CONF_OPT_API_KEY, "").strip()
-                if not api_key:
-                    errors[CONF_OPT_API_KEY] = "opt_api_key_required"
-                else:
-                    new_data[CONF_OPT_API_KEY] = api_key
-                    self._api_key = api_key
             elif self._provider == PROVIDER_OTP_CUSTOM:
                 api_key = user_input.get(CONF_OTP_CUSTOM_API_KEY, "").strip()
                 base_url = user_input.get(CONF_OTP_BASE_URL, "").strip()
@@ -1966,9 +1904,6 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 }
             )
             description = "NTA API key expired or invalid. Get new keys at developer.nationaltransport.ie."
-        elif self._provider == PROVIDER_OPT:
-            schema = vol.Schema({vol.Required(CONF_OPT_API_KEY, default=entry.data.get(CONF_OPT_API_KEY, "")): str})
-            description = "openpublictransport.net API key expired or invalid. Request a new key at openpublictransport.net/api-key."
         elif self._provider == PROVIDER_OTP_CUSTOM:
             schema = vol.Schema(
                 {

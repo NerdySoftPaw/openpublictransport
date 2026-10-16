@@ -36,7 +36,6 @@ pick in the config flow and what the `plan_trip` action expects.
 | [DB](db.md)<br>`db` | Germany | FPTF | – | ✅ | ✅ | ✅ | – | Auto |
 | [VBN OTP](vbn.md)<br>`vbn_otp` | Bremen | OTP | free | ✅ | – | ✅ | ✅ | Geo¹ |
 | [VBN TRIAS](vbn.md)<br>`vbn_trias` | Bremen | TRIAS | free | ✅ | ✅ | – | – | Auto |
-| [openpublictransport](openpublictransport.md)<br>`openpublictransport` | Germany | OTP2 | free² | ✅ | – | – | ✅ | Prefix |
 | [SBB](sbb.md)<br>`sbb` | Switzerland | REST | – | ✅ | ✅ | – | – | Auto |
 | [TPG](tpg.md)<br>`tpg_ch` | Geneva | mgate | – | ✅ | ✅ | ✅⁵ | – | Auto |
 | [ÖBB](oebb.md)<br>`oebb` | Austria | Scotty | – | ✅ | ✅ | ✅ | – | Auto |
@@ -69,7 +68,6 @@ do not expose them.
 
 ¹ VBN OTP has no native name-based stop search. The integration geocodes your search term via Nominatim (OpenStreetMap) and finds stops within 500 m of the resolved coordinates.
 
-² API key for the community server is free — [request it here](https://openpublictransport.net/api-key).
 
 ³ HVV Geofox GTI is HOCHBAHN's official API on behalf of the HVV. Credentials are free and
 requested by email at api@hochbahn.de. It exposes delays, cancellations and platform changes that
@@ -108,7 +106,6 @@ Each provider uses its local timezone for departure times:
 | DB | `db` | Europe/Berlin |
 | VBN OTP | `vbn_otp` | Europe/Berlin |
 | VBN TRIAS | `vbn_trias` | Europe/Berlin |
-| openpublictransport | `openpublictransport` | Europe/Berlin |
 | SBB | `sbb` | Europe/Zurich |
 | TPG | `tpg_ch` | Europe/Zurich |
 | ÖBB | `oebb` | Europe/Vienna |

@@ -28,7 +28,6 @@ from openpublictransport import (
 
 from .const import (
     CONF_LINE_FILTER,
-    CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_SCAN_INTERVAL,
@@ -252,9 +251,6 @@ async def async_setup_trip_entry(
     # Resolve API key and custom URL based on provider
     if provider == "vbn_otp":
         api_key = config_entry.data.get(CONF_VBN_API_KEY)
-        custom_url = None
-    elif provider == "openpublictransport":
-        api_key = config_entry.data.get(CONF_OPT_API_KEY)
         custom_url = None
     elif provider == "otp_custom":
         api_key = config_entry.data.get(CONF_OTP_CUSTOM_API_KEY)

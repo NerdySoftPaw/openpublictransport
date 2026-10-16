@@ -26,16 +26,6 @@
           "stop": "Hållplats"
         }
       },
-      "opt_key": {
-        "title": "API Key (openpublictransport.net)",
-        "description": "Enter your free API key for the community OTP2 server. Request one at openpublictransport.net/api-key.",
-        "data": {
-          "opt_api_key": "API Key"
-        },
-        "data_description": {
-          "opt_api_key": "Free API key (required) — request at openpublictransport.net/api-key"
-        }
-      },
       "otp_custom_url": {
         "title": "Configure Custom OTP2 Instance",
         "description": "Enter the base URL of your OTP2 server. Format: http://host:8080/otp/routers/default",
@@ -127,7 +117,6 @@
       }
     },
     "error": {
-      "opt_api_key_required": "API key is required (request a free key at openpublictransport.net/api-key)",
       "otp_url_required": "Please enter a valid URL for your OTP2 server",
       "missing_location": "Ange antingen ett stations-ID eller en plats och hållplatsnamn",
       "empty_search": "Ange en sökterm",
@@ -211,6 +200,17 @@
     "api_error": {
       "title": "API-fel",
       "description": "Ett fel uppstod vid hämtning av data från {provider}. Kontrollera ditt stations-ID eller hållplatsinformation i inställningarna."
+    },
+    "opt_provider_removed": {
+      "title": "openpublictransport.net community server shut down",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "openpublictransport.net community server shut down",
+            "description": "The community server api.openpublictransport.net has been shut down. The following entries and their entities were removed: {entries}.\n\nYou can host your own OpenTripPlanner 2 server (e.g. the Docker image ghcr.io/nerdysoftpaw/otp-gtfsde) and set it up again with the \"OTP2 — Eigene Instanz\" provider, or choose a different provider.\n\nConfirm to dismiss this notice."
+          }
+        }
+      }
     }
   }
 }

@@ -6,9 +6,9 @@ buses, through the community-run `v6.db.transport.rest` API.
 !!! note "Community proxy, not an official DB service"
     `v6.db.transport.rest` is maintained by [derhuerst](https://github.com/derhuerst)
     and is free and open, but it is not operated or supported by Deutsche Bahn.
-    Availability is not guaranteed — occasional downtime is normal. For a
-    nationwide provider with an availability promise, use
-    [openpublictransport](openpublictransport.md).
+    Availability is not guaranteed — occasional downtime is normal. For
+    nationwide data under your own control, self-host an OTP2 server and use
+    [OTP2 Custom](otp-custom.md).
 
 ## Coverage Area
 
@@ -73,6 +73,6 @@ and operator notes appear in the departure attributes.
 ## Limitations
 
 - Trip planning is not available for this provider; use an EFA provider or
-  [openpublictransport](openpublictransport.md) for A-to-B routing.
+  a self-hosted [OTP2 Custom](otp-custom.md) instance for A-to-B routing.
 - The proxy applies its own rate limits. The integration's default scan interval of
   60 seconds is well within them.

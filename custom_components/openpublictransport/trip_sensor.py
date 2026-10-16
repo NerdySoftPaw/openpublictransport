@@ -33,7 +33,6 @@ from .const import (
     CONF_ENTRY_LABEL,
     CONF_ENTRY_SUFFIX,
     CONF_LINE_FILTER,
-    CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_SCAN_INTERVAL,
@@ -199,6 +198,8 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
             self.last_update_success_time = dt_util.now()
             data = self._drop_departed(data)
             data = self._apply_filters(data)
+            if target_arrival is not None:
+                data = _latest_arrivals_first(data, target_arrival)
         return data
 
     def _apply_filters(self, journeys: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -300,6 +301,24 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         return reachable
 
 
+def _latest_arrivals_first(journeys: List[Dict[str, Any]], target: datetime) -> List[Dict[str, Any]]:
+    """Order arrive-by results so the sensor shows the latest connection that makes it.
+
+    Providers answer an arrive-by query with connections *around* the target
+    and in ascending order (EFA even returns one arriving after it), so the
+    first entry was not the "latest one that still arrives by" the entry asks
+    for. Connections arriving after the target are dropped; one whose arrival
+    cannot be parsed is kept at the end.
+    """
+
+    def arrival(journey: Dict[str, Any]) -> Optional[datetime]:
+        return dt_util.parse_datetime(journey.get("arrival_timestamp") or "")
+
+    in_time = [j for j in journeys if (arrival(j) is None or arrival(j) <= target)]
+    known = sorted((j for j in in_time if arrival(j) is not None), key=arrival, reverse=True)
+    return known + [j for j in in_time if arrival(j) is None]
+
+
 def _next_arrival_datetime(time_str: str) -> Optional[datetime]:
     """Return the next local occurrence of an "HH:MM" time, today or tomorrow.
 
@@ -356,9 +375,13 @@ def trip_entity_key(coordinator: "TripDataUpdateCoordinator", config_entry: Opti
     entity or device is renamed.
     """
     base = (
-        f"{coordinator.provider}_trip_"
-        f"{coordinator.origin_city}_{coordinator.origin}_{coordinator.destination_city}_{coordinator.destination}"
-    ).lower().replace(" ", "_")
+        (
+            f"{coordinator.provider}_trip_"
+            f"{coordinator.origin_city}_{coordinator.origin}_{coordinator.destination_city}_{coordinator.destination}"
+        )
+        .lower()
+        .replace(" ", "_")
+    )
 
     suffix = ""
     if config_entry is not None:
@@ -375,14 +398,17 @@ def trip_device_name(coordinator: "TripDataUpdateCoordinator", config_entry: Opt
     second arrival time for the same route) gets its arrival config appended
     so the two are told apart in the UI — mirrors ``station_device_name``.
     """
-    base = f"{coordinator.origin}, {coordinator.origin_city} → {coordinator.destination}, {coordinator.destination_city}"
+    base = (
+        f"{coordinator.origin}, {coordinator.origin_city} → {coordinator.destination}, {coordinator.destination_city}"
+    )
 
     if config_entry is None or not str(config_entry.data.get(CONF_ENTRY_SUFFIX) or "").strip():
         return base
 
-    label = trip_arrival_label(current_trip_arrival(config_entry)) or str(
-        config_entry.data.get(CONF_ENTRY_LABEL) or ""
-    ).strip()
+    label = (
+        trip_arrival_label(current_trip_arrival(config_entry))
+        or str(config_entry.data.get(CONF_ENTRY_LABEL) or "").strip()
+    )
 
     return f"{base} ({label})" if label else base
 
@@ -417,9 +443,6 @@ async def async_setup_trip_entry(
     # Resolve API key and custom URL based on provider
     if provider == "vbn_otp":
         api_key = config_entry.data.get(CONF_VBN_API_KEY)
-        custom_url = None
-    elif provider == "openpublictransport":
-        api_key = config_entry.data.get(CONF_OPT_API_KEY)
         custom_url = None
     elif provider == "otp_custom":
         api_key = config_entry.data.get(CONF_OTP_CUSTOM_API_KEY)
@@ -515,8 +538,7 @@ class TripSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
             config_entry.options.get(CONF_ARRIVAL_TIME, config_entry.data.get(CONF_ARRIVAL_TIME)) or None
         )
         self.coordinator.arrival_time_entity = (
-            config_entry.options.get(CONF_ARRIVAL_TIME_ENTITY, config_entry.data.get(CONF_ARRIVAL_TIME_ENTITY))
-            or None
+            config_entry.options.get(CONF_ARRIVAL_TIME_ENTITY, config_entry.data.get(CONF_ARRIVAL_TIME_ENTITY)) or None
         )
         self.coordinator.arrival_offset = config_entry.options.get(
             CONF_ARRIVAL_OFFSET, config_entry.data.get(CONF_ARRIVAL_OFFSET, DEFAULT_ARRIVAL_OFFSET)

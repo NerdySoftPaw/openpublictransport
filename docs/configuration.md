@@ -41,7 +41,7 @@ Enter your stop/station name. The integration will search and suggest matching s
 - Use the "Stop, City" format for precise results (e.g. "Holthausen, Düsseldorf") — the integration splits this into a stop name and city filter automatically
 - You can also enter the city name along with the stop name (e.g., "Düsseldorf Hauptbahnhof")
 - The search is **case-insensitive** — "karlsruhe hauptbahnhof" works just as well as "Karlsruhe Hauptbahnhof"
-- For OTP providers (openpublictransport.net, custom OTP2): you can also enter an address or place of interest (e.g. "KIT Karlsruhe") — the integration geocodes it and finds nearby stops automatically
+- For OTP providers (custom OTP2): you can also enter an address or place of interest (e.g. "KIT Karlsruhe") — the integration geocodes it and finds nearby stops automatically
 - The search handles typos and umlaut variations automatically
 - For Swedish/Irish stops, use local naming conventions
 
@@ -179,6 +179,13 @@ integration fetches a larger raw board so filtered results aren't starved at bus
 | **Line filter** | Exact line name, case-insensitive | `U79, RE5` |
 | **Destination filter** | Substring of the destination, case-insensitive | `Duisburg, Airport` |
 | **Platform filter** | Exact platform/track | `3, 4` |
+
+**Excluding values:** put `!` in front of a value to hide it instead, e.g. `!Hauptbahnhof` in the
+destination filter hides every departure towards Hauptbahnhof, `U43, !U47` in the line filter
+shows U43 only, and `!3` in the platform filter hides track 3. Include and exclude values can be
+mixed in one field.
+
+To remove a filter, clear the field under **Configure** and save.
 
 #### Platform filter
 

@@ -30,7 +30,8 @@ _TIMEZONE_ROW = re.compile(r"^\| ([^|]+?) \| `([a-z0-9_]+)` \| ([^|]+?) \|\s*$",
 # Documented values the code cannot express.
 #   otp_custom: the class reports no key requirement, but a self-hosted instance
 #   may well be protected — the docs say "opt." on purpose.
-API_KEY_EXCEPTIONS = {"otp_custom": "opt."}
+#   tfl_uk: works without a key; an optional app key only raises the rate limit.
+API_KEY_EXCEPTIONS = {"otp_custom": "opt.", "tfl_uk": "opt."}
 #   These two have no single fixed zone.
 TIMEZONE_EXCEPTIONS = {
     "transitous": "Per-stop (automatic)",

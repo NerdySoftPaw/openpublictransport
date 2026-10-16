@@ -47,3 +47,4 @@ Iarnród Éireann / Irish Rail provides departures for Ireland's national rail n
 - Realtime departure data with delay in minutes
 - Platform information
 - No API key required
+- Trip planning (HAFAS `TripSearch`), including real-time delays and transfers

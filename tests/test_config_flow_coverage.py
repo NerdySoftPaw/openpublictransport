@@ -12,7 +12,6 @@ from custom_components.openpublictransport.const import (
     CONF_DEPARTURES,
     CONF_FAVORITE_LINES,
     CONF_LINE_FILTER,
-    CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_PROVIDER,
@@ -25,7 +24,6 @@ from custom_components.openpublictransport.const import (
     CONF_VBN_API_KEY,
     CONF_WALKING_TIME,
     DOMAIN,
-    PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
@@ -215,20 +213,6 @@ async def test_trip_with_vbn_api_key_stored_in_data(hass: HomeAssistant):
 
 
 # ── OPT trip flow ─────────────────────────────────────────────────────────────
-
-async def test_opt_trip_flow(hass: HomeAssistant):
-    """Test OPT trip flow with API key goes through trip_search."""
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"},
-        data={"entry_type": "trip", CONF_PROVIDER: PROVIDER_OPT},
-    )
-    # OPT goes through opt_key step first
-    result2 = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_OPT_API_KEY: "opt-trip-key"}
-    )
-    # Should go to trip_search since entry_type is "trip"
-    assert result2["step_id"] == "trip_search"
-
 
 # ── OTP Custom trip flow ──────────────────────────────────────────────────────
 

@@ -69,11 +69,11 @@ Platform information is extracted from the `location.disassembledName` field in 
 ### Stop Search
 
 ```
-https://efa.mvv-muenchen.de/ng/XML_STOPFINDER_REQUEST?outputFormat=RapidJSON&locationServerActive=1&type_sf=stop&name_sf=Marienplatz
+https://efa.mvv-muenchen.de/ng/XML_STOPFINDER_REQUEST?outputFormat=rapidJSON&locationServerActive=1&type_sf=stop&name_sf=Marienplatz
 ```
 
 ### Departures
 
 ```
-https://efa.mvv-muenchen.de/ng/XML_DM_REQUEST?outputFormat=RapidJSON&stateless=1&type_dm=any&name_dm=STATION_ID&mode=direct&useRealtime=1&limit=10
+https://efa.mvv-muenchen.de/ng/XML_DM_REQUEST?outputFormat=rapidJSON&stateless=1&type_dm=any&name_dm=STATION_ID&mode=direct&useRealtime=1&limit=10
 ```

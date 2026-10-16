@@ -1,15 +1,17 @@
 # OTP2 Custom Instance
 
-The `otp_custom` provider lets you connect any self-hosted [OpenTripPlanner 2](https://www.opentripplanner.org/) server to Home Assistant. This is useful if you run your own OTP2 instance — for example a local gtfs.de deployment, a private GTFS feed, or the community server image on your own hardware.
+The `otp_custom` provider lets you connect any self-hosted [OpenTripPlanner 2](https://www.opentripplanner.org/) server to Home Assistant. This is useful if you run your own OTP2 instance — for example a local gtfs.de deployment, a private GTFS feed, or the `otp-gtfsde` Docker image on your own hardware.
+
+!!! info "Replaces the openpublictransport community server"
+    The hosted community server at `api.openpublictransport.net` was shut down in v2026.10.0. For Germany-wide data, run the `otp-gtfsde` image yourself (see [Self-Hosting with gtfs.de](#self-hosting-with-gtfsde)) and connect it with this provider. Background: [Community Server Shutdown & Our New Focus](../community-server-shutdown.md).
 
 ## When to Use This
 
 | Scenario | Provider to Use |
 |----------|----------------|
-| You want Germany-wide data, no hassle | [openpublictransport](openpublictransport.md) (community server) |
+| You want Germany-wide data | **otp_custom** → self-host the `otp-gtfsde` image |
 | You run your own OTP2 with gtfs.de data | **otp_custom** → point at your server |
 | You have a private/local GTFS feed in OTP2 | **otp_custom** |
-| You self-host the community server image | **otp_custom** |
 
 ## API Details
 
@@ -50,7 +52,7 @@ The integration appends `/index/graphql` to this URL for all requests.
 
 ## Self-Hosting with gtfs.de
 
-The easiest way to run your own server is the community Docker image:
+The easiest way to run your own server is the `otp-gtfsde` Docker image:
 
 ```bash
 # Clone the repo
@@ -75,7 +77,7 @@ See the [otp-gtfsde repository](https://github.com/NerdySoftPaw/otp-gtfsde) for 
 
 ## Transport Types
 
-Same as the community server — all OTP2 GTFS modes are supported:
+All OTP2 GTFS modes are supported:
 
 | OTP2 Mode | Type |
 |-----------|------|
@@ -88,7 +90,7 @@ Same as the community server — all OTP2 GTFS modes are supported:
 
 ## Features
 
-- **Full city-prefix search** — same VRR/NRW prefix logic as the community server
+- **Full city-prefix search** — VRR/NRW city prefixes used by the gtfs.de feed are handled automatically
 - **Multi-platform merging** — stops grouped by name, platforms fetched in parallel
 - **Optional API key** — `X-API-Key` header sent when configured
 - **GTFS-RT** — realtime delays if your OTP2 instance is configured with a GTFS-RT updater

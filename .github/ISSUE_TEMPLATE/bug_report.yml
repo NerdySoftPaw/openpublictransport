@@ -11,7 +11,7 @@ body:
         Before you continue, please check:
         - [Existing issues](https://github.com/NerdySoftPaw/openpublictransport/issues?q=is%3Aissue) — someone may have reported this already
         - [Documentation](https://docs.openpublictransport.net/)
-        - [Migration Guide](https://docs.openpublictransport.net/latest/migration/) if you came from `vrr` / VRRAPI-HACS / hacs-publictransport
+        - [Migration Guide](https://docs.openpublictransport.net/migration/) if you came from `vrr` / VRRAPI-HACS / hacs-publictransport
 
         Have a **question** rather than a bug? Please use
         [Discussions](https://github.com/NerdySoftPaw/openpublictransport/discussions) instead.
@@ -75,13 +75,28 @@ body:
         - NVBW (Baden-Württemberg)
         - NWL (Westfalen-Lippe)
         - ÖBB (Austria)
-        - openpublictransport (Germany, GTFS.DE)
         - OTP2 Custom (self-hosted)
         - RMV (Frankfurt / Rhein-Main)
         - RVV (Regensburg)
         - SBB (Switzerland)
         - TPG (Geneva)
         - Trafiklab (Sweden)
+        - VBN (Bremen / Niedersachsen)
+        - NVV (Nordhessen (Kassel))
+        - VOS (Osnabrück)
+        - VSN (Südniedersachsen (Göttingen))
+        - VAO (Austria (all networks))
+        - TriMet (Portland, Oregon, USA)
+        - iRail (Belgium (rail))
+        - SL (Stockholm, Sweden)
+        - TTC (Toronto, Canada)
+        - Hong Kong (Hong Kong)
+        - Wiener Linien (Vienna, Austria)
+        - TfL (London, UK)
+        - TfNSW (New South Wales, Australia)
+        - Digitransit (Finland)
+        - PID (Prague, Czech Republic)
+        - CTA (Chicago, USA)
         - Transitous (worldwide)
         - VAG (Freiburg)
         - VBN OTP (Bremen / Niedersachsen)
@@ -90,6 +105,12 @@ body:
         - VRN (Rhein-Neckar)
         - VRR (Rhein-Ruhr, NRW)
         - VVO (Dresden)
+        - VMV (Mecklenburg-Vorpommern)
+        - GVH (Hannover)
+        - NAH.SH (Schleswig-Holstein)
+        - INSA (Sachsen-Anhalt)
+        - VMT (Thüringen)
+        - saarVV (Saarland)
         - VVS (Stuttgart)
         - Multiple providers
         - Not provider-specific

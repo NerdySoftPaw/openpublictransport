@@ -14,7 +14,6 @@ from custom_components.openpublictransport.const import (
     CONF_LINE_FILTER,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
-    CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_PROVIDER,
@@ -28,7 +27,6 @@ from custom_components.openpublictransport.const import (
     CONF_WALKING_TIME,
     DOMAIN,
     PROVIDER_NTA_IE,
-    PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
@@ -191,32 +189,6 @@ async def test_settings_with_vbn_creates_entry(hass: HomeAssistant):
     )
     assert result2["type"] == "create_entry"
     assert result2["data"].get(CONF_VBN_API_KEY) == "vbn-key-xyz"
-
-
-async def test_settings_with_opt_creates_entry(hass: HomeAssistant):
-    """Test settings with OPT provider stores API key."""
-    # OPT goes through opt_key step
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": "user"},
-        data={"entry_type": "departures", CONF_PROVIDER: PROVIDER_OPT},
-    )
-    result2 = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={CONF_OPT_API_KEY: "opt-key-abc"}
-    )
-    assert result2["step_id"] == "stop_search"
-
-    mock_stops = [{"id": "de:1", "name": "Stop", "place": "City"}]
-    result3 = await _search_stops(hass, result2["flow_id"], mock_stops)
-    if result3.get("step_id") == "stop_select":
-        result3 = await hass.config_entries.flow.async_configure(
-            result3["flow_id"], user_input={"stop": "de:1"}
-        )
-
-    result4 = await hass.config_entries.flow.async_configure(
-        result3["flow_id"], user_input=_SETTINGS
-    )
-    assert result4["type"] == "create_entry"
-    assert result4["data"].get(CONF_OPT_API_KEY) == "opt-key-abc"
 
 
 async def test_settings_with_otp_custom_creates_entry(hass: HomeAssistant):

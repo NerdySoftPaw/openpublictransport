@@ -8,7 +8,7 @@ filters into the device name).
 from __future__ import annotations
 
 import hashlib
-from typing import Any, List, Mapping
+from typing import Any, Callable, List, Mapping, Set, Tuple
 
 from .const import (
     CONF_ARRIVAL_OFFSET,
@@ -72,6 +72,42 @@ def current_filters(entry: Any) -> dict:
     Options win over data, matching how every consumer reads them.
     """
     return {key: entry.options.get(key, entry.data.get(key, "")) for key, _ in DISCRIMINATING_FILTERS}
+
+
+def split_filter(raw: str, normalize: Callable[[str], str]) -> Tuple[List[str], List[str]]:
+    """Split a comma-separated filter into (include, exclude) values.
+
+    A value starting with "!" excludes instead of includes (issue #93), so
+    "!Hauptbahnhof" hides every departure towards Hauptbahnhof and "U43, !U47"
+    shows U43 only. Values are passed through ``normalize``; empty ones drop out.
+    """
+    include: List[str] = []
+    exclude: List[str] = []
+    for value in str(raw or "").split(","):
+        value = value.strip()
+        target = exclude if value.startswith("!") else include
+        normalized = normalize(value.lstrip("!").strip())
+        if normalized:
+            target.append(normalized)
+    return include, exclude
+
+
+def matches_filter(
+    value: str, include: Set[str] | List[str], exclude: Set[str] | List[str], *, substring: bool
+) -> bool:
+    """True when ``value`` passes an include/exclude filter.
+
+    With ``substring`` a filter value matches anywhere in ``value`` (destinations),
+    otherwise it must match exactly (lines, platforms). An empty include list
+    lets everything through that is not excluded.
+    """
+
+    def hit(term: str) -> bool:
+        return term in value if substring else term == value
+
+    if any(hit(term) for term in exclude):
+        return False
+    return not include or any(hit(term) for term in include)
 
 
 # Trip arrival configuration that distinguishes one trip entry for a route

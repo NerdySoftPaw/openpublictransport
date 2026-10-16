@@ -35,12 +35,34 @@ providers.
 | RVV | `rvv` | Regensburg |
 | BSVG | `bsvg` | Braunschweig |
 | NWL | `nwl` | Westfalen-Lippe |
+| VMV | `vmv` | Mecklenburg-Vorpommern |
+| GVH | `gvh` | Hannover |
+
+### HAFAS providers
+
+| Provider | Provider ID | Region |
+|----------|-------------|--------|
+| BART | `bart_us` | San Francisco, USA |
+| DART | `dart_us` | Des Moines, USA |
+| VBN | `vbn_hafas` | Bremen / Niedersachsen |
+| NVV | `nvv` | Nordhessen (Kassel) |
+| VOS | `vos` | Osnabrück |
+| VSN | `vsn` | Südniedersachsen (Göttingen) |
+| VAO | `vao_at` | Austria (all networks) |
+| Irish Rail | `irishrail_ie` | Ireland |
+| TPG | `tpg_ch` | Geneva, Switzerland |
+| NAH.SH | `nahsh` | Schleswig-Holstein |
+| INSA | `insa` | Sachsen-Anhalt |
+| VMT | `vmt` | Thüringen (Erfurt / Jena / Weimar) |
+| saarVV | `saarvv` | Saarland |
+
+HAFAS trip planning (mgate `TripSearch`) routes stop to stop, so both stops must be picked in the
+config flow. Connections with a cancelled leg are left out.
 
 ### OTP providers
 
 | Provider | Provider ID | Region |
 |----------|-------------|--------|
-| openpublictransport | `openpublictransport` | Germany (nationwide, community OTP2 server) |
 | OTP2 Custom | `otp_custom` | Any self-hosted OTP2 instance |
 | VBN | `vbn_otp` | Bremen / Niedersachsen |
 
@@ -201,6 +223,24 @@ The `connection_feasible` attribute is `true` when all transfers can still be ma
 The **walking time** option (**Configure** on the trip entry) is the time you need to reach the
 origin stop. It shifts the search and hides connections you could not reach in time, so a trip
 sensor with 10 minutes walking time never shows a connection leaving in 5 minutes.
+
+## Arriving by a Set Time
+
+Instead of the next connection from now, a trip entry can look for the **latest connection that
+still arrives by a target time** — handy for a school run or the start of a shift. Set it under
+**Configure** on the trip device:
+
+| Option | Meaning |
+|--------|---------|
+| **Target arrival time** | A fixed time of day, e.g. `07:45`. The next occurrence is used — today while it is still ahead, otherwise tomorrow. |
+| **Entity for a dynamic arrival time** | An `input_datetime` or timestamp `sensor`, read on every update — for a timetable that changes from day to day. It wins over the fixed time whenever it holds a valid time. |
+| **Minutes before the entity time** | Arrive this many minutes before the entity's time, e.g. 15 minutes before the first lesson. Only applies to the entity. |
+
+The sensor then shows the latest connection that arrives by the target; connections arriving
+later are left out. The attribute `target_arrival_time` shows the time it is planning against.
+Leave both fields empty to go back to "next connection from now".
+
+Arrive-by planning works with every trip-capable provider: EFA, HAFAS and OTP.
 
 ## Filtering Connections
 

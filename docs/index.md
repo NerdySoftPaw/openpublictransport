@@ -1,13 +1,20 @@
 # openpublictransport
 
-Real-time public transport departures for Home Assistant — 38 providers across Germany, Switzerland, Austria, the Netherlands, Luxembourg, Denmark, Norway, Sweden, Ireland, the UK, the USA, and worldwide.
+Real-time public transport departures for Home Assistant — 59 providers across Germany, Switzerland, Austria, the Netherlands, Luxembourg, Denmark, Norway, Sweden, Ireland, the UK, the USA, and worldwide.
+
+!!! warning "The openpublictransport community server has been shut down"
+    We had to give up our own API at `api.openpublictransport.net` for cost reasons. Entries using the
+    `openpublictransport` provider are removed when you update to v2026.10.0 — all other providers are
+    unaffected. Our focus now is on connecting **more transit networks (Verkehrsverbünde) directly**.
+
+    **[→ Read the full announcement](community-server-shutdown.md)**
 
 !!! tip "Coming from VRRAPI-HACS or hacs-publictransport?"
     This is the new official repository! The domain changed from `vrr` to `openpublictransport` — entity IDs and services have new names.
     
     **[→ Migration Guide](migration.md)** — Step-by-step instructions for both migrations.
 
-## Supported Providers (38)
+## Supported Providers (59)
 
 | Provider | Region | API Type | API Key |
 |----------|--------|----------|---------|
@@ -32,7 +39,6 @@ Real-time public transport departures for Home Assistant — 38 providers across
 | **NVBW** | Baden-Württemberg | EFA | No |
 | **NWL** | Westfalen-Lippe | EFA | No |
 | **ÖBB** | Austria (nationwide) | HAFAS Scotty | No |
-| **openpublictransport** | Germany (nationwide, GTFS.DE + GTFS-RT) | OTP2 GraphQL | Yes (free) |
 | **OTP2 Custom** | Any self-hosted OTP2 instance | OTP2 GraphQL | Optional |
 | **Rejseplanen** | Denmark (nationwide) | HAFAS REST | Yes (free) |
 | **RMV** | Frankfurt / Rhein-Main | HAFAS | Yes (free) |
@@ -40,6 +46,22 @@ Real-time public transport departures for Home Assistant — 38 providers across
 | **SBB** | Switzerland (nationwide) | REST | No |
 | **TPG** | Geneva, Switzerland | HAFAS mgate | No |
 | **Trafiklab** | Sweden (nationwide) | REST | Yes (free) |
+| **VBN** | Bremen / Niedersachsen | HAFAS mgate | No |
+| **NVV** | Nordhessen (Kassel) | HAFAS mgate | No |
+| **VOS** | Osnabrück | HAFAS mgate | No |
+| **VSN** | Südniedersachsen (Göttingen) | HAFAS mgate | No |
+| **VAO** | Austria (all networks) | HAFAS mgate | No |
+| **TriMet** | Portland, Oregon, USA | OTP REST | No |
+| **iRail** | Belgium (rail) | iRail REST | No |
+| **SL** | Stockholm, Sweden | SL Transport REST | No |
+| **TTC** | Toronto, Canada | NextBus (umo IQ) | No |
+| **Hong Kong** | Hong Kong | data.gov.hk REST | No |
+| **Wiener Linien** | Vienna, Austria | Wiener Linien OGD | No |
+| **TfL** | London, UK | TfL Unified API | Optional |
+| **TfNSW** | New South Wales, Australia | EFA (TfNSW Trip Planner API) | Yes (free) |
+| **Digitransit** | Finland | OTP2 GraphQL | Yes (free) |
+| **PID** | Prague, Czech Republic | Golemio REST | Yes (free) |
+| **CTA** | Chicago, USA | CTA Train/Bus Tracker | Yes (free) |
 | **Transitous** | Worldwide (community) | MOTIS2 | No |
 | **VAG** | Freiburg | EFA | No |
 | **VBN (OTP)** | Bremen / Niedersachsen | OTP REST | Yes (free) |
@@ -48,6 +70,12 @@ Real-time public transport departures for Home Assistant — 38 providers across
 | **VRN** | Rhein-Neckar | EFA | No |
 | **VRR** | Rhein-Ruhr (NRW) | EFA | No |
 | **VVO** | Dresden | EFA | No |
+| **VMV** | Mecklenburg-Vorpommern | EFA | No |
+| **GVH** | Hannover | EFA | No |
+| **NAH.SH** | Schleswig-Holstein | HAFAS mgate | No |
+| **INSA** | Sachsen-Anhalt | HAFAS mgate | No |
+| **VMT** | Thüringen (Erfurt / Jena / Weimar) | HAFAS mgate | No |
+| **saarVV** | Saarland | HAFAS mgate | No |
 | **VVS** | Stuttgart | EFA | No |
 
 ## Features

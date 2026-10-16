@@ -26,16 +26,6 @@
           "stop": "Halte"
         }
       },
-      "opt_key": {
-        "title": "API Key (openpublictransport.net)",
-        "description": "Enter your free API key for the community OTP2 server. Request one at openpublictransport.net/api-key.",
-        "data": {
-          "opt_api_key": "API Key"
-        },
-        "data_description": {
-          "opt_api_key": "Free API key (required) — request at openpublictransport.net/api-key"
-        }
-      },
       "otp_custom_url": {
         "title": "Configure Custom OTP2 Instance",
         "description": "Enter the base URL of your OTP2 server. Format: http://host:8080/otp/routers/default",
@@ -57,7 +47,10 @@
           "nta_api_key_secondary": "NTA secundaire API Key (optioneel)",
           "rmv_api_key": "RMV API Key",
           "hvv_gti_user": "GTI-gebruikersnaam (application ID)",
-          "hvv_gti_password": "GTI-wachtwoord"
+          "hvv_gti_password": "GTI-wachtwoord",
+          "api_key": "API key",
+          "api_key_secondary": "Second API key",
+          "vbn_api_key": "VBN API Key"
         },
         "data_description": {
           "trafiklab_api_key": "Trafiklab API Key (beschikbaar op trafiklab.se)",
@@ -65,7 +58,10 @@
           "nta_api_key_secondary": "NTA secundaire API Key (optioneel, gebruikt als terugval)",
           "rmv_api_key": "RMV API Key (aan te vragen op opendata.rmv.de)",
           "hvv_gti_user": "Gebruikersnaam uit je Geofox GTI-gegevens (geofox-auth-user)",
-          "hvv_gti_password": "Wachtwoord uit je Geofox GTI-gegevens. Wordt gebruikt om elk verzoek te ondertekenen en nooit verzonden"
+          "hvv_gti_password": "Wachtwoord uit je Geofox GTI-gegevens. Wordt gebruikt om elk verzoek te ondertekenen en nooit verzonden",
+          "api_key": "Personal API key from the provider (free registration, see the note above)",
+          "api_key_secondary": "Only for providers with two keys (e.g. CTA: Train Tracker key)",
+          "vbn_api_key": "VBN API key — works for both OTP and TRIAS. Free for non-commercial use, request by e-mail at api@vbn.de"
         }
       },
       "settings": {
@@ -122,12 +118,19 @@
         "title": "Reisinstellingen",
         "description": "Route: {origin} → {destination}",
         "data": {
-          "scan_interval": "Bijwerkinterval (seconden)"
+          "scan_interval": "Bijwerkinterval (seconden)",
+          "arrival_time": "Target arrival time (HH:MM, optional)",
+          "arrival_time_entity": "Entity for dynamic arrival time (optional)",
+          "arrival_offset_minutes": "Minutes to arrive before the entity's time"
+        },
+        "data_description": {
+          "arrival_time": "Instead of the next connection from now, find the latest connection that still arrives by this time (e.g. 07:45, 15 minutes before school starts). Empty = connection from now",
+          "arrival_time_entity": "input_datetime or sensor whose value is read fresh on every update (e.g. for a timetable that changes daily). Takes priority over the fixed target arrival time",
+          "arrival_offset_minutes": "Subtracted from the time of the entity selected above, e.g. 15 minutes before class starts. Only relevant when an entity is selected"
         }
       }
     },
     "error": {
-      "opt_api_key_required": "API key is required (request a free key at openpublictransport.net/api-key)",
       "otp_url_required": "Please enter a valid URL for your OTP2 server",
       "missing_location": "Geef een station-ID of locatie en haltenaam op",
       "empty_search": "Voer een zoekterm in",
@@ -145,7 +148,13 @@
       "station_id_required": "Station-ID is verplicht",
       "vbn_api_key_required": "VBN API-sleutel is verplicht",
       "invalid_response": "De aanbieder gaf een onbruikbaar antwoord. Probeer het later opnieuw.",
-      "unknown": "Onverwachte fout — controleer de logs."
+      "unknown": "Onverwachte fout — controleer de logs.",
+      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)"
+    },
+    "abort": {
+      "reauth_successful": "API key updated successfully.",
+      "no_reauth_needed": "This provider does not require authentication.",
+      "reconfigure_successful": "Stop changed successfully."
     }
   },
   "options": {
@@ -162,7 +171,10 @@
           "destination_filter": "Bestemmingsfilter",
           "platform_filter": "Perronfilter",
           "walking_time": "Looptijd (minuten)",
-          "favorite_lines": "Favoriete lijnen"
+          "favorite_lines": "Favoriete lijnen",
+          "arrival_time": "Target arrival time (HH:MM, optional)",
+          "arrival_time_entity": "Entity for dynamic arrival time (optional)",
+          "arrival_offset_minutes": "Minutes to arrive before the entity's time"
         },
         "data_description": {
           "use_provider_logo": "Toon het logo van de aanbieder in plaats van het vervoerstypepictogram",
@@ -171,7 +183,10 @@
           "destination_filter": "Toon alleen vertrekken met overeenkomende bestemming, kommagescheiden, gedeeltelijke overeenkomst (bijv. Duisburg, Luchthaven). Leeg = alle bestemmingen",
           "platform_filter": "Toon alleen vertrekken van specifieke perrons/sporen, kommagescheiden (bijv. 3, 4). Leeg = alle perrons",
           "walking_time": "Looptijd naar de halte in minuten (0 = uitgeschakeld). Vertrekken die niet meer gehaald kunnen worden, worden verborgen",
-          "favorite_lines": "Lijnen die als eerste worden getoond, gescheiden door komma's (bijv. U79, RE5). Leeg = geen favorieten"
+          "favorite_lines": "Lijnen die als eerste worden getoond, gescheiden door komma's (bijv. U79, RE5). Leeg = geen favorieten",
+          "arrival_time": "Instead of the next connection from now, find the latest connection that still arrives by this time (e.g. 07:45, 15 minutes before school starts). Empty = connection from now",
+          "arrival_time_entity": "input_datetime or sensor whose value is read fresh on every update (e.g. for a timetable that changes daily). Takes priority over the fixed target arrival time",
+          "arrival_offset_minutes": "Subtracted from the time of the entity selected above, e.g. 15 minutes before class starts. Only relevant when an entity is selected"
         }
       }
     }
@@ -211,6 +226,17 @@
     "api_error": {
       "title": "API-fout",
       "description": "Er is een fout opgetreden bij het ophalen van gegevens van {provider}. Controleer uw station-ID of halte-informatie in de instellingen."
+    },
+    "opt_provider_removed": {
+      "title": "openpublictransport.net community server shut down",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "openpublictransport.net community server shut down",
+            "description": "We had to shut down our own API at {server} for cost reasons. The following entries and their entities were removed: {entries}.\n\nTo set your stops up again, use the official provider of your transit network (e.g. VRR, KVV, MVV, VVS, RMV, HVV, BVG, VVO), or host the same server yourself (Docker image {image}) and connect it with the \"OTP2 — Eigene Instanz\" provider.\n\nFrom now on, we focus on connecting more transit networks directly. Missing yours? Request it on GitHub. Full background: {url}\n\nConfirm to dismiss this notice."
+          }
+        }
+      }
     }
   }
 }

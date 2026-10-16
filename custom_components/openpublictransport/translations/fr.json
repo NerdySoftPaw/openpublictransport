@@ -26,16 +26,6 @@
           "stop": "Arrêt"
         }
       },
-      "opt_key": {
-        "title": "API Key (openpublictransport.net)",
-        "description": "Enter your free API key for the community OTP2 server. Request one at openpublictransport.net/api-key.",
-        "data": {
-          "opt_api_key": "API Key"
-        },
-        "data_description": {
-          "opt_api_key": "Free API key (required) — request at openpublictransport.net/api-key"
-        }
-      },
       "otp_custom_url": {
         "title": "Configure Custom OTP2 Instance",
         "description": "Enter the base URL of your OTP2 server. Format: http://host:8080/otp/routers/default",
@@ -57,7 +47,10 @@
           "nta_api_key_secondary": "Clé API secondaire NTA (facultatif)",
           "rmv_api_key": "Clé API RMV",
           "hvv_gti_user": "Nom d'utilisateur GTI (ID application)",
-          "hvv_gti_password": "Mot de passe GTI"
+          "hvv_gti_password": "Mot de passe GTI",
+          "api_key": "API key",
+          "api_key_secondary": "Second API key",
+          "vbn_api_key": "VBN API Key"
         },
         "data_description": {
           "trafiklab_api_key": "Clé API Trafiklab (disponible sur trafiklab.se)",
@@ -65,7 +58,10 @@
           "nta_api_key_secondary": "Clé API secondaire NTA (facultatif, utilisée en secours)",
           "rmv_api_key": "Clé API RMV (à demander sur opendata.rmv.de)",
           "hvv_gti_user": "Nom d'utilisateur de vos identifiants Geofox GTI (geofox-auth-user)",
-          "hvv_gti_password": "Mot de passe de vos identifiants Geofox GTI. Sert à signer chaque requête et n'est jamais transmis"
+          "hvv_gti_password": "Mot de passe de vos identifiants Geofox GTI. Sert à signer chaque requête et n'est jamais transmis",
+          "api_key": "Personal API key from the provider (free registration, see the note above)",
+          "api_key_secondary": "Only for providers with two keys (e.g. CTA: Train Tracker key)",
+          "vbn_api_key": "VBN API key — works for both OTP and TRIAS. Free for non-commercial use, request by e-mail at api@vbn.de"
         }
       },
       "settings": {
@@ -122,12 +118,19 @@
         "title": "Paramètres du trajet",
         "description": "Itinéraire : {origin} → {destination}",
         "data": {
-          "scan_interval": "Intervalle de mise à jour (secondes)"
+          "scan_interval": "Intervalle de mise à jour (secondes)",
+          "arrival_time": "Target arrival time (HH:MM, optional)",
+          "arrival_time_entity": "Entity for dynamic arrival time (optional)",
+          "arrival_offset_minutes": "Minutes to arrive before the entity's time"
+        },
+        "data_description": {
+          "arrival_time": "Instead of the next connection from now, find the latest connection that still arrives by this time (e.g. 07:45, 15 minutes before school starts). Empty = connection from now",
+          "arrival_time_entity": "input_datetime or sensor whose value is read fresh on every update (e.g. for a timetable that changes daily). Takes priority over the fixed target arrival time",
+          "arrival_offset_minutes": "Subtracted from the time of the entity selected above, e.g. 15 minutes before class starts. Only relevant when an entity is selected"
         }
       }
     },
     "error": {
-      "opt_api_key_required": "API key is required (request a free key at openpublictransport.net/api-key)",
       "otp_url_required": "Please enter a valid URL for your OTP2 server",
       "missing_location": "Veuillez fournir un identifiant de gare ou un emplacement et un nom d'arrêt",
       "empty_search": "Veuillez saisir un terme de recherche",
@@ -145,7 +148,13 @@
       "station_id_required": "L'identifiant de la station est requis",
       "vbn_api_key_required": "Une clé API VBN est requise",
       "invalid_response": "Le fournisseur a renvoyé une réponse inexploitable. Veuillez réessayer plus tard.",
-      "unknown": "Erreur inattendue — veuillez consulter les journaux."
+      "unknown": "Erreur inattendue — veuillez consulter les journaux.",
+      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)"
+    },
+    "abort": {
+      "reauth_successful": "API key updated successfully.",
+      "no_reauth_needed": "This provider does not require authentication.",
+      "reconfigure_successful": "Stop changed successfully."
     }
   },
   "options": {
@@ -162,7 +171,10 @@
           "destination_filter": "Filtre de destination",
           "platform_filter": "Filtre de quai",
           "walking_time": "Temps de marche (minutes)",
-          "favorite_lines": "Lignes favorites"
+          "favorite_lines": "Lignes favorites",
+          "arrival_time": "Target arrival time (HH:MM, optional)",
+          "arrival_time_entity": "Entity for dynamic arrival time (optional)",
+          "arrival_offset_minutes": "Minutes to arrive before the entity's time"
         },
         "data_description": {
           "use_provider_logo": "Afficher le logo du fournisseur au lieu de l'icône du type de transport",
@@ -171,7 +183,10 @@
           "destination_filter": "Afficher uniquement les départs dont la destination correspond, séparés par des virgules, correspondance partielle (ex. Duisburg, Aéroport). Vide = toutes les destinations",
           "platform_filter": "Afficher uniquement les départs de quais/voies spécifiques, séparés par des virgules (ex. 3, 4). Vide = tous les quais",
           "walking_time": "Temps de marche jusqu'à l'arrêt en minutes (0 = désactivé). Les départs qui ne peuvent plus être atteints sont masqués",
-          "favorite_lines": "Lignes à afficher en premier, séparées par des virgules (ex. U79, RE5). Vide = pas de favoris"
+          "favorite_lines": "Lignes à afficher en premier, séparées par des virgules (ex. U79, RE5). Vide = pas de favoris",
+          "arrival_time": "Instead of the next connection from now, find the latest connection that still arrives by this time (e.g. 07:45, 15 minutes before school starts). Empty = connection from now",
+          "arrival_time_entity": "input_datetime or sensor whose value is read fresh on every update (e.g. for a timetable that changes daily). Takes priority over the fixed target arrival time",
+          "arrival_offset_minutes": "Subtracted from the time of the entity selected above, e.g. 15 minutes before class starts. Only relevant when an entity is selected"
         }
       }
     }
@@ -211,6 +226,17 @@
     "api_error": {
       "title": "Erreur API",
       "description": "Une erreur est survenue lors de la récupération des données de {provider}. Veuillez vérifier votre identifiant de gare ou les informations d'arrêt dans les paramètres."
+    },
+    "opt_provider_removed": {
+      "title": "openpublictransport.net community server shut down",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "openpublictransport.net community server shut down",
+            "description": "We had to shut down our own API at {server} for cost reasons. The following entries and their entities were removed: {entries}.\n\nTo set your stops up again, use the official provider of your transit network (e.g. VRR, KVV, MVV, VVS, RMV, HVV, BVG, VVO), or host the same server yourself (Docker image {image}) and connect it with the \"OTP2 — Eigene Instanz\" provider.\n\nFrom now on, we focus on connecting more transit networks directly. Missing yours? Request it on GitHub. Full background: {url}\n\nConfirm to dismiss this notice."
+          }
+        }
+      }
     }
   }
 }

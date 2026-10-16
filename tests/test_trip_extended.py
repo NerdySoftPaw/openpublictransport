@@ -297,7 +297,7 @@ async def test_plan_trip_otp2_with_ids(hass: HomeAssistant):
     with patch("openpublictransport.get_provider", return_value=mock_provider):
         with patch("custom_components.openpublictransport.trip.async_get_clientsession"):
             result = await async_plan_trip(
-                hass, "openpublictransport", "A", "City", "B", "City",
+                hass, "otp_custom", "A", "City", "B", "City",
                 origin_id="stop:1", dest_id="stop:2",
             )
 

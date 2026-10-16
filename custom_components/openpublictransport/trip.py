@@ -72,6 +72,28 @@ def supports_trip_planning(provider: Optional[str]) -> bool:
     return provider in TRIP_CAPABLE_PROVIDERS
 
 
+def _efa_id_type(efa_id: str) -> str:
+    """Return the EFA location type an ID has to be sent as.
+
+    An EFA location ID carries its kind in front of the first colon: `streetID:`
+    for a street or an address, `poiID:` for a point of interest, `suburbID:` for
+    a district, `coord:` for a plain coordinate. A stop is the exception — its ID
+    is either a DELFI one (`de:08111:6056`) or provider-internal (`5030028`,
+    `5005296:$51`).
+
+    That matters because EFA accepts `type=stop` only for a real stop ID.
+    Anything else is answered with `origin: stop invalid` and no journeys at all,
+    so the trip sensor sits on "No connections" forever with nothing in the log —
+    and the other kinds do reach here: the stopfinder is queried with
+    `type_sf=any` whenever the search term contains a comma, and its locations
+    are passed through unfiltered. Sent as `any` they resolve, and the footpath
+    from an address to the first stop gets planned, which is the point of picking
+    an address as the origin.
+    """
+    kind = efa_id.split(":", 1)[0].lower()
+    return "any" if kind == "coord" or kind.endswith("id") else "stop"
+
+
 # OTP 2.x planConnection query — routes stop-to-stop via stopLocationId, so no
 # coordinates and no street-network access/egress are needed (works on a
 # transit-only graph). %s = origin id, dest id, optional dateTime clause.
@@ -259,7 +281,8 @@ async def async_plan_trip(
     Dispatches to OTP2 GraphQL for otp_custom, OTP REST for vbn_otp, the
     HAFAS mgate TripSearch service for mgate providers, and EFA XML for all
     other supported providers.
-    Uses stop IDs when available (more reliable), falls back to name+place search.
+    Uses the stored location IDs when available (more reliable), falls back to
+    name+place search.
     Returns a list of journey options, each with legs and transfer info.
     """
     from openpublictransport import get_provider
@@ -311,12 +334,12 @@ async def async_plan_trip(
     date_str = now.strftime("%Y%m%d")
     time_str = now.strftime("%H%M")
 
-    # Use stop IDs if available (much more reliable than name search)
+    # Use the stored location IDs if available (much more reliable than name search)
     if origin_id and dest_id:
         params = (
             f"outputFormat=rapidJSON"
-            f"&type_origin=stop&name_origin={quote(origin_id, safe='')}"
-            f"&type_destination=stop&name_destination={quote(dest_id, safe='')}"
+            f"&type_origin={_efa_id_type(origin_id)}&name_origin={quote(origin_id, safe='')}"
+            f"&type_destination={_efa_id_type(dest_id)}&name_destination={quote(dest_id, safe='')}"
             f"&itdDate={date_str}&itdTime={time_str}"
             f"&useRealtime=1"
         )

@@ -13,32 +13,39 @@
 [![Code Quality](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml)
 [![Tests](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml)
 
-Real-time public transport departures for Home Assistant — 35 providers across Germany, Austria, Switzerland, the Netherlands, Luxembourg, Norway, Sweden, Ireland, the USA, and worldwide.
+Real-time public transport departures for Home Assistant — 59 providers across Germany, Austria, Switzerland, the Netherlands, Luxembourg, Norway, Sweden, Ireland, the USA, and worldwide.
 
 **Website**: [openpublictransport.net](https://openpublictransport.net) | **Docs**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
+> **The openpublictransport community server has been shut down (v2026.10.0).**
+> We had to give up our own API at `api.openpublictransport.net` for cost reasons. Entries using the
+> `openpublictransport` provider are removed on update — all other providers are unaffected.
+> From now on, our focus is on connecting **more transit networks (Verkehrsverbünde) directly**.
+> Read the full announcement: [Community Server Shutdown & Our New Focus](https://docs.openpublictransport.net/community-server-shutdown/)
+> — and [request your network](https://github.com/NerdySoftPaw/openpublictransport/issues/new?template=provider_request.yml)!
+
 > **Coming from VRRAPI-HACS or hacs-publictransport?**
 > The domain changed from `vrr` to `openpublictransport` — entity IDs and actions have new names.
-> See the [Migration Guide](https://docs.openpublictransport.net/latest/migration/) for step-by-step instructions.
+> See the [Migration Guide](https://docs.openpublictransport.net/migration/) for step-by-step instructions.
 
 ---
 
-## Supported Providers (38)
+## Supported Providers (59)
 
 | Provider | Region | API Key | Trip Planner |
 |----------|--------|---------|--------------|
 | **AVV** | Augsburg | No | Yes |
-| **BART** | San Francisco, USA | No | No |
+| **BART** | San Francisco, USA | No | Yes |
 | **BEG** | Bavaria | No | No |
 | **BSVG** | Braunschweig | No | Yes |
 | **BVG** | Berlin / Brandenburg | No | No |
-| **DART** | Des Moines, USA | No | No |
+| **DART** | Des Moines, USA | No | Yes |
 | **DB** | Germany (nationwide, community API) | No | No |
 | **DING** | Ulm | No | Yes |
 | **Entur** | Norway (nationwide) | No | No |
 | **HVV** | Hamburg | No | Yes |
 | **HVV (Geofox GTI)** | Hamburg (official API) | Yes (free) | No |
-| **Irish Rail** | Ireland (nationwide) | No | No |
+| **Irish Rail** | Ireland (nationwide) | No | Yes |
 | **KVV** | Karlsruhe | No | Yes |
 | **mobilitéit.lu** | Luxembourg (nationwide) | No | No |
 | **MVV** | Munich | No | Yes |
@@ -48,14 +55,29 @@ Real-time public transport departures for Home Assistant — 35 providers across
 | **NVBW** | Baden-Württemberg | No | No |
 | **NWL** | Westfalen-Lippe | No | Yes |
 | **ÖBB** | Austria (nationwide) | No | No |
-| **openpublictransport** | Germany (nationwide, GTFS.DE + GTFS-RT, community OTP2) | Yes ([request](https://openpublictransport.net/api-key)) | Yes |
 | **OTP2 Custom** | Any OTP2 instance (self-hosted) | Optional | Yes |
 | **Rejseplanen** | Denmark (nationwide) | Yes (free) | No |
 | **RMV** | Frankfurt / Rhein-Main | Yes (free) | No |
 | **RVV** | Regensburg | No | Yes |
 | **SBB** | Switzerland (nationwide) | No | No |
-| **TPG** | Geneva, Switzerland | No | No |
+| **TPG** | Geneva, Switzerland | No | Yes |
 | **Trafiklab** | Sweden (nationwide) | Yes (free) | No |
+| **VBN** | Bremen / Niedersachsen | No | Yes |
+| **NVV** | Nordhessen (Kassel) | No | Yes |
+| **VOS** | Osnabrück | No | Yes |
+| **VSN** | Südniedersachsen (Göttingen) | No | Yes |
+| **VAO** | Austria (all networks) | No | Yes |
+| **TriMet** | Portland, Oregon, USA | No | No |
+| **iRail** | Belgium (rail) | No | No |
+| **SL** | Stockholm, Sweden | No | No |
+| **TTC** | Toronto, Canada | No | No |
+| **Hong Kong** | Hong Kong | No | No |
+| **Wiener Linien** | Vienna, Austria | No | No |
+| **TfL** | London, UK | Optional | No |
+| **TfNSW** | New South Wales, Australia | Yes (free) | No |
+| **Digitransit** | Finland | Yes (free) | No |
+| **PID** | Prague, Czech Republic | Yes (free) | No |
+| **CTA** | Chicago, USA | Yes (free) | No |
 | **Transitous** | Worldwide (community) | No | No |
 | **VAG** | Freiburg | No | Yes |
 | **VBN (OTP)** | Bremen / Niedersachsen | Yes (free) | Yes |
@@ -64,6 +86,12 @@ Real-time public transport departures for Home Assistant — 35 providers across
 | **VRN** | Rhein-Neckar | No | Yes |
 | **VRR** | Rhein-Ruhr (NRW) | No | Yes |
 | **VVO** | Dresden | No | Yes |
+| **VMV** | Mecklenburg-Vorpommern | No | Yes |
+| **GVH** | Hannover | No | Yes |
+| **NAH.SH** | Schleswig-Holstein | No | Yes |
+| **INSA** | Sachsen-Anhalt | No | Yes |
+| **VMT** | Thüringen (Erfurt / Jena / Weimar) | No | Yes |
+| **saarVV** | Saarland | No | Yes |
 | **VVS** | Stuttgart | No | Yes |
 
 ---

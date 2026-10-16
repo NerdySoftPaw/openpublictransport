@@ -1,7 +1,8 @@
-"""Multi-stop sensor for Open Public Transport integration.
+"""Multi-stop monitor for Open Public Transport integration.
 
 Combines departures from multiple stops into a single sorted view.
 Created via config flow by selecting existing departure sensors.
+Provides a combined sensor and a departure board camera (see camera.py).
 """
 
 import logging
@@ -22,14 +23,55 @@ CONF_IS_MULTI_STOP = "is_multi_stop"
 CONF_SOURCE_ENTITIES = "source_entities"
 CONF_MULTI_STOP_NAME = "multi_stop_name"
 
+# Platforms set up for a multi-stop entry (sensor + departure board camera)
+MULTI_STOP_PLATFORMS = ["sensor", "camera"]
+
+
+def multi_stop_name(config_entry: ConfigEntry) -> str:
+    """Return the user-given name of a multi-stop entry."""
+    return config_entry.data.get(CONF_MULTI_STOP_NAME) or config_entry.title or "Multi-Stop"
+
+
+def multi_stop_device_info(config_entry: ConfigEntry, name: str | None = None) -> DeviceInfo:
+    """Return the device info shared by all entities of a multi-stop entry."""
+    return DeviceInfo(
+        identifiers={(DOMAIN, f"multi_stop_{config_entry.entry_id}")},
+        name=name or multi_stop_name(config_entry),
+        manufacturer="Open Public Transport",
+        model="Multi-Stop Monitor",
+    )
+
+
+def merge_source_departures(hass: HomeAssistant, source_entities: list[str]) -> list[dict[str, Any]]:
+    """Merge the departures of all source sensors, sorted by minutes until departure."""
+    all_departures: list[dict[str, Any]] = []
+
+    for entity_id in source_entities:
+        state = hass.states.get(entity_id)
+        if not state:
+            continue
+
+        departures = state.attributes.get("departures", [])
+        station_name = state.attributes.get("station_name", entity_id)
+
+        for dep in departures:
+            if isinstance(dep, dict):
+                dep_copy = dict(dep)
+                dep_copy["source_station"] = station_name
+                dep_copy["source_entity"] = entity_id
+                all_departures.append(dep_copy)
+
+    all_departures.sort(key=lambda d: d.get("minutes_until_departure", 999))
+    return all_departures
+
 
 async def async_setup_multi_stop_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
 ) -> bool:
-    """Set up a multi-stop sensor from a config entry."""
+    """Set up a multi-stop entry (combined sensor + departure board camera)."""
     hass.data.setdefault(DOMAIN, {})
-    await hass.config_entries.async_forward_entry_setups(config_entry, ["sensor"])
+    await hass.config_entries.async_forward_entry_setups(config_entry, MULTI_STOP_PLATFORMS)
     return True
 
 
@@ -70,12 +112,7 @@ class MultiStopSensor(SensorEntity):
         self._source_entities = source_entities
         self._attr_unique_id = f"multi_stop_{config_entry.entry_id}"
         self._attr_name = None  # device name IS the entity name
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"multi_stop_{config_entry.entry_id}")},
-            name=name,
-            manufacturer="Open Public Transport",
-            model="Multi-Stop Monitor",
-        )
+        self._attr_device_info = multi_stop_device_info(config_entry, name)
 
     async def async_added_to_hass(self) -> None:
         """Start listening to source entity changes."""
@@ -92,27 +129,7 @@ class MultiStopSensor(SensorEntity):
 
     def _update_from_sources(self) -> None:
         """Merge departures from all source entities."""
-        all_departures = []
-
-        for entity_id in self._source_entities:
-            state = self.hass.states.get(entity_id)
-            if not state:
-                continue
-
-            departures = state.attributes.get("departures", [])
-            station_name = state.attributes.get("station_name", entity_id)
-
-            for dep in departures:
-                if isinstance(dep, dict):
-                    dep_copy = dict(dep)
-                    dep_copy["source_station"] = station_name
-                    dep_copy["source_entity"] = entity_id
-                    all_departures.append(dep_copy)
-
-        # Sort by minutes_until_departure
-        all_departures.sort(key=lambda d: d.get("minutes_until_departure", 999))
-
-        self._departures = all_departures
+        self._departures = merge_source_departures(self.hass, self._source_entities)
 
     @property
     def native_value(self) -> str | None:

@@ -8,19 +8,21 @@ from homeassistant.components.application_credentials import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.exceptions import ConfigEntryError, HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import issue_registry as ir
 from openpublictransport import ApiError, AuthenticationError, OpenPublicTransportError
 
 from .const import (
+    CONF_API_KEY,
+    CONF_API_KEY_SECONDARY,
     CONF_DEPARTURES,
     CONF_HVV_GTI_PASSWORD,
     CONF_HVV_GTI_USER,
     CONF_NATIONAL_RAIL_API_KEY,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
-    CONF_OPT_API_KEY,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
     CONF_PROVIDER,
@@ -33,16 +35,18 @@ from .const import (
     DEFAULT_DEPARTURES,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    GENERIC_API_KEY_PROVIDERS,
+    LEGACY_PROVIDER_OPT,
     PROVIDER_HVV_GTI,
     PROVIDER_NATIONAL_RAIL,
     PROVIDER_NTA_IE,
-    PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
     PROVIDER_REJSEPLANEN,
     PROVIDER_RMV,
     PROVIDER_TRAFIKLAB_SE,
     PROVIDER_VBN_OTP,
     PROVIDER_VBN_TRIAS,
+    SECONDARY_API_KEY_PROVIDERS,
 )
 from .sensor import PublicTransportDataUpdateCoordinator
 from .trip import async_plan_trip
@@ -91,7 +95,6 @@ SERVICE_ANNOUNCE_SCHEMA = vol.Schema(
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 _PROVIDER_CREDENTIAL_NAMES: dict[str, str] = {
-    PROVIDER_OPT: "Germany Community Server (api.openpublictransport.net)",
     PROVIDER_OTP_CUSTOM: "OTP2 Custom Instance",
     PROVIDER_TRAFIKLAB_SE: "Trafiklab (Sweden)",
     PROVIDER_RMV: "RMV (Rhine-Main)",
@@ -114,7 +117,6 @@ async def _async_migrate_credential(hass: HomeAssistant, entry: ConfigEntry) -> 
 
     key_map: dict[str, tuple[str, str]] = {
         # provider: (primary_conf_key, secondary_conf_key_or_empty)
-        PROVIDER_OPT: (CONF_OPT_API_KEY, ""),
         PROVIDER_OTP_CUSTOM: (CONF_OTP_CUSTOM_API_KEY, ""),
         PROVIDER_TRAFIKLAB_SE: (CONF_TRAFIKLAB_API_KEY, ""),
         PROVIDER_RMV: (CONF_RMV_API_KEY, ""),
@@ -126,6 +128,12 @@ async def _async_migrate_credential(hass: HomeAssistant, entry: ConfigEntry) -> 
         PROVIDER_NATIONAL_RAIL: (CONF_NATIONAL_RAIL_API_KEY, ""),
     }
 
+    key_map.update(
+        {
+            p: (CONF_API_KEY, CONF_API_KEY_SECONDARY if p in SECONDARY_API_KEY_PROVIDERS else "")
+            for p in GENERIC_API_KEY_PROVIDERS
+        }
+    )
     if provider not in key_map:
         return
 
@@ -149,9 +157,52 @@ async def _async_migrate_credential(hass: HomeAssistant, entry: ConfigEntry) -> 
         _LOGGER.warning("Could not migrate credential for %s: %s", provider, exc)
 
 
+def _is_legacy_opt_entry(entry: ConfigEntry) -> bool:
+    """Return True for entries of the shut-down openpublictransport.net community server."""
+    return (entry.data.get(CONF_PROVIDER) or entry.data.get("trip_provider")) == LEGACY_PROVIDER_OPT
+
+
+async def _async_remove_legacy_opt_entries(hass: HomeAssistant) -> None:
+    """Delete entries that still point at the shut-down community server.
+
+    api.openpublictransport.net is gone, so these entries can never load again.
+    Removing the entry also removes its devices and entities; a repair issue
+    tells the user what happened and how to self-host an OTP2 instance instead.
+    """
+    legacy = [entry for entry in hass.config_entries.async_entries(DOMAIN) if _is_legacy_opt_entry(entry)]
+    if not legacy:
+        return
+
+    titles = [entry.title for entry in legacy]
+    for entry in legacy:
+        _LOGGER.warning(
+            "Removing config entry '%s': the openpublictransport.net community server has been shut down",
+            entry.title,
+        )
+        await hass.config_entries.async_remove(entry.entry_id)
+
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        "opt_provider_removed",
+        is_fixable=True,
+        is_persistent=True,
+        severity=ir.IssueSeverity.WARNING,
+        translation_key="opt_provider_removed",
+        translation_placeholders={
+            "entries": ", ".join(titles),
+            "server": "api.openpublictransport.net",
+            "image": "ghcr.io/nerdysoftpaw/otp-gtfsde",
+            "url": "https://docs.openpublictransport.net/community-server-shutdown/",
+        },
+    )
+
+
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the Open Public Transport component."""
     hass.data.setdefault(DOMAIN, {})
+
+    await _async_remove_legacy_opt_entries(hass)
 
     async def handle_refresh(call: ServiceCall) -> None:
         """Handle the refresh service call."""
@@ -193,8 +244,6 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             if ep == provider:
                 if provider == PROVIDER_VBN_OTP:
                     api_key = existing.data.get(CONF_VBN_API_KEY)
-                elif provider == PROVIDER_OPT:
-                    api_key = existing.data.get(CONF_OPT_API_KEY)
                 elif provider == PROVIDER_OTP_CUSTOM:
                     api_key = existing.data.get(CONF_OTP_CUSTOM_API_KEY)
                     custom_url = existing.data.get(CONF_OTP_BASE_URL)
@@ -338,6 +387,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Open Public Transport from a config entry."""
     hass.data.setdefault(DOMAIN, {})
 
+    if _is_legacy_opt_entry(entry):
+        raise ConfigEntryError("The openpublictransport.net community server has been shut down")
+
     # Migrate any API key stored in this entry to the Application Credentials store.
     # Safe for new entries (no key → no-op) and idempotent for existing ones.
     await _async_migrate_credential(hass, entry)
@@ -364,7 +416,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     nta_api_key = entry.data.get(CONF_NTA_API_KEY)  # For NTA
     rmv_api_key = entry.data.get(CONF_RMV_API_KEY)  # For RMV
     vbn_api_key = entry.data.get(CONF_VBN_API_KEY)  # For VBN (OTP + TRIAS)
-    opt_api_key = entry.data.get(CONF_OPT_API_KEY)  # For community OTP server
     otp_custom_api_key = entry.data.get(CONF_OTP_CUSTOM_API_KEY)  # For custom OTP instance
     rejseplanen_api_key = entry.data.get(CONF_REJSEPLANEN_API_KEY)  # For Rejseplanen (DK)
     national_rail_api_key = entry.data.get(CONF_NATIONAL_RAIL_API_KEY)  # For National Rail (UK)
@@ -382,8 +433,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         api_key = rmv_api_key
     elif provider in (PROVIDER_VBN_OTP, PROVIDER_VBN_TRIAS):
         api_key = vbn_api_key
-    elif provider == PROVIDER_OPT:
-        api_key = opt_api_key
     elif provider == PROVIDER_OTP_CUSTOM:
         api_key = otp_custom_api_key
         custom_url = otp_custom_url
@@ -393,6 +442,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         api_key = national_rail_api_key
     elif provider == PROVIDER_HVV_GTI:
         api_key = hvv_gti_user
+    elif provider in GENERIC_API_KEY_PROVIDERS:
+        api_key = entry.data.get(CONF_API_KEY)
 
     departures = entry.options.get(CONF_DEPARTURES, entry.data.get(CONF_DEPARTURES, DEFAULT_DEPARTURES))
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL))
@@ -440,9 +491,18 @@ async def async_remove_config_entry_device(
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload Open Public Transport config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(
-        entry, ["sensor", "binary_sensor", "calendar", "event", "camera"]
-    )
+    # Unload exactly what the entry type set up: trip and multi-stop entries
+    # never load the binary_sensor/calendar/event platforms, and asking Home
+    # Assistant to unload those raised "Config entry was never loaded".
+    if entry.data.get("is_multi_stop"):
+        from .multi_stop import MULTI_STOP_PLATFORMS
+
+        platforms = MULTI_STOP_PLATFORMS
+    elif entry.data.get("is_trip"):
+        platforms = ["sensor"]
+    else:
+        platforms = ["sensor", "binary_sensor", "calendar", "event", "camera"]
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, platforms)
 
     # Shutdown coordinator resources (e.g. GTFS data); runtime_data is auto-cleared by HA
     coordinator = getattr(entry, "runtime_data", None)

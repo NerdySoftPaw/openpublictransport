@@ -23,16 +23,6 @@
           "stop": "Stop"
         }
       },
-      "opt_key": {
-        "title": "API Key (openpublictransport.net)",
-        "description": "Enter your free API key for the community OTP2 server. Request one at openpublictransport.net/api-key.",
-        "data": {
-          "opt_api_key": "API Key"
-        },
-        "data_description": {
-          "opt_api_key": "Free API key (required) — request at openpublictransport.net/api-key"
-        }
-      },
       "otp_custom_url": {
         "title": "Configure Custom OTP2 Instance",
         "description": "Enter the base URL of your OTP2 server. Format: http://host:8080/otp/routers/default",
@@ -55,7 +45,9 @@
           "rmv_api_key": "RMV API Key",
           "vbn_api_key": "VBN API Key",
           "hvv_gti_user": "GTI username (application ID)",
-          "hvv_gti_password": "GTI password"
+          "hvv_gti_password": "GTI password",
+          "api_key": "API key",
+          "api_key_secondary": "Second API key"
         },
         "data_description": {
           "trafiklab_api_key": "Trafiklab API key (available at trafiklab.se)",
@@ -64,7 +56,9 @@
           "rmv_api_key": "RMV API key (request at opendata.rmv.de)",
           "vbn_api_key": "VBN API key — works for both OTP and TRIAS. Free for non-commercial use, request by e-mail at api@vbn.de",
           "hvv_gti_user": "Username from your Geofox GTI credentials (geofox-auth-user)",
-          "hvv_gti_password": "Password from your Geofox GTI credentials. Used to sign each request; it is never transmitted"
+          "hvv_gti_password": "Password from your Geofox GTI credentials. Used to sign each request; it is never transmitted",
+          "api_key": "Personal API key from the provider (free registration, see the note above)",
+          "api_key_secondary": "Only for providers with two keys (e.g. CTA: Train Tracker key)"
         }
       },
       "settings": {
@@ -135,7 +129,6 @@
       "empty_search": "Please enter a search term",
       "no_results": "No results found. Please try a different search term.",
       "trip_not_supported": "This provider only supports the departure monitor — trip planning is not available. Choose an EFA or OTP2 provider, or pick the \"Departure Monitor\" entry type.",
-      "opt_api_key_required": "API key is required (request a free key at openpublictransport.net/api-key)",
       "otp_url_required": "Please enter a valid URL for your OTP2 server",
       "api_key_required": "API key is required",
       "trafiklab_api_key_required": "Trafiklab API key is required",
@@ -215,6 +208,17 @@
     "api_error": {
       "title": "API Error",
       "description": "There was an error retrieving data from {provider}. Please check your station ID or stop information in the settings."
+    },
+    "opt_provider_removed": {
+      "title": "openpublictransport.net community server shut down",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "openpublictransport.net community server shut down",
+            "description": "We had to shut down our own API at {server} for cost reasons. The following entries and their entities were removed: {entries}.\n\nTo set your stops up again, use the official provider of your transit network (e.g. VRR, KVV, MVV, VVS, RMV, HVV, BVG, VVO), or host the same server yourself (Docker image {image}) and connect it with the \"OTP2 — Eigene Instanz\" provider.\n\nFrom now on, we focus on connecting more transit networks directly. Missing yours? Request it on GitHub. Full background: {url}\n\nConfirm to dismiss this notice."
+          }
+        }
+      }
     }
   }
 }

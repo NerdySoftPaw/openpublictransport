@@ -35,12 +35,34 @@ providers.
 | RVV | `rvv` | Regensburg |
 | BSVG | `bsvg` | Braunschweig |
 | NWL | `nwl` | Westfalen-Lippe |
+| VMV | `vmv` | Mecklenburg-Vorpommern |
+| GVH | `gvh` | Hannover |
+
+### HAFAS providers
+
+| Provider | Provider ID | Region |
+|----------|-------------|--------|
+| BART | `bart_us` | San Francisco, USA |
+| DART | `dart_us` | Des Moines, USA |
+| VBN | `vbn_hafas` | Bremen / Niedersachsen |
+| NVV | `nvv` | Nordhessen (Kassel) |
+| VOS | `vos` | Osnabrück |
+| VSN | `vsn` | Südniedersachsen (Göttingen) |
+| VAO | `vao_at` | Austria (all networks) |
+| Irish Rail | `irishrail_ie` | Ireland |
+| TPG | `tpg_ch` | Geneva, Switzerland |
+| NAH.SH | `nahsh` | Schleswig-Holstein |
+| INSA | `insa` | Sachsen-Anhalt |
+| VMT | `vmt` | Thüringen (Erfurt / Jena / Weimar) |
+| saarVV | `saarvv` | Saarland |
+
+HAFAS trip planning (mgate `TripSearch`) routes stop to stop, so both stops must be picked in the
+config flow. Connections with a cancelled leg are left out.
 
 ### OTP providers
 
 | Provider | Provider ID | Region |
 |----------|-------------|--------|
-| openpublictransport | `openpublictransport` | Germany (nationwide, community OTP2 server) |
 | OTP2 Custom | `otp_custom` | Any self-hosted OTP2 instance |
 | VBN | `vbn_otp` | Bremen / Niedersachsen |
 

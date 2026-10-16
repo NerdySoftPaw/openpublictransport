@@ -8,7 +8,7 @@ The integration creates up to **7 entity types** for each configured stop:
 | **Binary Sensor** | Delay detection (configurable threshold) |
 | **Calendar** | Each departure as a calendar event |
 | **Event** | Fires on disruption notices |
-| **Camera** | Rendered departure board image (yellow-on-black) |
+| **Camera** | Rendered departure board image (yellow-on-black) — also available for Multi-Stop entries (disabled by default, enable it on the device) |
 | **Trip Sensor** | Route A→B with transfers and delays |
 | **Statistics** | Per-line punctuality tracking |
 

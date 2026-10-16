@@ -46,7 +46,8 @@
           "vbn_api_key": "VBN API Key",
           "hvv_gti_user": "GTI username (application ID)",
           "hvv_gti_password": "GTI password",
-          "api_key": "API key"
+          "api_key": "API key",
+          "api_key_secondary": "Second API key"
         },
         "data_description": {
           "trafiklab_api_key": "Trafiklab API key (available at trafiklab.se)",
@@ -56,7 +57,8 @@
           "vbn_api_key": "VBN API key — works for both OTP and TRIAS. Free for non-commercial use, request by e-mail at api@vbn.de",
           "hvv_gti_user": "Username from your Geofox GTI credentials (geofox-auth-user)",
           "hvv_gti_password": "Password from your Geofox GTI credentials. Used to sign each request; it is never transmitted",
-          "api_key": "Personal API key from the provider (free registration, see the note above)"
+          "api_key": "Personal API key from the provider (free registration, see the note above)",
+          "api_key_secondary": "Only for providers with two keys (e.g. CTA: Train Tracker key)"
         }
       },
       "settings": {

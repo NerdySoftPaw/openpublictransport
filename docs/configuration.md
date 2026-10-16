@@ -180,6 +180,13 @@ integration fetches a larger raw board so filtered results aren't starved at bus
 | **Destination filter** | Substring of the destination, case-insensitive | `Duisburg, Airport` |
 | **Platform filter** | Exact platform/track | `3, 4` |
 
+**Excluding values:** put `!` in front of a value to hide it instead, e.g. `!Hauptbahnhof` in the
+destination filter hides every departure towards Hauptbahnhof, `U43, !U47` in the line filter
+shows U43 only, and `!3` in the platform filter hides track 3. Include and exclude values can be
+mixed in one field.
+
+To remove a filter, clear the field under **Configure** and save.
+
 #### Platform filter
 
 Filtering by platform is often more stable than filtering by destination: the same direction

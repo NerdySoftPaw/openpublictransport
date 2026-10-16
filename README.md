@@ -13,7 +13,7 @@
 [![Code Quality](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml)
 [![Tests](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml)
 
-Real-time public transport departures for Home Assistant — 58 providers across Germany, Austria, Switzerland, the Netherlands, Luxembourg, Norway, Sweden, Ireland, the USA, and worldwide.
+Real-time public transport departures for Home Assistant — 59 providers across Germany, Austria, Switzerland, the Netherlands, Luxembourg, Norway, Sweden, Ireland, the USA, and worldwide.
 
 **Website**: [openpublictransport.net](https://openpublictransport.net) | **Docs**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
@@ -30,7 +30,7 @@ Real-time public transport departures for Home Assistant — 58 providers across
 
 ---
 
-## Supported Providers (58)
+## Supported Providers (59)
 
 | Provider | Region | API Key | Trip Planner |
 |----------|--------|---------|--------------|
@@ -77,6 +77,7 @@ Real-time public transport departures for Home Assistant — 58 providers across
 | **TfNSW** | New South Wales, Australia | Yes (free) | No |
 | **Digitransit** | Finland | Yes (free) | No |
 | **PID** | Prague, Czech Republic | Yes (free) | No |
+| **CTA** | Chicago, USA | Yes (free) | No |
 | **Transitous** | Worldwide (community) | No | No |
 | **VAG** | Freiburg | No | Yes |
 | **VBN (OTP)** | Bremen / Niedersachsen | Yes (free) | Yes |

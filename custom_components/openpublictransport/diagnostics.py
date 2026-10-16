@@ -10,6 +10,7 @@ from homeassistant.core import HomeAssistant
 
 from .const import (
     CONF_API_KEY,
+    CONF_API_KEY_SECONDARY,
     CONF_NATIONAL_RAIL_API_KEY,
     CONF_NTA_API_KEY,
     CONF_NTA_API_KEY_SECONDARY,
@@ -42,6 +43,7 @@ TO_REDACT = {
     CONF_NATIONAL_RAIL_API_KEY,
     CONF_REJSEPLANEN_API_KEY,
     CONF_API_KEY,
+    CONF_API_KEY_SECONDARY,
 }
 
 

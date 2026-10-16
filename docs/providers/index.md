@@ -5,7 +5,7 @@ hide:
 
 # Providers Overview
 
-The integration supports 58 transit providers across Europe and the USA. Each has its own API and data format; the integration normalizes all of them into the same entities and attributes.
+The integration supports 59 transit providers across Europe and the USA. Each has its own API and data format; the integration normalizes all of them into the same entities and attributes.
 
 ## Provider Comparison
 
@@ -70,6 +70,7 @@ pick in the config flow and what the `plan_trip` action expects.
 | [TfNSW](tfnsw.md)<br>`tfnsw_au` | New South Wales | EFA | free | ✅ | ✅ | ✅ | – | Auto |
 | [Digitransit](digitransit.md)<br>`digitransit_fi` | Finland | OTP | free | ✅ | ✅ | – | – | Auto |
 | [PID](golemio.md)<br>`golemio_cz` | Prague | REST | free | ✅ | ✅ | ✅ | – | Auto |
+| [CTA](cta.md)<br>`cta_us` | Chicago | REST | free | ✅ | – | ✅ | – | Auto |
 | [Transitous](transitous.md)<br>`transitous` | Worldwide | MOTIS2 | – | ~ | ~ | ~ | – | Auto |
 | [OTP2 Custom](otp-custom.md)<br>`otp_custom` | Any OTP2 | OTP2 | opt. | ~ | – | – | ✅ | Prefix |
 
@@ -161,6 +162,7 @@ Each provider uses its local timezone for departure times:
 | TfNSW | `tfnsw_au` | Australia/Sydney |
 | Digitransit | `digitransit_fi` | Europe/Helsinki |
 | PID | `golemio_cz` | Europe/Prague |
+| CTA | `cta_us` | America/Chicago |
 | Transitous | `transitous` | Per-stop (automatic) |
 | OTP2 Custom | `otp_custom` | Europe/Berlin (or per OTP2 config) |
 

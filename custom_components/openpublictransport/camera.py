@@ -2,23 +2,35 @@
 
 Renders a departure board image (like a real station display) that
 updates with each coordinator refresh. Yellow on black, classic look.
+
+Multi-stop entries get the same board, fed with the merged departures of
+their source sensors (see multi_stop.py).
 """
 
 import io
 import logging
 from datetime import datetime
+from functools import lru_cache
 from pathlib import Path
 
 from homeassistant.components.camera import Camera
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import Event, EventStateChangedData, HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 from PIL import Image, ImageDraw, ImageFont
 
 from .const import CONF_TRANSPORTATION_TYPES, DOMAIN, TRANSPORTATION_TYPES
+from .multi_stop import (
+    CONF_IS_MULTI_STOP,
+    CONF_SOURCE_ENTITIES,
+    merge_source_departures,
+    multi_stop_device_info,
+    multi_stop_name,
+)
 from .sensor import PublicTransportDataUpdateCoordinator, station_device_name, station_entity_key
 
 PARALLEL_UPDATES = 0
@@ -37,8 +49,10 @@ ROW_HEIGHT = 36
 HEADER_HEIGHT = 50
 PADDING = 16
 MAX_ROWS = 10
+FONT_SIZES = (22, 18, 14)
 
 
+@lru_cache(maxsize=None)
 def _get_font(size: int) -> ImageFont.FreeTypeFont:
     """Get a font with Unicode support (for umlauts etc.), falling back gracefully."""
     bundled_font = Path(__file__).parent / "fonts" / "DejaVuSansMono.ttf"
@@ -61,6 +75,12 @@ def _get_font(size: int) -> ImageFont.FreeTypeFont:
         except (OSError, IOError):
             continue
     return ImageFont.load_default(size=size)
+
+
+def _preload_fonts() -> None:
+    """Load (and cache) all board fonts; run in the executor to keep file I/O off the event loop."""
+    for size in FONT_SIZES:
+        _get_font(size)
 
 
 def render_departure_board(
@@ -163,11 +183,20 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up camera from a config entry."""
+    if config_entry.data.get(CONF_IS_MULTI_STOP):
+        source_entities = config_entry.data.get(CONF_SOURCE_ENTITIES, [])
+        if not source_entities:
+            return
+        await hass.async_add_executor_job(_preload_fonts)
+        async_add_entities([MultiStopBoardCamera(config_entry, source_entities)])
+        return
+
     coordinator = config_entry.runtime_data
 
     if not coordinator:
         return
 
+    await hass.async_add_executor_job(_preload_fonts)
     async_add_entities([DepartureBoardCamera(coordinator, config_entry)])
 
 
@@ -242,3 +271,45 @@ class DepartureBoardCamera(CoordinatorEntity, Camera):
         departures.sort(key=lambda d: d.get("departure_time", ""))
         self._image = render_departure_board(self._station_name, departures, now)
         self.async_write_ha_state()
+
+
+class MultiStopBoardCamera(Camera):
+    """Camera entity rendering the merged departures of a multi-stop entry."""
+
+    _attr_entity_registry_enabled_default = False
+    _attr_has_entity_name = True
+    _attr_is_streaming = False
+    _attr_should_poll = False
+    _attr_translation_key = "board"
+
+    def __init__(self, config_entry: ConfigEntry, source_entities: list[str]):
+        """Initialize the camera."""
+        super().__init__()
+        self._config_entry = config_entry
+        self._source_entities = source_entities
+        self._image: bytes | None = None
+        self._title = multi_stop_name(config_entry)
+        self._attr_unique_id = f"multi_stop_{config_entry.entry_id}_board"
+        self._attr_device_info = multi_stop_device_info(config_entry)
+
+    async def async_camera_image(self, width: int | None = None, height: int | None = None) -> bytes | None:
+        """Return the departure board image."""
+        return self._image
+
+    async def async_added_to_hass(self) -> None:
+        """Listen to the source sensors and render the initial board."""
+        await super().async_added_to_hass()
+
+        @callback
+        def _state_changed(event: Event[EventStateChangedData]) -> None:
+            self._update_from_sources()
+            self.async_write_ha_state()
+
+        self.async_on_remove(async_track_state_change_event(self.hass, self._source_entities, _state_changed))
+        self._update_from_sources()
+
+    @callback
+    def _update_from_sources(self) -> None:
+        """Re-render the board from the merged source departures."""
+        departures = merge_source_departures(self.hass, self._source_entities)
+        self._image = render_departure_board(self._title, departures, dt_util.now())

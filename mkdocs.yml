@@ -113,6 +113,7 @@ nav:
       - TfNSW (Australien · NSW): providers/tfnsw.md
       - Digitransit (Finnland): providers/digitransit.md
       - PID (Prag): providers/golemio.md
+      - CTA (USA · Chicago): providers/cta.md
       - Transitous (Worldwide): providers/transitous.md
       - OTP2 Custom Instance: providers/otp-custom.md
   - Sensors & Attributes: sensors.md

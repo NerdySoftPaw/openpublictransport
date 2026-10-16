@@ -442,8 +442,11 @@ async def _async_plan_trip_otp(
             "toPlace": to_place,
             "date": now.strftime("%Y-%m-%d"),
             "time": now.strftime("%H:%M:%S"),
-            "numItineraries": "3",
+            "numItineraries": "5",
             "mode": "TRANSIT,WALK",
+            # Without a window OTP only looks a short time ahead, so a line that
+            # runs once an hour yielded a single connection (issue #92).
+            "searchWindow": str(4 * 3600),
         },
     )
     if not data:

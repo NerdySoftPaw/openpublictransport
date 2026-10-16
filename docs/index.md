@@ -1,6 +1,6 @@
 # openpublictransport
 
-Real-time public transport departures for Home Assistant — 58 providers across Germany, Switzerland, Austria, the Netherlands, Luxembourg, Denmark, Norway, Sweden, Ireland, the UK, the USA, and worldwide.
+Real-time public transport departures for Home Assistant — 59 providers across Germany, Switzerland, Austria, the Netherlands, Luxembourg, Denmark, Norway, Sweden, Ireland, the UK, the USA, and worldwide.
 
 !!! warning "The openpublictransport community server has been shut down"
     We had to give up our own API at `api.openpublictransport.net` for cost reasons. Entries using the
@@ -14,7 +14,7 @@ Real-time public transport departures for Home Assistant — 58 providers across
     
     **[→ Migration Guide](migration.md)** — Step-by-step instructions for both migrations.
 
-## Supported Providers (58)
+## Supported Providers (59)
 
 | Provider | Region | API Type | API Key |
 |----------|--------|----------|---------|
@@ -61,6 +61,7 @@ Real-time public transport departures for Home Assistant — 58 providers across
 | **TfNSW** | New South Wales, Australia | EFA (TfNSW Trip Planner API) | Yes (free) |
 | **Digitransit** | Finland | OTP2 GraphQL | Yes (free) |
 | **PID** | Prague, Czech Republic | Golemio REST | Yes (free) |
+| **CTA** | Chicago, USA | CTA Train/Bus Tracker | Yes (free) |
 | **Transitous** | Worldwide (community) | MOTIS2 | No |
 | **VAG** | Freiburg | EFA | No |
 | **VBN (OTP)** | Bremen / Niedersachsen | OTP REST | Yes (free) |

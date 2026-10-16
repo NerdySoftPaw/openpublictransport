@@ -5,7 +5,7 @@ hide:
 
 # Providers Overview
 
-The integration supports 38 transit providers across Europe and the USA. Each has its own API and data format; the integration normalizes all of them into the same entities and attributes.
+The integration supports 43 transit providers across Europe and the USA. Each has its own API and data format; the integration normalizes all of them into the same entities and attributes.
 
 ## Provider Comparison
 
@@ -33,6 +33,12 @@ pick in the config flow and what the `plan_trip` action expects.
 | [NWL](nwl.md)<br>`nwl` | Westfalen-Lippe | EFA | – | ✅ | ✅ | ✅ | ✅ | Auto |
 | [NVBW](nvbw.md)<br>`nvbw` | Bad.-Württ. | EFA | – | ✅ | ✅ | ✅ | – | Auto |
 | [BEG](beg.md)<br>`beg` | Bavaria | EFA | – | ✅ | ✅ | ✅ | – | Auto |
+| [VMV](vmv.md)<br>`vmv` | Mecklenburg-Vorpommern | EFA | – | ✅ | ✅ | ✅ | ✅ | Auto |
+| [GVH](gvh.md)<br>`gvh` | Hannover | EFA | – | ✅ | ✅ | ✅ | ✅ | Auto |
+| [NAH.SH](nahsh.md)<br>`nahsh` | Schleswig-Holstein | mgate | – | ✅ | ✅ | ✅⁵ | – | Auto |
+| [INSA](insa.md)<br>`insa` | Sachsen-Anhalt | mgate | – | ✅ | ✅ | ✅⁵ | – | Auto |
+| [VMT](vmt.md)<br>`vmt` | Thüringen | mgate | – | ✅ | ✅ | ✅⁵ | – | Auto |
+| [saarVV](saarvv.md)<br>`saarvv` | Saarland | mgate | – | ✅ | ✅ | ✅⁵ | – | Auto |
 | [DB](db.md)<br>`db` | Germany | FPTF | – | ✅ | ✅ | ✅ | – | Auto |
 | [VBN OTP](vbn.md)<br>`vbn_otp` | Bremen | OTP | free | ✅ | – | ✅ | ✅ | Geo¹ |
 | [VBN TRIAS](vbn.md)<br>`vbn_trias` | Bremen | TRIAS | free | ✅ | ✅ | – | – | Auto |
@@ -104,6 +110,12 @@ Each provider uses its local timezone for departure times:
 | NVBW | `nvbw` | Europe/Berlin |
 | BEG | `beg` | Europe/Berlin |
 | DB | `db` | Europe/Berlin |
+| VMV | `vmv` | Europe/Berlin |
+| GVH | `gvh` | Europe/Berlin |
+| NAH.SH | `nahsh` | Europe/Berlin |
+| INSA | `insa` | Europe/Berlin |
+| VMT | `vmt` | Europe/Berlin |
+| saarVV | `saarvv` | Europe/Berlin |
 | VBN OTP | `vbn_otp` | Europe/Berlin |
 | VBN TRIAS | `vbn_trias` | Europe/Berlin |
 | SBB | `sbb` | Europe/Zurich |
@@ -249,7 +261,7 @@ Mapped from the product category (the token after `#` in the board's `prod` attr
 | Bus / O-Bus | bus | Bus / trolleybus |
 | F / Schiff / Fähre | ferry | Ferry |
 
-### HAFAS mgate Categories (BART, DART, Irish Rail, TPG)
+### HAFAS mgate Categories (BART, DART, Irish Rail, TPG, NAH.SH, INSA, VMT, saarVV)
 
 Mapped from the product `prodCtx.catOut` label (the `cls` bitmask is intentionally **not** used — its meaning differs per deployment, e.g. `128` is a ferry for ÖBB but *Metro* for BART).
 

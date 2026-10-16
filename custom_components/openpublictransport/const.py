@@ -82,6 +82,12 @@ PROVIDER_BART_US = "bart_us"  # BART (San Francisco) via HAFAS mgate
 PROVIDER_DART_US = "dart_us"  # DART (Des Moines) via HAFAS mgate
 PROVIDER_IRISHRAIL_IE = "irishrail_ie"  # Iarnród Éireann / Irish Rail via HAFAS mgate
 PROVIDER_TPG_CH = "tpg_ch"  # TPG (Geneva) via HAFAS mgate
+PROVIDER_VMV = "vmv"  # VMV (Mecklenburg-Vorpommern) via EFA
+PROVIDER_GVH = "gvh"  # GVH (Hannover) via EFA
+PROVIDER_NAHSH = "nahsh"  # NAH.SH (Schleswig-Holstein) via HAFAS mgate
+PROVIDER_INSA = "insa"  # INSA (Sachsen-Anhalt) via HAFAS mgate
+PROVIDER_VMT = "vmt"  # VMT (Thüringen) via HAFAS mgate
+PROVIDER_SAARVV = "saarvv"  # saarVV (Saarland) via HAFAS mgate
 PROVIDERS = [
     PROVIDER_VRR,
     PROVIDER_KVV,
@@ -120,6 +126,12 @@ PROVIDERS = [
     PROVIDER_DART_US,
     PROVIDER_IRISHRAIL_IE,
     PROVIDER_TPG_CH,
+    PROVIDER_VMV,
+    PROVIDER_GVH,
+    PROVIDER_NAHSH,
+    PROVIDER_INSA,
+    PROVIDER_VMT,
+    PROVIDER_SAARVV,
 ]
 
 # Transportation types mapping

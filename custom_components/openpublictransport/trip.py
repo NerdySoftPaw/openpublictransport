@@ -41,6 +41,8 @@ EFA_TRIP_ENDPOINTS = {
     "rvv": "https://efa.rvv.de/efa/XML_TRIP_REQUEST2",
     "bsvg": "https://bsvg.efa.de/bsvagstd/XML_TRIP_REQUEST2",
     "nwl": "https://westfalenfahrplan.de/nwl-efa/XML_TRIP_REQUEST2",
+    "vmv": "https://fahrplanauskunft-mv.de/vmv-efa/XML_TRIP_REQUEST2",
+    "gvh": "https://www.efa.de/efa/XML_TRIP_REQUEST2",
 }
 
 # OTP-based providers plan trips through their own endpoints, not EFA.

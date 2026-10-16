@@ -99,7 +99,13 @@ Germany is already covered by a large number of networks:
 | Bremen / Niedersachsen | [VBN](providers/vbn.md) |
 | Braunschweig | [BSVG](providers/bsvg.md) |
 | Berlin / Brandenburg | [BVG](providers/bvg.md) |
-| Dresden | [VVO](providers/vvo.md) |
+| Sachsen (Dresden, Leipzig, Chemnitz) | [VVO](providers/vvo.md) |
+| Mecklenburg-Vorpommern | [VMV](providers/vmv.md) |
+| Hannover | [GVH](providers/gvh.md) |
+| Schleswig-Holstein | [NAH.SH](providers/nahsh.md) |
+| Sachsen-Anhalt | [INSA](providers/insa.md) |
+| Thüringen (Erfurt, Jena, Weimar) | [VMT](providers/vmt.md) |
+| Saarland | [saarVV](providers/saarvv.md) |
 | Germany-wide (long-distance and regional rail) | [DB](providers/db.md) |
 
 Outside of these regions, [Transitous](providers/transitous.md) offers worldwide coverage from
@@ -147,6 +153,11 @@ This approach is better for everyone:
   working. There is no weekly maintenance window that takes everything offline at once.
 - **It scales.** Every new provider helps everyone in that region forever, without adding a
   single cent of hosting costs.
+
+The first results ship together with the shutdown: v2026.10.0 adds six networks that had no
+real-time data before — [VMV](providers/vmv.md) (Mecklenburg-Vorpommern), [GVH](providers/gvh.md)
+(Hannover), [NAH.SH](providers/nahsh.md) (Schleswig-Holstein), [INSA](providers/insa.md)
+(Sachsen-Anhalt), [VMT](providers/vmt.md) (Thüringen) and [saarVV](providers/saarvv.md) (Saarland).
 
 The integration already supports many networks through shared building blocks (EFA, TRIAS,
 HAFAS, OTP and more). Every network that uses one of these systems can be added with

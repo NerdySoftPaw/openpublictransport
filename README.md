@@ -13,7 +13,7 @@
 [![Code Quality](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml)
 [![Tests](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml)
 
-Real-time public transport departures for Home Assistant — 37 providers across Germany, Austria, Switzerland, the Netherlands, Luxembourg, Norway, Sweden, Ireland, the USA, and worldwide.
+Real-time public transport departures for Home Assistant — 43 providers across Germany, Austria, Switzerland, the Netherlands, Luxembourg, Norway, Sweden, Ireland, the USA, and worldwide.
 
 **Website**: [openpublictransport.net](https://openpublictransport.net) | **Docs**: [docs.openpublictransport.net](https://docs.openpublictransport.net/)
 
@@ -30,7 +30,7 @@ Real-time public transport departures for Home Assistant — 37 providers across
 
 ---
 
-## Supported Providers (37)
+## Supported Providers (43)
 
 | Provider | Region | API Key | Trip Planner |
 |----------|--------|---------|--------------|
@@ -70,6 +70,12 @@ Real-time public transport departures for Home Assistant — 37 providers across
 | **VRN** | Rhein-Neckar | No | Yes |
 | **VRR** | Rhein-Ruhr (NRW) | No | Yes |
 | **VVO** | Dresden | No | Yes |
+| **VMV** | Mecklenburg-Vorpommern | No | Yes |
+| **GVH** | Hannover | No | Yes |
+| **NAH.SH** | Schleswig-Holstein | No | No |
+| **INSA** | Sachsen-Anhalt | No | No |
+| **VMT** | Thüringen (Erfurt / Jena / Weimar) | No | No |
+| **saarVV** | Saarland | No | No |
 | **VVS** | Stuttgart | No | Yes |
 
 ---

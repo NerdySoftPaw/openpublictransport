@@ -31,6 +31,31 @@ Instead of letting the service slowly degrade, we decided to shut it down cleanl
 - Requires `python-openpublictransport` 0.3.0, which no longer ships the `openpublictransport`
   provider.
 
+### New providers
+
+The first step of the new focus ships with this release: six German networks that so far had
+no coverage or timetable data only (through NVBW's nationwide feed) now have their own provider
+with real-time data. None of them needs an API key.
+
+| Provider | Region | API | Trip planner |
+|----------|--------|-----|:------------:|
+| [VMV](providers/vmv.md) | Mecklenburg-Vorpommern (Rostock, Schwerin, …) | EFA | ✅ |
+| [GVH](providers/gvh.md) | Hannover | EFA | ✅ |
+| [NAH.SH](providers/nahsh.md) | Schleswig-Holstein (Kiel, Lübeck, …) | HAFAS mgate | – |
+| [INSA](providers/insa.md) | Sachsen-Anhalt (Magdeburg, Halle, …) | HAFAS mgate | – |
+| [VMT](providers/vmt.md) | Thüringen (Erfurt, Jena, Weimar) | HAFAS mgate | – |
+| [saarVV](providers/saarvv.md) | Saarland | HAFAS mgate | – |
+
+The HAFAS mgate providers use the access id of the operator's own app (from the
+public-transport/transport-apis catalogue), not an officially issued key, so it may change
+without notice.
+
+### Fixes
+
+- **BEG departure boards failed with "authentication failed (HTTP 403)"** — the firewall in front
+  of bahnland-bayern.de rejects the `RapidJSON` spelling of the output format. All EFA providers
+  now request `rapidJSON`, which every EFA server accepts.
+
 ### What's next: more transit networks
 
 From now on, development focuses on **connecting more transit networks (Verkehrsverbünde)

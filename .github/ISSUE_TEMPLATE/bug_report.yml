@@ -89,6 +89,12 @@ body:
         - VRN (Rhein-Neckar)
         - VRR (Rhein-Ruhr, NRW)
         - VVO (Dresden)
+        - VMV (Mecklenburg-Vorpommern)
+        - GVH (Hannover)
+        - NAH.SH (Schleswig-Holstein)
+        - INSA (Sachsen-Anhalt)
+        - VMT (Thüringen)
+        - saarVV (Saarland)
         - VVS (Stuttgart)
         - Multiple providers
         - Not provider-specific

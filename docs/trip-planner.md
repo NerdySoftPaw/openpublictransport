@@ -35,6 +35,8 @@ providers.
 | RVV | `rvv` | Regensburg |
 | BSVG | `bsvg` | Braunschweig |
 | NWL | `nwl` | Westfalen-Lippe |
+| VMV | `vmv` | Mecklenburg-Vorpommern |
+| GVH | `gvh` | Hannover |
 
 ### OTP providers
 

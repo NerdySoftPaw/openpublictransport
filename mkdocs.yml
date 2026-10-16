@@ -77,6 +77,12 @@ nav:
       - NWL (Westfalen-Lippe): providers/nwl.md
       - NVBW (Baden-Württemberg): providers/nvbw.md
       - BEG (Bayern): providers/beg.md
+      - VMV (Mecklenburg-Vorpommern): providers/vmv.md
+      - GVH (Hannover): providers/gvh.md
+      - NAH.SH (Schleswig-Holstein): providers/nahsh.md
+      - INSA (Sachsen-Anhalt): providers/insa.md
+      - VMT (Thüringen): providers/vmt.md
+      - saarVV (Saarland): providers/saarvv.md
       - DB (Deutschlandweit): providers/db.md
       - VBN (Bremen / Niedersachsen): providers/vbn.md
       - SBB (Schweiz): providers/sbb.md

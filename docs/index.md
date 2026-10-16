@@ -1,6 +1,6 @@
 # openpublictransport
 
-Real-time public transport departures for Home Assistant — 37 providers across Germany, Switzerland, Austria, the Netherlands, Luxembourg, Denmark, Norway, Sweden, Ireland, the UK, the USA, and worldwide.
+Real-time public transport departures for Home Assistant — 43 providers across Germany, Switzerland, Austria, the Netherlands, Luxembourg, Denmark, Norway, Sweden, Ireland, the UK, the USA, and worldwide.
 
 !!! warning "The openpublictransport community server has been shut down"
     We had to give up our own API at `api.openpublictransport.net` for cost reasons. Entries using the
@@ -14,7 +14,7 @@ Real-time public transport departures for Home Assistant — 37 providers across
     
     **[→ Migration Guide](migration.md)** — Step-by-step instructions for both migrations.
 
-## Supported Providers (37)
+## Supported Providers (43)
 
 | Provider | Region | API Type | API Key |
 |----------|--------|----------|---------|
@@ -54,6 +54,12 @@ Real-time public transport departures for Home Assistant — 37 providers across
 | **VRN** | Rhein-Neckar | EFA | No |
 | **VRR** | Rhein-Ruhr (NRW) | EFA | No |
 | **VVO** | Dresden | EFA | No |
+| **VMV** | Mecklenburg-Vorpommern | EFA | No |
+| **GVH** | Hannover | EFA | No |
+| **NAH.SH** | Schleswig-Holstein | HAFAS mgate | No |
+| **INSA** | Sachsen-Anhalt | HAFAS mgate | No |
+| **VMT** | Thüringen (Erfurt / Jena / Weimar) | HAFAS mgate | No |
+| **saarVV** | Saarland | HAFAS mgate | No |
 | **VVS** | Stuttgart | EFA | No |
 
 ## Features

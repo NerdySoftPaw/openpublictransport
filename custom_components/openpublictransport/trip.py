@@ -27,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 
 # EFA Trip API base URLs (same as DM base URLs but different endpoint)
 EFA_TRIP_ENDPOINTS = {
-    "vrr": "https://openservice-test.vrr.de/static03/XML_TRIP_REQUEST2",
+    "vrr": "https://openservice.vrr.de/static03/XML_TRIP_REQUEST2",
     "kvv": "https://projekte.kvv-efa.de/sl3-alone/XML_TRIP_REQUEST2",
     "hvv": "https://hvv.efa.de/efa/XML_TRIP_REQUEST2",
     "mvv": "https://efa.mvv-muenchen.de/ng/XML_TRIP_REQUEST2",
@@ -286,7 +286,7 @@ async def async_plan_trip(
     # Use stop IDs if available (much more reliable than name search)
     if origin_id and dest_id:
         params = (
-            f"outputFormat=RapidJSON"
+            f"outputFormat=rapidJSON"
             f"&type_origin=stop&name_origin={quote(origin_id, safe='')}"
             f"&type_destination=stop&name_destination={quote(dest_id, safe='')}"
             f"&itdDate={date_str}&itdTime={time_str}"
@@ -294,7 +294,7 @@ async def async_plan_trip(
         )
     else:
         params = (
-            f"outputFormat=RapidJSON"
+            f"outputFormat=rapidJSON"
             f"&type_origin=any&name_origin={quote(origin_name, safe='')}"
             f"&place_origin={quote(origin_place, safe='')}"
             f"&type_destination=any&name_destination={quote(dest_name, safe='')}"

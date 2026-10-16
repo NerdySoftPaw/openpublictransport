@@ -192,7 +192,7 @@ This information is helpful when reporting issues on GitHub.
 Use the STOPFINDER API:
 
 ```
-https://openservice-test.vrr.de/static03/XML_STOPFINDER_REQUEST?outputFormat=RapidJSON&locationServerActive=1&type_sf=stop&name_sf=Düsseldorf%20Hauptbahnhof
+https://openservice.vrr.de/static03/XML_STOPFINDER_REQUEST?outputFormat=rapidJSON&locationServerActive=1&type_sf=stop&name_sf=Düsseldorf%20Hauptbahnhof
 ```
 
 #### Testing Departures
@@ -200,13 +200,13 @@ https://openservice-test.vrr.de/static03/XML_STOPFINDER_REQUEST?outputFormat=Rap
 VRR/KVV/HVV using Station ID:
 
 ```
-https://openservice-test.vrr.de/static03/XML_DM_REQUEST?outputFormat=RapidJSON&stateless=1&type_dm=any&name_dm=20018235&mode=direct&useRealtime=1&limit=10
+https://openservice.vrr.de/static03/XML_DM_REQUEST?outputFormat=rapidJSON&stateless=1&type_dm=any&name_dm=20018235&mode=direct&useRealtime=1&limit=10
 ```
 
 VRR/KVV/HVV using Place and Name:
 
 ```
-https://openservice-test.vrr.de/static03/XML_DM_REQUEST?outputFormat=RapidJSON&place_dm=Düsseldorf&type_dm=stop&name_dm=Hauptbahnhof&mode=direct&useRealtime=1&limit=10
+https://openservice.vrr.de/static03/XML_DM_REQUEST?outputFormat=rapidJSON&place_dm=Düsseldorf&type_dm=stop&name_dm=Hauptbahnhof&mode=direct&useRealtime=1&limit=10
 ```
 
 ## FAQ

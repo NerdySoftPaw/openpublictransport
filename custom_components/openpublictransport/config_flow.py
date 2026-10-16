@@ -103,6 +103,62 @@ def _is_http_url(url: str) -> bool:
     return parsed.scheme in ("http", "https") and bool(parsed.netloc)
 
 
+# Alphabetically sorted provider dropdown entries ("SHORT — Region").
+_PROVIDER_OPTIONS = [
+    {"value": "avv_augsburg", "label": "AVV — Augsburg"},
+    {"value": "bart_us", "label": "BART — USA (San Francisco)"},
+    {"value": "beg", "label": "BEG — Bayern"},
+    {"value": "bsvg", "label": "BSVG — Braunschweig"},
+    {"value": "bvg", "label": "BVG — Berlin / Brandenburg"},
+    {"value": "dart_us", "label": "DART — USA (Des Moines)"},
+    {"value": "db", "label": "DB — Deutsche Bahn (Community API)"},
+    {"value": "ding", "label": "DING — Ulm / Donau-Iller"},
+    {"value": "entur_no", "label": "Entur — Norwegen"},
+    {"value": "gvh", "label": "GVH — Hannover"},
+    {"value": "hvv", "label": "HVV — Hamburg"},
+    {"value": "hvv_gti", "label": "HVV — Hamburg (Geofox GTI, Zugangsdaten)"},
+    {"value": "insa", "label": "INSA — Sachsen-Anhalt"},
+    {"value": "irishrail_ie", "label": "Irish Rail — Irland"},
+    {"value": "kvv", "label": "KVV — Karlsruhe"},
+    {"value": "mobiliteit_lu", "label": "mobilitéit.lu — Luxemburg"},
+    {"value": "mvv", "label": "MVV — München"},
+    {"value": "nahsh", "label": "NAH.SH — Schleswig-Holstein"},
+    {"value": "national_rail", "label": "National Rail — Großbritannien (API Key)"},
+    {"value": "ns_nl", "label": "NS — Niederlande"},
+    {"value": "nta_ie", "label": "NTA — Irland (API Key)"},
+    {"value": "nvbw", "label": "NVBW — Baden-Württemberg"},
+    {"value": "nwl", "label": "NWL — Westfalen-Lippe"},
+    {"value": "oebb", "label": "ÖBB — Österreich"},
+    {"value": "rejseplanen", "label": "Rejseplanen — Dänemark (API Key)"},
+    {"value": "rmv", "label": "RMV — Frankfurt / Rhein-Main (API Key)"},
+    {"value": "rvv", "label": "RVV — Regensburg"},
+    {"value": "saarvv", "label": "saarVV — Saarland"},
+    {"value": "sbb", "label": "SBB — Schweiz"},
+    {"value": "tpg_ch", "label": "TPG — Schweiz (Genf)"},
+    {"value": "trafiklab_se", "label": "Trafiklab — Schweden (API Key)"},
+    {"value": "otp_custom", "label": "OTP2 — Eigene Instanz (URL + optionaler API Key)"},
+    {"value": "transitous", "label": "Transitous — Weltweit (Community, Beta)"},
+    {"value": "vagfr", "label": "VAG — Freiburg"},
+    {"value": "vbn_otp", "label": "VBN — Bremen / Niedersachsen — OTP (API Key)"},
+    {"value": "vbn_trias", "label": "VBN — Bremen / Niedersachsen — TRIAS (API Key)"},
+    {"value": "vgn", "label": "VGN — Nürnberg"},
+    {"value": "vmt", "label": "VMT — Thüringen (Erfurt / Jena / Weimar)"},
+    {"value": "vmv", "label": "VMV — Mecklenburg-Vorpommern"},
+    {"value": "vrn", "label": "VRN — Rhein-Neckar"},
+    {"value": "vrr", "label": "VRR — Rhein-Ruhr (NRW)"},
+    {"value": "vvo", "label": "VVO — Dresden"},
+    {"value": "vvs", "label": "VVS — Stuttgart"},
+]
+
+
+def _provider_short_name(provider: Optional[str]) -> str:
+    """Display name for entry titles: the part of the dropdown label before " — "."""
+    for option in _PROVIDER_OPTIONS:
+        if option["value"] == provider:
+            return option["label"].split(" — ", 1)[0]
+    return (provider or "").upper()
+
+
 class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     """Handle a config flow for Open Public Transport integration with autocomplete."""
 
@@ -135,51 +191,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
     @staticmethod
     def _provider_selector() -> SelectSelector:
         """Return alphabetically sorted provider dropdown."""
-        options = [
-            {"value": "avv_augsburg", "label": "AVV — Augsburg"},
-            {"value": "bart_us", "label": "BART — USA (San Francisco)"},
-            {"value": "beg", "label": "BEG — Bayern"},
-            {"value": "bsvg", "label": "BSVG — Braunschweig"},
-            {"value": "bvg", "label": "BVG — Berlin / Brandenburg"},
-            {"value": "dart_us", "label": "DART — USA (Des Moines)"},
-            {"value": "db", "label": "DB — Deutsche Bahn (Community API)"},
-            {"value": "ding", "label": "DING — Ulm / Donau-Iller"},
-            {"value": "entur_no", "label": "Entur — Norwegen"},
-            {"value": "gvh", "label": "GVH — Hannover"},
-            {"value": "hvv", "label": "HVV — Hamburg"},
-            {"value": "hvv_gti", "label": "HVV — Hamburg (Geofox GTI, Zugangsdaten)"},
-            {"value": "insa", "label": "INSA — Sachsen-Anhalt"},
-            {"value": "irishrail_ie", "label": "Irish Rail — Irland"},
-            {"value": "kvv", "label": "KVV — Karlsruhe"},
-            {"value": "mobiliteit_lu", "label": "mobilitéit.lu — Luxemburg"},
-            {"value": "mvv", "label": "MVV — München"},
-            {"value": "nahsh", "label": "NAH.SH — Schleswig-Holstein"},
-            {"value": "national_rail", "label": "National Rail — Großbritannien (API Key)"},
-            {"value": "ns_nl", "label": "NS — Niederlande"},
-            {"value": "nta_ie", "label": "NTA — Irland (API Key)"},
-            {"value": "nvbw", "label": "NVBW — Baden-Württemberg"},
-            {"value": "nwl", "label": "NWL — Westfalen-Lippe"},
-            {"value": "oebb", "label": "ÖBB — Österreich"},
-            {"value": "rejseplanen", "label": "Rejseplanen — Dänemark (API Key)"},
-            {"value": "rmv", "label": "RMV — Frankfurt / Rhein-Main (API Key)"},
-            {"value": "rvv", "label": "RVV — Regensburg"},
-            {"value": "saarvv", "label": "saarVV — Saarland"},
-            {"value": "sbb", "label": "SBB — Schweiz"},
-            {"value": "tpg_ch", "label": "TPG — Schweiz (Genf)"},
-            {"value": "trafiklab_se", "label": "Trafiklab — Schweden (API Key)"},
-            {"value": "otp_custom", "label": "OTP2 — Eigene Instanz (URL + optionaler API Key)"},
-            {"value": "transitous", "label": "Transitous — Weltweit (Community, Beta)"},
-            {"value": "vagfr", "label": "VAG — Freiburg"},
-            {"value": "vbn_otp", "label": "VBN — Bremen / Niedersachsen — OTP (API Key)"},
-            {"value": "vbn_trias", "label": "VBN — Bremen / Niedersachsen — TRIAS (API Key)"},
-            {"value": "vgn", "label": "VGN — Nürnberg"},
-            {"value": "vmt", "label": "VMT — Thüringen (Erfurt / Jena / Weimar)"},
-            {"value": "vmv", "label": "VMV — Mecklenburg-Vorpommern"},
-            {"value": "vrn", "label": "VRN — Rhein-Neckar"},
-            {"value": "vrr", "label": "VRR — Rhein-Ruhr (NRW)"},
-            {"value": "vvo", "label": "VVO — Dresden"},
-            {"value": "vvs", "label": "VVS — Stuttgart"},
-        ]
+        options = _PROVIDER_OPTIONS
         return SelectSelector(SelectSelectorConfig(options=options, mode=SelectSelectorMode.DROPDOWN))
 
     async def async_step_user(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
@@ -897,7 +909,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             # Create title (self._selected_stop validated above)
             place = self._selected_stop.get("place", "")
             name = self._selected_stop.get("name", "")
-            title = f"{(self._provider or '').upper()} {place} - {name}".strip()
+            title = f"{_provider_short_name(self._provider)} {place} - {name}".strip()
 
             # A filtered entry says what it is filtered to, both in its title and
             # in the device name, so two entries for one station are tellable
@@ -1042,7 +1054,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         encoded_search = quote(search_term, safe="")
 
         params = (
-            f"outputFormat=RapidJSON&"
+            f"outputFormat=rapidJSON&"
             f"locationServerActive=1&"
             f"type_sf=stop&"
             f"name_sf={encoded_search}&"
@@ -1115,14 +1127,14 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
     def _get_stopfinder_url(self) -> str:
         """Get the STOPFINDER API URL based on provider."""
         if self._provider == PROVIDER_VRR:
-            return "https://openservice-test.vrr.de/static03/XML_STOPFINDER_REQUEST"
+            return "https://openservice.vrr.de/static03/XML_STOPFINDER_REQUEST"
         elif self._provider == PROVIDER_KVV:
             return "https://projekte.kvv-efa.de/sl3-alone/XML_STOPFINDER_REQUEST"
         elif self._provider == PROVIDER_HVV:
             # HVV uses the same efa.de domain as the departure API
             return "https://hvv.efa.de/efa/XML_STOPFINDER_REQUEST"
         else:
-            return "https://openservice-test.vrr.de/static03/XML_STOPFINDER_REQUEST"
+            return "https://openservice.vrr.de/static03/XML_STOPFINDER_REQUEST"
 
     async def _search_stops_trafiklab(self, search_term: str) -> List[Dict[str, Any]]:
         """Search for stops using Trafiklab Stop Lookup API.
@@ -1748,7 +1760,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()
 
-            title = f"{(self._provider or '').upper()} {origin.get('name', '')} → {dest.get('name', '')}"
+            title = f"{_provider_short_name(self._provider)} {origin.get('name', '')} → {dest.get('name', '')}"
 
             self._found_stops = []
             return self.async_create_entry(title=title, data=data)

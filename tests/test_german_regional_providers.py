@@ -26,3 +26,13 @@ async def test_providers_are_offered_in_the_config_flow(hass: HomeAssistant):
 ])
 def test_trip_planning_capability(provider, can_plan):
     assert supports_trip_planning(provider) is can_plan
+
+
+@pytest.mark.parametrize("provider, title", [
+    ("nahsh", "NAH.SH"), ("saarvv", "saarVV"), ("irishrail_ie", "Irish Rail"), ("avv_augsburg", "AVV"),
+    ("vrr", "VRR"), ("unknown_provider", "UNKNOWN_PROVIDER"),
+])
+def test_entry_titles_use_the_display_name(provider, title):
+    from custom_components.openpublictransport.config_flow import _provider_short_name
+
+    assert _provider_short_name(provider) == title

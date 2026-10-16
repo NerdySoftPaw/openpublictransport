@@ -613,6 +613,76 @@ async def test_plan_trip_efa_non_dict_response(hass: HomeAssistant):
             await async_plan_trip(hass, "vrr", "A", "City", "B", "City")
 
 
+def test_parse_journeys_exposes_direction():
+    """A leg carries the vehicle's headsign, which is not the leg's destination."""
+    journeys = [
+        {
+            "legs": [
+                {
+                    "origin": {"name": "Koengen Kastellstr."},
+                    "destination": {"name": "Wendlingen (N)"},
+                    "transportation": {
+                        "number": "S1",
+                        "product": {"name": "S-Bahn"},
+                        "destination": {"name": "Herrenberg"},
+                    },
+                    "duration": 600,
+                }
+            ],
+            "interchanges": 0,
+        }
+    ]
+    leg = _parse_journeys(journeys)[0]["legs"][0]
+    assert leg["direction"] == "Herrenberg"
+    assert leg["destination"] == "Wendlingen (N)"
+
+
+def test_parse_journeys_direction_absent():
+    """A leg without a headsign — a footpath — reports an empty direction."""
+    journeys = [
+        {
+            "legs": [
+                {
+                    "origin": {"name": "A"},
+                    "destination": {"name": "B"},
+                    "transportation": {"product": {"name": "footpath"}},
+                    "duration": 480,
+                }
+            ],
+            "interchanges": 0,
+        }
+    ]
+    assert _parse_journeys(journeys)[0]["legs"][0]["direction"] == ""
+
+
+def test_parse_journeys_exposes_transfer_minutes():
+    """The leg a traveller changes out of says how long the wait is."""
+    journeys = [
+        {
+            "legs": [
+                {
+                    "origin": {"name": "A", "departureTimePlanned": "2026-09-20T01:48:00+02:00"},
+                    "destination": {"name": "B", "arrivalTimePlanned": "2026-09-20T02:24:00+02:00"},
+                    "transportation": {"number": "N15", "product": {"name": "Bus", "class": 5}},
+                    "duration": 2160,
+                },
+                {
+                    "origin": {"name": "B", "departureTimePlanned": "2026-09-20T02:28:00+02:00"},
+                    "destination": {"name": "C", "arrivalTimePlanned": "2026-09-20T03:07:00+02:00"},
+                    "transportation": {"number": "S1", "product": {"name": "S-Bahn", "class": 1}},
+                    "duration": 2340,
+                },
+            ],
+            "interchanges": 1,
+        }
+    ]
+    journey = _parse_journeys(journeys)[0]
+    # four minutes on the platform at B, recorded on the leg that arrives there
+    assert journey["legs"][0]["transfer_minutes"] == 4
+    assert "transfer_minutes" not in journey["legs"][1]
+    assert journey["min_transfer_time"] == 4
+
+
 # ── EFA location type per ID kind ─────────────────────────────────────────────
 
 def test_efa_id_type_stop_ids():

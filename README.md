@@ -35,17 +35,17 @@ Real-time public transport departures for Home Assistant — 43 providers across
 | Provider | Region | API Key | Trip Planner |
 |----------|--------|---------|--------------|
 | **AVV** | Augsburg | No | Yes |
-| **BART** | San Francisco, USA | No | No |
+| **BART** | San Francisco, USA | No | Yes |
 | **BEG** | Bavaria | No | No |
 | **BSVG** | Braunschweig | No | Yes |
 | **BVG** | Berlin / Brandenburg | No | No |
-| **DART** | Des Moines, USA | No | No |
+| **DART** | Des Moines, USA | No | Yes |
 | **DB** | Germany (nationwide, community API) | No | No |
 | **DING** | Ulm | No | Yes |
 | **Entur** | Norway (nationwide) | No | No |
 | **HVV** | Hamburg | No | Yes |
 | **HVV (Geofox GTI)** | Hamburg (official API) | Yes (free) | No |
-| **Irish Rail** | Ireland (nationwide) | No | No |
+| **Irish Rail** | Ireland (nationwide) | No | Yes |
 | **KVV** | Karlsruhe | No | Yes |
 | **mobilitéit.lu** | Luxembourg (nationwide) | No | No |
 | **MVV** | Munich | No | Yes |
@@ -60,7 +60,7 @@ Real-time public transport departures for Home Assistant — 43 providers across
 | **RMV** | Frankfurt / Rhein-Main | Yes (free) | No |
 | **RVV** | Regensburg | No | Yes |
 | **SBB** | Switzerland (nationwide) | No | No |
-| **TPG** | Geneva, Switzerland | No | No |
+| **TPG** | Geneva, Switzerland | No | Yes |
 | **Trafiklab** | Sweden (nationwide) | Yes (free) | No |
 | **Transitous** | Worldwide (community) | No | No |
 | **VAG** | Freiburg | No | Yes |
@@ -72,10 +72,10 @@ Real-time public transport departures for Home Assistant — 43 providers across
 | **VVO** | Dresden | No | Yes |
 | **VMV** | Mecklenburg-Vorpommern | No | Yes |
 | **GVH** | Hannover | No | Yes |
-| **NAH.SH** | Schleswig-Holstein | No | No |
-| **INSA** | Sachsen-Anhalt | No | No |
-| **VMT** | Thüringen (Erfurt / Jena / Weimar) | No | No |
-| **saarVV** | Saarland | No | No |
+| **NAH.SH** | Schleswig-Holstein | No | Yes |
+| **INSA** | Sachsen-Anhalt | No | Yes |
+| **VMT** | Thüringen (Erfurt / Jena / Weimar) | No | Yes |
+| **saarVV** | Saarland | No | Yes |
 | **VVS** | Stuttgart | No | Yes |
 
 ---

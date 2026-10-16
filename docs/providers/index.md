@@ -35,15 +35,15 @@ pick in the config flow and what the `plan_trip` action expects.
 | [BEG](beg.md)<br>`beg` | Bavaria | EFA | – | ✅ | ✅ | ✅ | – | Auto |
 | [VMV](vmv.md)<br>`vmv` | Mecklenburg-Vorpommern | EFA | – | ✅ | ✅ | ✅ | ✅ | Auto |
 | [GVH](gvh.md)<br>`gvh` | Hannover | EFA | – | ✅ | ✅ | ✅ | ✅ | Auto |
-| [NAH.SH](nahsh.md)<br>`nahsh` | Schleswig-Holstein | mgate | – | ✅ | ✅ | ✅⁵ | – | Auto |
-| [INSA](insa.md)<br>`insa` | Sachsen-Anhalt | mgate | – | ✅ | ✅ | ✅⁵ | – | Auto |
-| [VMT](vmt.md)<br>`vmt` | Thüringen | mgate | – | ✅ | ✅ | ✅⁵ | – | Auto |
-| [saarVV](saarvv.md)<br>`saarvv` | Saarland | mgate | – | ✅ | ✅ | ✅⁵ | – | Auto |
+| [NAH.SH](nahsh.md)<br>`nahsh` | Schleswig-Holstein | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [INSA](insa.md)<br>`insa` | Sachsen-Anhalt | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [VMT](vmt.md)<br>`vmt` | Thüringen | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [saarVV](saarvv.md)<br>`saarvv` | Saarland | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
 | [DB](db.md)<br>`db` | Germany | FPTF | – | ✅ | ✅ | ✅ | – | Auto |
 | [VBN OTP](vbn.md)<br>`vbn_otp` | Bremen | OTP | free | ✅ | – | ✅ | ✅ | Geo¹ |
 | [VBN TRIAS](vbn.md)<br>`vbn_trias` | Bremen | TRIAS | free | ✅ | ✅ | – | – | Auto |
 | [SBB](sbb.md)<br>`sbb` | Switzerland | REST | – | ✅ | ✅ | – | – | Auto |
-| [TPG](tpg.md)<br>`tpg_ch` | Geneva | mgate | – | ✅ | ✅ | ✅⁵ | – | Auto |
+| [TPG](tpg.md)<br>`tpg_ch` | Geneva | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
 | [ÖBB](oebb.md)<br>`oebb` | Austria | Scotty | – | ✅ | ✅ | ✅ | – | Auto |
 | [NS](ns.md)<br>`ns_nl` | Netherlands | Scotty | – | ✅ | ✅ | ✅ | – | Auto |
 | [mobilitéit.lu](mobiliteit_lu.md)<br>`mobiliteit_lu` | Luxembourg | Scotty | – | ✅ | ✅ | ✅ | – | Auto |
@@ -51,10 +51,10 @@ pick in the config flow and what the `plan_trip` action expects.
 | [Entur](entur.md)<br>`entur_no` | Norway | OTP | – | ✅ | ✅ | ✅⁵ | – | Geo |
 | [Trafiklab](trafiklab.md)<br>`trafiklab_se` | Sweden | REST | free | ✅ | ✅ | – | – | Auto |
 | [NTA](nta.md)<br>`nta_ie` | Ireland | GTFS-RT | free | ✅ | ~ | ✅ | – | ID |
-| [Irish Rail](irishrail.md)<br>`irishrail_ie` | Ireland | mgate | – | ✅ | ✅ | ✅⁵ | – | Auto |
+| [Irish Rail](irishrail.md)<br>`irishrail_ie` | Ireland | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
 | [National Rail](national_rail.md)<br>`national_rail` | Great Britain | SOAP | free | ✅ | ✅ | ✅⁵ | – | Auto |
-| [BART](bart.md)<br>`bart_us` | San Francisco | mgate | – | ✅ | ✅ | ✅⁵ | – | Auto |
-| [DART](dart.md)<br>`dart_us` | Des Moines | mgate | – | ✅ | ~ | ✅⁵ | – | Auto |
+| [BART](bart.md)<br>`bart_us` | San Francisco | mgate | – | ✅ | ✅ | ✅⁵ | ✅ | Auto |
+| [DART](dart.md)<br>`dart_us` | Des Moines | mgate | – | ✅ | ~ | ✅⁵ | ✅ | Auto |
 | [Transitous](transitous.md)<br>`transitous` | Worldwide | MOTIS2 | – | ~ | ~ | ~ | – | Auto |
 | [OTP2 Custom](otp-custom.md)<br>`otp_custom` | Any OTP2 | OTP2 | opt. | ~ | – | – | ✅ | Prefix |
 

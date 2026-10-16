@@ -46,3 +46,4 @@ TPG provides departures for Geneva, Switzerland via the modern HAFAS `mgate.exe`
 - Realtime departure data with delay in minutes
 - Platform information
 - No API key required
+- Trip planning (HAFAS `TripSearch`), including real-time delays and transfers

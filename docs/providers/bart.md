@@ -46,3 +46,4 @@ BART provides departures for the San Francisco Bay Area rapid transit network vi
 - Realtime departure data with delay in minutes
 - Platform information
 - No API key required
+- Trip planning (HAFAS `TripSearch`), including real-time delays and transfers

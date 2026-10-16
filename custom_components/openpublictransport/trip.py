@@ -22,6 +22,8 @@ from openpublictransport import (
     ApiTimeoutError,
     AuthenticationError,
 )
+from openpublictransport.providers import get_all_provider_ids, get_provider_class
+from openpublictransport.providers.hafas_mgate_base import HafasMgateBaseProvider
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -49,10 +51,20 @@ EFA_TRIP_ENDPOINTS = {
 OTP2_TRIP_PROVIDERS = frozenset({"otp_custom"})
 OTP_REST_TRIP_PROVIDERS = frozenset({"vbn_otp"})
 
-# Every provider that can plan a trip. Providers outside this set (HAFAS, FPTF,
-# TRIAS, GTFS-RT …) are departure monitors only — the config flow refuses a trip
-# entry for them and the docs are checked against this set (issue #80).
-TRIP_CAPABLE_PROVIDERS = frozenset(EFA_TRIP_ENDPOINTS) | OTP2_TRIP_PROVIDERS | OTP_REST_TRIP_PROVIDERS
+# Every modern HAFAS mgate provider plans trips through its TripSearch service.
+# Derived from the library so a new mgate network is trip-capable right away.
+HAFAS_MGATE_TRIP_PROVIDERS = frozenset(
+    provider_id
+    for provider_id in get_all_provider_ids()
+    if issubclass(get_provider_class(provider_id) or object, HafasMgateBaseProvider)
+)
+
+# Every provider that can plan a trip. Providers outside this set (legacy HAFAS,
+# FPTF, TRIAS, GTFS-RT …) are departure monitors only — the config flow refuses a
+# trip entry for them and the docs are checked against this set (issue #80).
+TRIP_CAPABLE_PROVIDERS = (
+    frozenset(EFA_TRIP_ENDPOINTS) | OTP2_TRIP_PROVIDERS | OTP_REST_TRIP_PROVIDERS | HAFAS_MGATE_TRIP_PROVIDERS
+)
 
 
 def supports_trip_planning(provider: Optional[str]) -> bool:
@@ -238,8 +250,9 @@ async def async_plan_trip(
 ) -> Optional[List[Dict[str, Any]]]:
     """Plan a trip from origin to destination.
 
-    Dispatches to OTP2 GraphQL for otp_custom,
-    OTP REST for vbn_otp, EFA XML for all other supported providers.
+    Dispatches to OTP2 GraphQL for otp_custom, OTP REST for vbn_otp, the
+    HAFAS mgate TripSearch service for mgate providers, and EFA XML for all
+    other supported providers.
     Uses stop IDs when available (more reliable), falls back to name+place search.
     Returns a list of journey options, each with legs and transfer info.
     """
@@ -253,6 +266,15 @@ async def async_plan_trip(
         session = async_get_clientsession(hass)
         provider_instance = get_provider(provider, session, api_key=api_key, custom_url=custom_url)
         return await _async_plan_trip_otp2_graphql(origin_id, dest_id, departure_time, provider_instance)
+
+    # HAFAS mgate — TripSearch between two stop ids
+    if provider in HAFAS_MGATE_TRIP_PROVIDERS:
+        if not origin_id or not dest_id:
+            _LOGGER.warning("HAFAS trip planning requires stop IDs — search for stops first")
+            return None
+        provider_instance = get_provider(provider, async_get_clientsession(hass))
+        trips = await provider_instance.search_trips(origin_id, dest_id, departure_time=departure_time)
+        return _parse_hafas_trips(trips)
 
     # VBN OTP — legacy OTP REST plan endpoint
     if provider in OTP_REST_TRIP_PROVIDERS:
@@ -646,6 +668,67 @@ def _parse_otp_plan_connection(nodes: List[Dict[str, Any]]) -> List[Dict[str, An
                 "arrival_timestamp": arrival_ts,
                 "duration_minutes": round(_duration_to_seconds(node.get("duration")) / 60),
                 "transfers": node.get("numberOfTransfers", len(transit_legs) - 1),
+                "connection_feasible": connection_feasible,
+                "transfer_risk": transfer_risk,
+                "min_transfer_time": min_transfer_time,
+                "legs": transit_legs,
+            }
+        )
+
+    return results
+
+
+def _parse_hafas_trips(trips: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Convert HAFAS mgate trips from the library into the unified journey format.
+
+    Like the OTP2 path, only vehicle legs are kept — walks are not transfers.
+    A connection with a cancelled leg cannot be travelled and is dropped.
+    """
+    results = []
+
+    for trip in trips:
+        transit = [leg for leg in trip.get("legs", []) if leg.get("mode") == "transit"]
+        if not transit or any(leg.get("cancelled") for leg in transit):
+            continue
+
+        transit_legs = []
+        for leg in transit:
+            dep_planned, dep = leg["departure_planned"], leg["departure"]
+            arr_planned, arr = leg["arrival_planned"], leg["arrival"]
+            transit_legs.append(
+                {
+                    "origin": leg.get("origin", ""),
+                    "destination": leg.get("destination", ""),
+                    "line": leg.get("line", ""),
+                    "product": leg.get("product", ""),
+                    "transport_type": leg.get("transport_type", "unknown"),
+                    "departure_planned": dt_util.as_local(dep_planned).strftime("%H:%M"),
+                    "departure_estimated": dt_util.as_local(dep).strftime("%H:%M"),
+                    "arrival_planned": dt_util.as_local(arr_planned).strftime("%H:%M"),
+                    "arrival_estimated": dt_util.as_local(arr).strftime("%H:%M"),
+                    "delay": int((dep - dep_planned).total_seconds() // 60),
+                    "duration_minutes": int((arr - dep).total_seconds() // 60),
+                    "platform": leg.get("platform", ""),
+                    # Internal epoch seconds for transfer-gap calculation
+                    "_departure_s": dep.timestamp(),
+                    "_arrival_s": arr.timestamp(),
+                }
+            )
+
+        connection_feasible, transfer_risk, min_transfer_time = _rate_transfers(transit_legs)
+        departure_ts, arrival_ts = _journey_bounds(transit_legs)
+        for leg in transit_legs:
+            leg.pop("_departure_s", None)
+            leg.pop("_arrival_s", None)
+
+        results.append(
+            {
+                "departure": transit_legs[0]["departure_estimated"],
+                "arrival": transit_legs[-1]["arrival_estimated"],
+                "departure_timestamp": departure_ts,
+                "arrival_timestamp": arrival_ts,
+                "duration_minutes": trip.get("duration_minutes") or 0,
+                "transfers": trip.get("transfers", len(transit_legs) - 1),
                 "connection_feasible": connection_feasible,
                 "transfer_risk": transfer_risk,
                 "min_transfer_time": min_transfer_time,

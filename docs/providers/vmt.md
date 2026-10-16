@@ -48,7 +48,7 @@ VMT provides departures for Thüringen, Germany via the modern HAFAS `mgate.exe`
 - Platform information
 - Cancellations
 - No API key required
-- Trip planning is not available for this provider
+- Trip planning (HAFAS `TripSearch`), including real-time delays and transfers
 
 !!! note "Unofficial access id"
     The access id comes from the operator's own app (via the public-transport/transport-apis catalogue). It is not an officially issued key and may be rotated by the operator at any time.

@@ -41,10 +41,17 @@ with real-time data. None of them needs an API key.
 |----------|--------|-----|:------------:|
 | [VMV](providers/vmv.md) | Mecklenburg-Vorpommern (Rostock, Schwerin, …) | EFA | ✅ |
 | [GVH](providers/gvh.md) | Hannover | EFA | ✅ |
-| [NAH.SH](providers/nahsh.md) | Schleswig-Holstein (Kiel, Lübeck, …) | HAFAS mgate | – |
-| [INSA](providers/insa.md) | Sachsen-Anhalt (Magdeburg, Halle, …) | HAFAS mgate | – |
-| [VMT](providers/vmt.md) | Thüringen (Erfurt, Jena, Weimar) | HAFAS mgate | – |
-| [saarVV](providers/saarvv.md) | Saarland | HAFAS mgate | – |
+| [NAH.SH](providers/nahsh.md) | Schleswig-Holstein (Kiel, Lübeck, …) | HAFAS mgate | ✅ |
+| [INSA](providers/insa.md) | Sachsen-Anhalt (Magdeburg, Halle, …) | HAFAS mgate | ✅ |
+| [VMT](providers/vmt.md) | Thüringen (Erfurt, Jena, Weimar) | HAFAS mgate | ✅ |
+| [saarVV](providers/saarvv.md) | Saarland | HAFAS mgate | ✅ |
+
+### Trip planning for every HAFAS mgate provider
+
+The trip planner now also works with all HAFAS mgate providers — NAH.SH, INSA, VMT, saarVV,
+TPG, Irish Rail, BART and DART — through the mgate `TripSearch` service, with real-time delays,
+platforms and transfer rating like the EFA and OTP providers. Connections with a cancelled leg
+are left out. Pick both stops in the config flow, as for OTP.
 
 The HAFAS mgate providers use the access id of the operator's own app (from the
 public-transport/transport-apis catalogue), not an officially issued key, so it may change

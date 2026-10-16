@@ -1,5 +1,16 @@
 # Changelog
 
+## v2026.10.4 — Trip duration includes transfer time
+
+### Fixes
+
+- **Trip duration left out the wait between connections** ([#105](https://github.com/NerdySoftPaw/openpublictransport/issues/105), thanks @deZeus89) —
+  on EFA providers (VRR, KVV, GVH, …), a journey's `duration_minutes` added up only the legs and
+  missed the wait at each change. It now runs from the first departure to the last arrival, so
+  it matches `departure_timestamp` and `arrival_timestamp`.
+
+Requires `python-openpublictransport` 0.3.2.
+
 ## v2026.10.3 — Arrive-by trip planning, trips from addresses, transfer details
 
 ### New

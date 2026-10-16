@@ -1,5 +1,27 @@
 # Changelog
 
+## v2026.10.3 — Arrive-by trip planning, trips from addresses, transfer details
+
+### New
+
+- **Arrive by a set time** ([#96](https://github.com/NerdySoftPaw/openpublictransport/pull/96), thanks @grifmo) —
+  a trip entry can look for the latest connection that still arrives by a fixed time or by a
+  time read from an `input_datetime`/sensor, e.g. for the school run. Works with EFA, HAFAS and
+  OTP providers. The same route can now be set up twice with different arrival times. See
+  [Arriving by a Set Time](trip-planner.md#arriving-by-a-set-time).
+- **Direction and transfer time per leg** ([#95](https://github.com/NerdySoftPaw/openpublictransport/pull/95), thanks @remuslazar) —
+  every leg of a journey carries `direction` (where the vehicle is headed) and, before a change,
+  `transfer_minutes` (the wait for the next vehicle).
+
+### Fixes
+
+- **Trips from an address or a point of interest never found a connection** ([#94](https://github.com/NerdySoftPaw/openpublictransport/pull/94), thanks @remuslazar) —
+  EFA rejected those locations because they were sent as stops; they now go out as `any`.
+- **Trip options:** the line filter and transport types stay available in the trip options
+  dialog, and every text field there can be cleared again.
+
+Requires `python-openpublictransport` 0.3.2.
+
 ## v2026.10.2 — Clearable filters, exclude filters, ICE names, CTA
 
 ### Fixes

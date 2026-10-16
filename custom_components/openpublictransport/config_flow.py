@@ -20,6 +20,8 @@ from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
+    EntitySelector,
+    EntitySelectorConfig,
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
@@ -41,6 +43,9 @@ from openpublictransport import (
 from .const import (
     CONF_API_KEY,
     CONF_API_KEY_SECONDARY,
+    CONF_ARRIVAL_OFFSET,
+    CONF_ARRIVAL_TIME,
+    CONF_ARRIVAL_TIME_ENTITY,
     CONF_DELAY_THRESHOLD,
     CONF_DEPARTURES,
     CONF_DESTINATION_FILTER,
@@ -66,6 +71,7 @@ from .const import (
     CONF_USE_PROVIDER_LOGO,
     CONF_VBN_API_KEY,
     CONF_WALKING_TIME,
+    DEFAULT_ARRIVAL_OFFSET,
     DEFAULT_DELAY_THRESHOLD,
     DEFAULT_DEPARTURES,
     DEFAULT_SCAN_INTERVAL,
@@ -87,7 +93,7 @@ from .const import (
     SECONDARY_API_KEY_PROVIDERS,
     TRANSPORTATION_TYPES,
 )
-from .filters import filter_discriminator, filter_label
+from .filters import filter_discriminator, filter_label, trip_arrival_discriminator, trip_arrival_label
 from .trip import supports_trip_planning
 
 _LOGGER = logging.getLogger(__name__)
@@ -105,6 +111,15 @@ def _is_http_url(url: str) -> bool:
     except ValueError:
         return False
     return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+
+
+def _is_valid_hhmm(value: str) -> bool:
+    """Return True for a well-formed 24h "HH:MM" time string."""
+    try:
+        hour, minute = value.split(":", 1)
+        return 0 <= int(hour) <= 23 and 0 <= int(minute) <= 59
+    except (ValueError, AttributeError):
+        return False
 
 
 # Alphabetically sorted provider dropdown entries ("SHORT — Region").
@@ -1809,10 +1824,29 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         schema = vol.Schema(
             {
                 vol.Optional(CONF_SCAN_INTERVAL, default=120): vol.All(int, vol.Range(min=60, max=3600)),
+                vol.Optional(CONF_ARRIVAL_TIME, default=""): str,
+                vol.Optional(CONF_ARRIVAL_TIME_ENTITY): EntitySelector(
+                    EntitySelectorConfig(domain=["input_datetime", "sensor"])
+                ),
+                vol.Optional(CONF_ARRIVAL_OFFSET, default=DEFAULT_ARRIVAL_OFFSET): vol.All(
+                    int, vol.Range(min=0, max=120)
+                ),
             }
         )
 
         if user_input is not None:
+            arrival_time = user_input.get(CONF_ARRIVAL_TIME, "").strip()
+            if arrival_time and not _is_valid_hhmm(arrival_time):
+                return self.async_show_form(
+                    step_id="trip_settings",
+                    data_schema=schema,
+                    errors={CONF_ARRIVAL_TIME: "invalid_arrival_time"},
+                    description_placeholders={
+                        "origin": self._trip_origin.get("name", "") if self._trip_origin else "",
+                        "destination": self._trip_destination.get("name", "") if self._trip_destination else "",
+                    },
+                )
+
             origin = self._trip_origin or {}
             dest = self._trip_destination or {}
 
@@ -1827,6 +1861,12 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 "trip_destination_id": dest.get("id", ""),
                 CONF_SCAN_INTERVAL: user_input.get(CONF_SCAN_INTERVAL, 120),
             }
+            if arrival_time:
+                data[CONF_ARRIVAL_TIME] = arrival_time
+            arrival_time_entity = user_input.get(CONF_ARRIVAL_TIME_ENTITY)
+            if arrival_time_entity:
+                data[CONF_ARRIVAL_TIME_ENTITY] = arrival_time_entity
+                data[CONF_ARRIVAL_OFFSET] = user_input.get(CONF_ARRIVAL_OFFSET, DEFAULT_ARRIVAL_OFFSET)
 
             # Persist API key for providers that require one
             if self._api_key:
@@ -1847,11 +1887,26 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             if self._provider:
                 await self._async_store_credential(self._provider)
 
+            # An unfiltered entry keeps the historical unique_id, so nothing that
+            # already exists is renamed. A trip with a target arrival gets a
+            # stable suffix derived from that config — this is what allows the
+            # same route to be added twice with a different arrival time (e.g.
+            # one entry per child) and still aborts as already_configured when
+            # the arrival config is identical too.
             unique_id = f"{self._provider}_trip_{origin.get('id', '')}_{dest.get('id', '')}"
+            suffix = trip_arrival_discriminator(data)
+            if suffix:
+                unique_id = f"{unique_id}_{suffix}"
+                data[CONF_ENTRY_SUFFIX] = suffix
+
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()
 
             title = f"{_provider_short_name(self._provider)} {origin.get('name', '')} → {dest.get('name', '')}"
+            label = trip_arrival_label(data)
+            if label:
+                title = f"{title} ({label})"
+                data[CONF_ENTRY_LABEL] = label
 
             self._found_stops = []
             return self.async_create_entry(title=title, data=data)
@@ -2089,6 +2144,11 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_init(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
         """Manage the options."""
+        from .trip_sensor import CONF_IS_TRIP
+
+        if self.config_entry.data.get(CONF_IS_TRIP):
+            return await self._async_step_trip_options(user_input)
+
         if user_input is not None:
             return self.async_create_entry(title="", data=_with_cleared_text_fields(user_input))
 
@@ -2154,5 +2214,75 @@ class OpenPublicTransportOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(CONF_WALKING_TIME, default=current_walking_time): vol.All(int, vol.Range(min=0, max=30)),
             }
         )
+
+        return self.async_show_form(step_id="init", data_schema=schema)
+
+    async def _async_step_trip_options(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+        """Options for a trip-planning entry: scan interval, walking time, filters, arrival time.
+
+        A trip entry has no departures/logo/platform settings — those belong to
+        departure-monitor entries — so it gets its own, shorter form. The line
+        filter and transport types do apply to trips (issue #87).
+        """
+        current_scan_interval = self.config_entry.options.get(
+            CONF_SCAN_INTERVAL,
+            self.config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+        )
+        current_walking_time = self.config_entry.options.get(
+            CONF_WALKING_TIME,
+            self.config_entry.data.get(CONF_WALKING_TIME, DEFAULT_WALKING_TIME),
+        )
+        current_arrival_time = self.config_entry.options.get(
+            CONF_ARRIVAL_TIME,
+            self.config_entry.data.get(CONF_ARRIVAL_TIME, ""),
+        )
+        current_arrival_time_entity = self.config_entry.options.get(
+            CONF_ARRIVAL_TIME_ENTITY,
+            self.config_entry.data.get(CONF_ARRIVAL_TIME_ENTITY),
+        )
+        current_arrival_offset = self.config_entry.options.get(
+            CONF_ARRIVAL_OFFSET,
+            self.config_entry.data.get(CONF_ARRIVAL_OFFSET, DEFAULT_ARRIVAL_OFFSET),
+        )
+        current_transport_types = self.config_entry.options.get(
+            CONF_TRANSPORTATION_TYPES,
+            self.config_entry.data.get(CONF_TRANSPORTATION_TYPES, list(TRANSPORTATION_TYPES.keys())),
+        )
+        current_line_filter = self.config_entry.options.get(
+            CONF_LINE_FILTER, self.config_entry.data.get(CONF_LINE_FILTER, "")
+        )
+
+        schema = vol.Schema(
+            {
+                vol.Optional(CONF_SCAN_INTERVAL, default=current_scan_interval): vol.All(
+                    int, vol.Range(min=30, max=3600)
+                ),
+                vol.Optional(CONF_WALKING_TIME, default=current_walking_time): vol.All(int, vol.Range(min=0, max=30)),
+                vol.Optional(CONF_TRANSPORTATION_TYPES, default=current_transport_types): cv.multi_select(
+                    TRANSPORTATION_TYPES
+                ),
+                _text_field(CONF_LINE_FILTER, current_line_filter): str,
+                # Suggested, not default: an emptied field must clear the setting (issue #98)
+                _text_field(CONF_ARRIVAL_TIME, current_arrival_time): str,
+                vol.Optional(
+                    CONF_ARRIVAL_TIME_ENTITY, description={"suggested_value": current_arrival_time_entity}
+                ): EntitySelector(EntitySelectorConfig(domain=["input_datetime", "sensor"])),
+                vol.Optional(CONF_ARRIVAL_OFFSET, default=current_arrival_offset): vol.All(
+                    int, vol.Range(min=0, max=120)
+                ),
+            }
+        )
+
+        if user_input is not None:
+            arrival_time = user_input.get(CONF_ARRIVAL_TIME, "").strip()
+            if arrival_time and not _is_valid_hhmm(arrival_time):
+                return self.async_show_form(
+                    step_id="init",
+                    data_schema=schema,
+                    errors={CONF_ARRIVAL_TIME: "invalid_arrival_time"},
+                )
+            data = {CONF_LINE_FILTER: "", CONF_ARRIVAL_TIME_ENTITY: "", **user_input}
+            data[CONF_ARRIVAL_TIME] = arrival_time
+            return self.async_create_entry(title="", data=data)
 
         return self.async_show_form(step_id="init", data_schema=schema)

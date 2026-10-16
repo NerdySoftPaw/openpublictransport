@@ -49,7 +49,8 @@
           "hvv_gti_user": "GTI-användarnamn (applikations-ID)",
           "hvv_gti_password": "GTI-lösenord",
           "api_key": "API key",
-          "api_key_secondary": "Second API key"
+          "api_key_secondary": "Second API key",
+          "vbn_api_key": "VBN API Key"
         },
         "data_description": {
           "trafiklab_api_key": "Trafiklab API-nyckel (tillgänglig på trafiklab.se)",
@@ -59,7 +60,8 @@
           "hvv_gti_user": "Användarnamn från dina Geofox GTI-uppgifter (geofox-auth-user)",
           "hvv_gti_password": "Lösenord från dina Geofox GTI-uppgifter. Används för att signera varje begäran och skickas aldrig",
           "api_key": "Personal API key from the provider (free registration, see the note above)",
-          "api_key_secondary": "Only for providers with two keys (e.g. CTA: Train Tracker key)"
+          "api_key_secondary": "Only for providers with two keys (e.g. CTA: Train Tracker key)",
+          "vbn_api_key": "VBN API key — works for both OTP and TRIAS. Free for non-commercial use, request by e-mail at api@vbn.de"
         }
       },
       "settings": {
@@ -116,7 +118,15 @@
         "title": "Reseinställningar",
         "description": "Rutt: {origin} → {destination}",
         "data": {
-          "scan_interval": "Uppdateringsintervall (sekunder)"
+          "scan_interval": "Uppdateringsintervall (sekunder)",
+          "arrival_time": "Target arrival time (HH:MM, optional)",
+          "arrival_time_entity": "Entity for dynamic arrival time (optional)",
+          "arrival_offset_minutes": "Minutes to arrive before the entity's time"
+        },
+        "data_description": {
+          "arrival_time": "Instead of the next connection from now, find the latest connection that still arrives by this time (e.g. 07:45, 15 minutes before school starts). Empty = connection from now",
+          "arrival_time_entity": "input_datetime or sensor whose value is read fresh on every update (e.g. for a timetable that changes daily). Takes priority over the fixed target arrival time",
+          "arrival_offset_minutes": "Subtracted from the time of the entity selected above, e.g. 15 minutes before class starts. Only relevant when an entity is selected"
         }
       }
     },
@@ -138,7 +148,13 @@
       "station_id_required": "Hållplats-ID krävs",
       "vbn_api_key_required": "VBN API-nyckel krävs",
       "invalid_response": "Leverantören gav ett oanvändbart svar. Försök igen senare.",
-      "unknown": "Oväntat fel — se loggen."
+      "unknown": "Oväntat fel — se loggen.",
+      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)"
+    },
+    "abort": {
+      "reauth_successful": "API key updated successfully.",
+      "no_reauth_needed": "This provider does not require authentication.",
+      "reconfigure_successful": "Stop changed successfully."
     }
   },
   "options": {
@@ -155,7 +171,10 @@
           "destination_filter": "Destinationsfilter",
           "platform_filter": "Plattformsfilter",
           "walking_time": "Gångtid (minuter)",
-          "favorite_lines": "Favoritlinjer"
+          "favorite_lines": "Favoritlinjer",
+          "arrival_time": "Target arrival time (HH:MM, optional)",
+          "arrival_time_entity": "Entity for dynamic arrival time (optional)",
+          "arrival_offset_minutes": "Minutes to arrive before the entity's time"
         },
         "data_description": {
           "use_provider_logo": "Visa leverantörens logotyp istället för transporttypens ikon",
@@ -164,7 +183,10 @@
           "destination_filter": "Visa endast avgångar med matchande destination, kommaseparerade, delvis matchning (t.ex. Duisburg, Flygplats). Tomt = alla destinationer",
           "platform_filter": "Visa endast avgångar från specifika plattformar/spår, kommaseparerade (t.ex. 3, 4). Tomt = alla plattformar",
           "walking_time": "Gångtid till hållplatsen i minuter (0 = inaktiverat). Avgångar som inte längre kan nås döljs",
-          "favorite_lines": "Linjer som visas först, kommaseparerade (t.ex. U79, RE5). Tomt = inga favoriter"
+          "favorite_lines": "Linjer som visas först, kommaseparerade (t.ex. U79, RE5). Tomt = inga favoriter",
+          "arrival_time": "Instead of the next connection from now, find the latest connection that still arrives by this time (e.g. 07:45, 15 minutes before school starts). Empty = connection from now",
+          "arrival_time_entity": "input_datetime or sensor whose value is read fresh on every update (e.g. for a timetable that changes daily). Takes priority over the fixed target arrival time",
+          "arrival_offset_minutes": "Subtracted from the time of the entity selected above, e.g. 15 minutes before class starts. Only relevant when an entity is selected"
         }
       }
     }

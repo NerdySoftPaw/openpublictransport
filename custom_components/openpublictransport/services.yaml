@@ -51,6 +51,13 @@ plan_trip:
       example: "Düsseldorf"
       selector:
         text:
+    arrival_time:
+      name: Arrival Time
+      description: "Target arrival time (HH:MM, today or tomorrow if already passed). Finds the latest connection that still arrives by this time, instead of the next connection from now."
+      required: false
+      example: "07:45"
+      selector:
+        text:
 
 check_delays:
   name: Check Delays

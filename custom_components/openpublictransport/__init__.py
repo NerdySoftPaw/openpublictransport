@@ -50,6 +50,7 @@ from .const import (
 )
 from .sensor import PublicTransportDataUpdateCoordinator
 from .trip import async_plan_trip
+from .trip_sensor import _next_arrival_datetime
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -71,6 +72,7 @@ SERVICE_PLAN_TRIP_SCHEMA = vol.Schema(
         vol.Required("origin_city"): str,
         vol.Required("destination"): str,
         vol.Required("destination_city"): str,
+        vol.Optional("arrival_time"): str,
     }
 )
 
@@ -237,6 +239,10 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         origin_city = call.data["origin_city"]
         destination = call.data["destination"]
         destination_city = call.data["destination_city"]
+        arrival_time_str = call.data.get("arrival_time")
+        arrival_time = _next_arrival_datetime(arrival_time_str) if arrival_time_str else None
+        if arrival_time_str and arrival_time is None:
+            raise ServiceValidationError(f"Invalid arrival_time '{arrival_time_str}' — expected HH:MM")
         api_key = None
         custom_url = None
         for existing in hass.config_entries.async_entries(DOMAIN):
@@ -258,6 +264,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
                 destination_city,
                 api_key=api_key,
                 custom_url=custom_url,
+                arrival_time=arrival_time,
             )
         except AuthenticationError as err:
             raise HomeAssistantError(f"Trip planning for '{provider}' failed: {err}") from err

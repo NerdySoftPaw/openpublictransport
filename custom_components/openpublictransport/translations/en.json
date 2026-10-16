@@ -115,7 +115,15 @@
         "title": "Trip Settings",
         "description": "Route: {origin} → {destination}",
         "data": {
-          "scan_interval": "Update interval (seconds)"
+          "scan_interval": "Update interval (seconds)",
+          "arrival_time": "Target arrival time (HH:MM, optional)",
+          "arrival_time_entity": "Entity for dynamic arrival time (optional)",
+          "arrival_offset_minutes": "Minutes to arrive before the entity's time"
+        },
+        "data_description": {
+          "arrival_time": "Instead of the next connection from now, find the latest connection that still arrives by this time (e.g. 07:45, 15 minutes before school starts). Empty = connection from now",
+          "arrival_time_entity": "input_datetime or sensor whose value is read fresh on every update (e.g. for a timetable that changes daily). Takes priority over the fixed target arrival time",
+          "arrival_offset_minutes": "Subtracted from the time of the entity selected above, e.g. 15 minutes before class starts. Only relevant when an entity is selected"
         }
       }
     },
@@ -142,7 +150,8 @@
       "invalid_auth": "Authentication failed — please check your API key.",
       "station_id_required": "Station ID is required",
       "invalid_response": "The provider returned an unusable response. Please try again later.",
-      "unknown": "Unexpected error — please check the logs."
+      "unknown": "Unexpected error — please check the logs.",
+      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)"
     }
   },
   "options": {
@@ -159,7 +168,10 @@
           "destination_filter": "Destination filter",
           "platform_filter": "Platform filter",
           "walking_time": "Walking time (minutes)",
-          "favorite_lines": "Favorite lines"
+          "favorite_lines": "Favorite lines",
+          "arrival_time": "Target arrival time (HH:MM, optional)",
+          "arrival_time_entity": "Entity for dynamic arrival time (optional)",
+          "arrival_offset_minutes": "Minutes to arrive before the entity's time"
         },
         "data_description": {
           "use_provider_logo": "Show the provider logo instead of the transport type icon",
@@ -168,7 +180,10 @@
           "destination_filter": "Show only departures whose destination matches, comma-separated, partial match (e.g. Duisburg, Airport). Empty = all destinations",
           "platform_filter": "Show only departures from specific platforms/tracks, comma-separated (e.g. 3, 4 or Gleis 3). Empty = all platforms",
           "walking_time": "Walking time to stop in minutes (0 = disabled). Departures that can no longer be reached are hidden",
-          "favorite_lines": "Comma-separated lines to show first (e.g. U79, RE5). Empty = no favorites"
+          "favorite_lines": "Comma-separated lines to show first (e.g. U79, RE5). Empty = no favorites",
+          "arrival_time": "Instead of the next connection from now, find the latest connection that still arrives by this time (e.g. 07:45, 15 minutes before school starts). Empty = connection from now",
+          "arrival_time_entity": "input_datetime or sensor whose value is read fresh on every update (e.g. for a timetable that changes daily). Takes priority over the fixed target arrival time",
+          "arrival_offset_minutes": "Subtracted from the time of the entity selected above, e.g. 15 minutes before class starts. Only relevant when an entity is selected"
         }
       }
     }

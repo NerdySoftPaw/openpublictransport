@@ -275,6 +275,7 @@ async def async_plan_trip(
     dest_id: Optional[str] = None,
     api_key: Optional[str] = None,
     custom_url: Optional[str] = None,
+    arrival_time: Optional[datetime] = None,
 ) -> Optional[List[Dict[str, Any]]]:
     """Plan a trip from origin to destination.
 
@@ -283,6 +284,10 @@ async def async_plan_trip(
     other supported providers.
     Uses the stored location IDs when available (more reliable), falls back to
     name+place search.
+
+    ``arrival_time``, when given, switches every backend into "arrive by" mode
+    (latest departure that still lands by that time) and takes priority over
+    ``departure_time`` — the two are mutually exclusive query modes.
     Returns a list of journey options, each with legs and transfer info.
     """
     from openpublictransport import get_provider
@@ -294,7 +299,7 @@ async def async_plan_trip(
             return None
         session = async_get_clientsession(hass)
         provider_instance = get_provider(provider, session, api_key=api_key, custom_url=custom_url)
-        return await _async_plan_trip_otp2_graphql(origin_id, dest_id, departure_time, provider_instance)
+        return await _async_plan_trip_otp2_graphql(origin_id, dest_id, departure_time, provider_instance, arrival_time)
 
     # HAFAS mgate — TripSearch between two stop ids
     if provider in HAFAS_MGATE_TRIP_PROVIDERS:
@@ -302,7 +307,9 @@ async def async_plan_trip(
             _LOGGER.warning("HAFAS trip planning requires stop IDs — search for stops first")
             return None
         provider_instance = get_provider(provider, async_get_clientsession(hass))
-        trips = await provider_instance.search_trips(origin_id, dest_id, departure_time=departure_time)
+        trips = await provider_instance.search_trips(
+            origin_id, dest_id, departure_time=departure_time, arrival_time=arrival_time
+        )
         return _parse_hafas_trips(trips)
 
     # VBN OTP — legacy OTP REST plan endpoint
@@ -312,7 +319,7 @@ async def async_plan_trip(
             return None
         session = async_get_clientsession(hass)
         provider_instance = get_provider(provider, session, api_key=api_key)
-        return await _async_plan_trip_otp(origin_id, dest_id, departure_time, provider_instance)
+        return await _async_plan_trip_otp(origin_id, dest_id, departure_time, provider_instance, arrival_time)
 
     # EFA providers
     base_url = EFA_TRIP_ENDPOINTS.get(provider)
@@ -328,11 +335,12 @@ async def async_plan_trip(
     type_mapping = efa_provider.get_transport_type_mapping() if efa_provider else {}
 
     # EFA reads itdDate/itdTime as the network's local time, not Home Assistant's.
-    now = departure_time or dt_util.now()
+    dep_arr_flag = "arr" if arrival_time is not None else "dep"
+    target = arrival_time or departure_time or dt_util.now()
     if efa_provider:
-        now = now.astimezone(dt_util.get_time_zone(efa_provider.get_timezone()) or now.tzinfo)
-    date_str = now.strftime("%Y%m%d")
-    time_str = now.strftime("%H%M")
+        target = target.astimezone(dt_util.get_time_zone(efa_provider.get_timezone()) or target.tzinfo)
+    date_str = target.strftime("%Y%m%d")
+    time_str = target.strftime("%H%M")
 
     # Use the stored location IDs if available (much more reliable than name search)
     if origin_id and dest_id:
@@ -341,6 +349,7 @@ async def async_plan_trip(
             f"&type_origin={_efa_id_type(origin_id)}&name_origin={quote(origin_id, safe='')}"
             f"&type_destination={_efa_id_type(dest_id)}&name_destination={quote(dest_id, safe='')}"
             f"&itdDate={date_str}&itdTime={time_str}"
+            f"&itdTripDateTimeDepArr={dep_arr_flag}"
             f"&useRealtime=1"
         )
     else:
@@ -351,6 +360,7 @@ async def async_plan_trip(
             f"&type_destination=any&name_destination={quote(dest_name, safe='')}"
             f"&place_destination={quote(dest_place, safe='')}"
             f"&itdDate={date_str}&itdTime={time_str}"
+            f"&itdTripDateTimeDepArr={dep_arr_flag}"
             f"&useRealtime=1"
         )
 
@@ -396,6 +406,7 @@ async def _async_plan_trip_otp2_graphql(
     dest_id: str,
     departure_time: Optional[datetime],
     provider_instance,
+    arrival_time: Optional[datetime] = None,
 ) -> Optional[List[Dict[str, Any]]]:
     """Plan a trip via the OTP2 planConnection query (self-hosted instances).
 
@@ -403,8 +414,10 @@ async def _async_plan_trip_otp2_graphql(
     directly as origin/destination — no coordinates, no street-network
     access/egress. This is what lets the OTP graph be built transit-only (no
     OSM). Requires an OTP 2.x server exposing the planConnection API.
+
+    ``arrival_time`` switches the query to "arrive by" mode and wins over
+    ``departure_time`` when both are given.
     """
-    now = departure_time or dt_util.now()
     # Compound stop IDs are pipe-separated — use the first platform ID
     from_id = origin_id.split("|")[0]
     to_id = dest_id.split("|")[0]
@@ -416,11 +429,13 @@ async def _async_plan_trip_otp2_graphql(
         _resolve_station_id(provider_instance, to_id),
     )
 
-    # Only pin the departure time when the caller asked for one; otherwise let
-    # OTP default to "now" (a live server tracks the clock better than we do).
+    # Only pin a time when the caller asked for one; otherwise let OTP default
+    # to "now" (a live server tracks the clock better than we do).
     dt_clause = ""
-    if departure_time is not None:
-        dt_clause = 'dateTime: { earliestDeparture: "%s" }' % now.isoformat()
+    if arrival_time is not None:
+        dt_clause = 'dateTime: { latestArrival: "%s" }' % arrival_time.isoformat()
+    elif departure_time is not None:
+        dt_clause = 'dateTime: { earliestDeparture: "%s" }' % departure_time.isoformat()
 
     query = _GRAPHQL_PLAN_CONNECTION % (
         from_id.replace('"', '\\"'),
@@ -447,9 +462,14 @@ async def _async_plan_trip_otp(
     dest_id: str,
     departure_time: Optional[datetime],
     provider_instance,
+    arrival_time: Optional[datetime] = None,
 ) -> Optional[List[Dict[str, Any]]]:
-    """Plan a trip using the OTP 2.x REST /plan endpoint."""
-    now = departure_time or dt_util.now()
+    """Plan a trip using the OTP 2.x REST /plan endpoint.
+
+    ``arrival_time`` switches the query to "arrive by" mode (OTP's
+    ``arriveBy=true``) and wins over ``departure_time`` when both are given.
+    """
+    target = arrival_time or departure_time or dt_util.now()
     base_url = provider_instance.otp_base_url
 
     # Resolve stop coordinates concurrently — OTP /plan needs lat,lon not stop IDs
@@ -464,20 +484,21 @@ async def _async_plan_trip_otp(
     from_place = f"{origin_stop['lat']},{origin_stop['lon']}"
     to_place = f"{dest_stop['lat']},{dest_stop['lon']}"
 
-    data = await provider_instance._get(
-        f"{base_url}/plan",
-        {
-            "fromPlace": from_place,
-            "toPlace": to_place,
-            "date": now.strftime("%Y-%m-%d"),
-            "time": now.strftime("%H:%M:%S"),
-            "numItineraries": "5",
-            "mode": "TRANSIT,WALK",
-            # Without a window OTP only looks a short time ahead, so a line that
-            # runs once an hour yielded a single connection (issue #92).
-            "searchWindow": str(4 * 3600),
-        },
-    )
+    params = {
+        "fromPlace": from_place,
+        "toPlace": to_place,
+        "date": target.strftime("%Y-%m-%d"),
+        "time": target.strftime("%H:%M:%S"),
+        "numItineraries": "5",
+        "mode": "TRANSIT,WALK",
+        # Without a window OTP only looks a short time ahead, so a line that
+        # runs once an hour yielded a single connection (issue #92).
+        "searchWindow": str(4 * 3600),
+    }
+    if arrival_time is not None:
+        params["arriveBy"] = "true"
+
+    data = await provider_instance._get(f"{base_url}/plan", params)
     if not data:
         return None
 

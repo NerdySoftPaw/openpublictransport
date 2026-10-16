@@ -224,6 +224,24 @@ The **walking time** option (**Configure** on the trip entry) is the time you ne
 origin stop. It shifts the search and hides connections you could not reach in time, so a trip
 sensor with 10 minutes walking time never shows a connection leaving in 5 minutes.
 
+## Arriving by a Set Time
+
+Instead of the next connection from now, a trip entry can look for the **latest connection that
+still arrives by a target time** — handy for a school run or the start of a shift. Set it under
+**Configure** on the trip device:
+
+| Option | Meaning |
+|--------|---------|
+| **Target arrival time** | A fixed time of day, e.g. `07:45`. The next occurrence is used — today while it is still ahead, otherwise tomorrow. |
+| **Entity for a dynamic arrival time** | An `input_datetime` or timestamp `sensor`, read on every update — for a timetable that changes from day to day. It wins over the fixed time whenever it holds a valid time. |
+| **Minutes before the entity time** | Arrive this many minutes before the entity's time, e.g. 15 minutes before the first lesson. Only applies to the entity. |
+
+The sensor then shows the latest connection that arrives by the target; connections arriving
+later are left out. The attribute `target_arrival_time` shows the time it is planning against.
+Leave both fields empty to go back to "next connection from now".
+
+Arrive-by planning works with every trip-capable provider: EFA, HAFAS and OTP.
+
 ## Filtering Connections
 
 The **line filter** and the **transportation types** selector (**Configure** on the trip entry)

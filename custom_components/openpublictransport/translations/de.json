@@ -7,6 +7,9 @@
         "data": {
           "provider": "Anbieter",
           "entry_type": "Typ"
+        },
+        "data_description": {
+          "provider": "VRR, KVV, HVV, BVG, MVV, VVS, VAG, VRN, VVO, DING, AVV, RVV, RMV, SBB, ÖBB, Transitous, Trafiklab oder NTA"
         }
       },
       "stop_search": {
@@ -115,7 +118,34 @@
         "title": "Verbindungseinstellungen",
         "description": "Route: {origin} → {destination}",
         "data": {
-          "scan_interval": "Update-Intervall (Sekunden)"
+          "scan_interval": "Update-Intervall (Sekunden)",
+          "arrival_time": "Ziel-Ankunftszeit (HH:MM, optional)",
+          "arrival_time_entity": "Entity für dynamische Ankunftszeit (optional)",
+          "arrival_offset_minutes": "Minuten vor der Entity-Zeit ankommen"
+        },
+        "data_description": {
+          "arrival_time": "Statt der nächsten Verbindung ab jetzt wird die späteste Verbindung gesucht, die bis zu dieser Uhrzeit ankommt (z.B. 07:45, 15 Minuten vor Schulbeginn). Leer = Verbindung ab jetzt",
+          "arrival_time_entity": "input_datetime oder sensor, deren Wert bei jeder Aktualisierung neu gelesen wird (z.B. für einen Stundenplan, der sich täglich ändert). Hat Vorrang vor der festen Ziel-Ankunftszeit",
+          "arrival_offset_minutes": "Wird von der Zeit der oben gewählten Entity abgezogen, z.B. 15 Minuten vor Unterrichtsbeginn. Nur relevant, wenn eine Entity gewählt ist"
+        }
+      },
+      "reauth_confirm": {
+        "title": "API-Schlüssel erneuern",
+        "description": "{info}",
+        "data": {
+          "trafiklab_api_key": "Trafiklab API-Schlüssel",
+          "rmv_api_key": "RMV API-Schlüssel",
+          "vbn_api_key": "VBN API-Schlüssel",
+          "nta_api_key": "NTA API-Schlüssel (primär)",
+          "nta_api_key_secondary": "NTA API-Schlüssel (sekundär, optional)",
+          "otp_base_url": "OTP2-Server-URL",
+          "otp_custom_api_key": "API-Schlüssel (optional)",
+          "api_key": "API-Schlüssel",
+          "api_key_secondary": "Zweiter API-Schlüssel"
+        },
+        "data_description": {
+          "api_key": "Persönlicher API-Schlüssel des Anbieters (kostenlose Registrierung, siehe Hinweis oben)",
+          "api_key_secondary": "Nur für Provider mit zwei Schlüsseln (z. B. CTA: Train-Tracker-Key)"
         }
       }
     },
@@ -137,7 +167,13 @@
       "invalid_auth": "Authentifizierung fehlgeschlagen — bitte den API-Schlüssel prüfen.",
       "station_id_required": "Stations-ID ist erforderlich",
       "invalid_response": "Der Anbieter hat eine unbrauchbare Antwort geliefert. Bitte versuche es später erneut.",
-      "unknown": "Unerwarteter Fehler — bitte sieh ins Protokoll."
+      "unknown": "Unerwarteter Fehler — bitte sieh ins Protokoll.",
+      "invalid_arrival_time": "Bitte gib eine gültige Uhrzeit im Format HH:MM an (z.B. 07:45)"
+    },
+    "abort": {
+      "reauth_successful": "API-Schlüssel erfolgreich aktualisiert.",
+      "no_reauth_needed": "Dieser Anbieter benötigt keine Authentifizierung.",
+      "reconfigure_successful": "Haltestelle erfolgreich geändert."
     }
   },
   "options": {
@@ -154,7 +190,10 @@
           "destination_filter": "Ziel-Filter",
           "platform_filter": "Gleis-/Steig-Filter",
           "walking_time": "Fußweg (Minuten)",
-          "favorite_lines": "Favoriten-Linien"
+          "favorite_lines": "Favoriten-Linien",
+          "arrival_time": "Ziel-Ankunftszeit (HH:MM, optional)",
+          "arrival_time_entity": "Entity für dynamische Ankunftszeit (optional)",
+          "arrival_offset_minutes": "Minuten vor der Entity-Zeit ankommen"
         },
         "data_description": {
           "use_provider_logo": "Zeige das Anbieter-Logo anstelle des Verkehrsmittel-Icons",
@@ -163,7 +202,10 @@
           "destination_filter": "Nur Abfahrten mit passendem Ziel anzeigen, kommagetrennt, Teiltreffer (z.B. Duisburg, Flughafen). Leer = alle Ziele",
           "platform_filter": "Nur Abfahrten von bestimmten Gleisen/Steigen anzeigen, kommagetrennt (z.B. 3, 4 oder Gleis 3). Leer = alle Gleise",
           "walking_time": "Fußweg zur Haltestelle in Minuten (0 = deaktiviert). Abfahrten die nicht mehr erreichbar sind werden ausgeblendet",
-          "favorite_lines": "Kommagetrennte Linien, die zuerst angezeigt werden (z.B. U79, RE5). Leer = keine Favoriten"
+          "favorite_lines": "Kommagetrennte Linien, die zuerst angezeigt werden (z.B. U79, RE5). Leer = keine Favoriten",
+          "arrival_time": "Statt der nächsten Verbindung ab jetzt wird die späteste Verbindung gesucht, die bis zu dieser Uhrzeit ankommt (z.B. 07:45, 15 Minuten vor Schulbeginn). Leer = Verbindung ab jetzt",
+          "arrival_time_entity": "input_datetime oder sensor, deren Wert bei jeder Aktualisierung neu gelesen wird (z.B. für einen Stundenplan, der sich täglich ändert). Hat Vorrang vor der festen Ziel-Ankunftszeit",
+          "arrival_offset_minutes": "Wird von der Zeit der oben gewählten Entity abgezogen, z.B. 15 Minuten vor Unterrichtsbeginn. Nur relevant, wenn eine Entity gewählt ist"
         }
       }
     }

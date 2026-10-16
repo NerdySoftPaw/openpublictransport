@@ -10,7 +10,14 @@ from __future__ import annotations
 import hashlib
 from typing import Any, Callable, List, Mapping, Set, Tuple
 
-from .const import CONF_DESTINATION_FILTER, CONF_LINE_FILTER, CONF_PLATFORM_FILTER
+from .const import (
+    CONF_ARRIVAL_OFFSET,
+    CONF_ARRIVAL_TIME,
+    CONF_ARRIVAL_TIME_ENTITY,
+    CONF_DESTINATION_FILTER,
+    CONF_LINE_FILTER,
+    CONF_PLATFORM_FILTER,
+)
 
 # The filters that make two entries for one station genuinely different,
 # paired with how each reads in the entry title and device name.
@@ -101,3 +108,49 @@ def matches_filter(
     if any(hit(term) for term in exclude):
         return False
     return not include or any(hit(term) for term in include)
+
+
+# Trip arrival configuration that distinguishes one trip entry for a route
+# from another. Two trip entries for the same origin/destination are
+# otherwise indistinguishable, which blocked configuring e.g. one entry per
+# child, each arriving by a different first-lesson time ("already
+# configured"). Deliberately excludes nothing here — unlike departure
+# filters, every arrival field changes *which* connection is being asked
+# for, not just how it's presented.
+_TRIP_ARRIVAL_KEYS = (CONF_ARRIVAL_TIME, CONF_ARRIVAL_TIME_ENTITY, CONF_ARRIVAL_OFFSET)
+
+
+def trip_arrival_discriminator(source: Mapping[str, Any]) -> str:
+    """Return a stable short id for a trip's arrival config, "" when unset.
+
+    Frozen into ``entry.data`` at creation, same as ``filter_discriminator``:
+    entity unique IDs are built on it, so it must not move when the arrival
+    settings are later edited under Options.
+    """
+    arrival_time = str(source.get(CONF_ARRIVAL_TIME) or "").strip().casefold()
+    arrival_time_entity = str(source.get(CONF_ARRIVAL_TIME_ENTITY) or "").strip().casefold()
+    if not arrival_time and not arrival_time_entity:
+        return ""
+
+    offset = source.get(CONF_ARRIVAL_OFFSET, "")
+    fingerprint = f"time={arrival_time}|entity={arrival_time_entity}|offset={offset}"
+    return hashlib.sha1(fingerprint.encode("utf-8")).hexdigest()[:8]
+
+
+def trip_arrival_label(source: Mapping[str, Any]) -> str:
+    """Return a short human-readable form of the arrival config, "" when unset."""
+    arrival_time_entity = str(source.get(CONF_ARRIVAL_TIME_ENTITY) or "").strip()
+    if arrival_time_entity:
+        return f"→ {arrival_time_entity}"
+    arrival_time = str(source.get(CONF_ARRIVAL_TIME) or "").strip()
+    if arrival_time:
+        return f"arrive {arrival_time}"
+    return ""
+
+
+def current_trip_arrival(entry: Any) -> dict:
+    """Return a trip entry's arrival config as it is set *right now*.
+
+    Options win over data, matching how the coordinator reads them.
+    """
+    return {key: entry.options.get(key, entry.data.get(key, "")) for key in _TRIP_ARRIVAL_KEYS}

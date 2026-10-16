@@ -23,12 +23,12 @@ from custom_components.openpublictransport.const import (
 )
 
 
-
 def _prefill(key):
     """What the form shows for a field: its default, or its suggested value (clearable text fields)."""
     if callable(getattr(key, "default", None)):
         return key.default()
     return (getattr(key, "description", None) or {}).get("suggested_value")
+
 
 def _make_entry():
     return MockConfigEntry(
@@ -221,15 +221,9 @@ async def test_trip_filters_applied_after_submitting_the_options_dialog(hass: Ho
         await hass.config_entries.options.async_configure(
             result["flow_id"],
             user_input={
-                CONF_DEPARTURES: 10,
                 CONF_SCAN_INTERVAL: 120,
                 CONF_TRANSPORTATION_TYPES: ["tram", "subway", "train"],  # Bus deselected
-                CONF_USE_PROVIDER_LOGO: False,
-                CONF_DELAY_THRESHOLD: 5,
                 CONF_LINE_FILTER: "U43, U47",
-                CONF_DESTINATION_FILTER: "",
-                CONF_PLATFORM_FILTER: "",
-                CONF_FAVORITE_LINES: "",
                 CONF_WALKING_TIME: 0,
             },
         )
@@ -254,16 +248,12 @@ async def test_trip_sensor_reports_no_connections_when_filters_exclude_everythin
     ):
         await hass.config_entries.options.async_configure(
             result["flow_id"],
+            # Trip entries have their own options form (scan interval, walking
+            # time, transport types, line filter, arrival time).
             user_input={
-                CONF_DEPARTURES: 10,
                 CONF_SCAN_INTERVAL: 120,
                 CONF_TRANSPORTATION_TYPES: ["bus", "tram", "subway", "train"],
-                CONF_USE_PROVIDER_LOGO: False,
-                CONF_DELAY_THRESHOLD: 5,
                 CONF_LINE_FILTER: "U99",
-                CONF_DESTINATION_FILTER: "",
-                CONF_PLATFORM_FILTER: "",
-                CONF_FAVORITE_LINES: "",
                 CONF_WALKING_TIME: 0,
             },
         )

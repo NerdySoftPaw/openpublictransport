@@ -49,7 +49,8 @@
           "hvv_gti_user": "Nazwa użytkownika GTI (application ID)",
           "hvv_gti_password": "Hasło GTI",
           "api_key": "API key",
-          "api_key_secondary": "Second API key"
+          "api_key_secondary": "Second API key",
+          "vbn_api_key": "VBN API Key"
         },
         "data_description": {
           "trafiklab_api_key": "Klucz API Trafiklab (dostępny na trafiklab.se)",
@@ -59,7 +60,8 @@
           "hvv_gti_user": "Nazwa użytkownika z danych dostępowych Geofox GTI (geofox-auth-user)",
           "hvv_gti_password": "Hasło z danych dostępowych Geofox GTI. Służy do podpisywania każdego żądania i nigdy nie jest przesyłane",
           "api_key": "Personal API key from the provider (free registration, see the note above)",
-          "api_key_secondary": "Only for providers with two keys (e.g. CTA: Train Tracker key)"
+          "api_key_secondary": "Only for providers with two keys (e.g. CTA: Train Tracker key)",
+          "vbn_api_key": "VBN API key — works for both OTP and TRIAS. Free for non-commercial use, request by e-mail at api@vbn.de"
         }
       },
       "settings": {
@@ -116,7 +118,15 @@
         "title": "Ustawienia trasy",
         "description": "Trasa: {origin} → {destination}",
         "data": {
-          "scan_interval": "Częstotliwość aktualizacji (sekundy)"
+          "scan_interval": "Częstotliwość aktualizacji (sekundy)",
+          "arrival_time": "Target arrival time (HH:MM, optional)",
+          "arrival_time_entity": "Entity for dynamic arrival time (optional)",
+          "arrival_offset_minutes": "Minutes to arrive before the entity's time"
+        },
+        "data_description": {
+          "arrival_time": "Instead of the next connection from now, find the latest connection that still arrives by this time (e.g. 07:45, 15 minutes before school starts). Empty = connection from now",
+          "arrival_time_entity": "input_datetime or sensor whose value is read fresh on every update (e.g. for a timetable that changes daily). Takes priority over the fixed target arrival time",
+          "arrival_offset_minutes": "Subtracted from the time of the entity selected above, e.g. 15 minutes before class starts. Only relevant when an entity is selected"
         }
       }
     },
@@ -138,7 +148,13 @@
       "station_id_required": "Identyfikator przystanku jest wymagany",
       "vbn_api_key_required": "Klucz API VBN jest wymagany",
       "invalid_response": "Dostawca zwrócił odpowiedź nie do użycia. Spróbuj ponownie później.",
-      "unknown": "Nieoczekiwany błąd — sprawdź dziennik."
+      "unknown": "Nieoczekiwany błąd — sprawdź dziennik.",
+      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)"
+    },
+    "abort": {
+      "reauth_successful": "API key updated successfully.",
+      "no_reauth_needed": "This provider does not require authentication.",
+      "reconfigure_successful": "Stop changed successfully."
     }
   },
   "options": {
@@ -155,7 +171,10 @@
           "destination_filter": "Filtr kierunku",
           "platform_filter": "Filtr peronu",
           "walking_time": "Czas dojścia (minuty)",
-          "favorite_lines": "Ulubione linie"
+          "favorite_lines": "Ulubione linie",
+          "arrival_time": "Target arrival time (HH:MM, optional)",
+          "arrival_time_entity": "Entity for dynamic arrival time (optional)",
+          "arrival_offset_minutes": "Minutes to arrive before the entity's time"
         },
         "data_description": {
           "use_provider_logo": "Pokaż logo dostawcy zamiast ikony rodzaju transportu",
@@ -164,7 +183,10 @@
           "destination_filter": "Pokaż tylko odjazdy z pasującym kierunkiem, oddzielone przecinkami, częściowe dopasowanie (np. Duisburg, Lotnisko). Puste = wszystkie kierunki",
           "platform_filter": "Pokaż tylko odjazdy z określonych peronów/torów, oddzielone przecinkami (np. 3, 4). Puste = wszystkie perony",
           "walking_time": "Czas dojścia do przystanku w minutach (0 = wyłączone). Odjazdy, na które nie można już zdążyć, są ukrywane",
-          "favorite_lines": "Linie wyświetlane na początku, oddzielone przecinkami (np. U79, RE5). Puste = brak ulubionych"
+          "favorite_lines": "Linie wyświetlane na początku, oddzielone przecinkami (np. U79, RE5). Puste = brak ulubionych",
+          "arrival_time": "Instead of the next connection from now, find the latest connection that still arrives by this time (e.g. 07:45, 15 minutes before school starts). Empty = connection from now",
+          "arrival_time_entity": "input_datetime or sensor whose value is read fresh on every update (e.g. for a timetable that changes daily). Takes priority over the fixed target arrival time",
+          "arrival_offset_minutes": "Subtracted from the time of the entity selected above, e.g. 15 minutes before class starts. Only relevant when an entity is selected"
         }
       }
     }

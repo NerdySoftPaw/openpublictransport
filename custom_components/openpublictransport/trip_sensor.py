@@ -27,6 +27,11 @@ from openpublictransport import (
 )
 
 from .const import (
+    CONF_ARRIVAL_OFFSET,
+    CONF_ARRIVAL_TIME,
+    CONF_ARRIVAL_TIME_ENTITY,
+    CONF_ENTRY_LABEL,
+    CONF_ENTRY_SUFFIX,
     CONF_LINE_FILTER,
     CONF_OTP_BASE_URL,
     CONF_OTP_CUSTOM_API_KEY,
@@ -34,11 +39,13 @@ from .const import (
     CONF_TRANSPORTATION_TYPES,
     CONF_VBN_API_KEY,
     CONF_WALKING_TIME,
+    DEFAULT_ARRIVAL_OFFSET,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_WALKING_TIME,
     DOMAIN,
     TRANSPORTATION_TYPES,
 )
+from .filters import current_trip_arrival, trip_arrival_label
 from .sensor import _RESTORE_SKIP_ATTRS
 from .trip import async_plan_trip
 
@@ -96,6 +103,9 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         walking_time: int = DEFAULT_WALKING_TIME,
         line_filter: Optional[set[str]] = None,
         transport_types: Optional[set[str]] = None,
+        arrival_time: Optional[str] = None,
+        arrival_time_entity: Optional[str] = None,
+        arrival_offset: int = DEFAULT_ARRIVAL_OFFSET,
     ):
         """Initialize."""
         super().__init__(
@@ -118,6 +128,20 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         # they were configurable on a trip device but changed nothing (issue #87).
         self.line_filter = line_filter or set()
         self.transport_types = transport_types if transport_types is not None else set(TRANSPORTATION_TYPES)
+        # "HH:MM" target arrival time — switches the trip to "arrive by" mode
+        # (e.g. arrive 15 min before a child's first lesson) instead of "best
+        # connection from now". None/empty keeps the original behaviour.
+        self.arrival_time = arrival_time
+        # Entity ID (input_datetime/sensor) read fresh on every poll — lets the
+        # target track a schedule that shifts day to day (e.g. a substitute
+        # teacher moving the first lesson). Takes priority over arrival_time
+        # whenever it resolves to a valid time.
+        self.arrival_time_entity = arrival_time_entity
+        self.arrival_offset = arrival_offset
+        # The actual target arrival used on the last refresh (static, entity-
+        # sourced, or none) — surfaced to the sensor so the dashboard can show
+        # what time it's really planning against.
+        self.last_target_arrival: Optional[datetime] = None
         # Mirrors PublicTransportDataUpdateCoordinator so diagnostics can report
         # it for trip entries too (issue #58).
         self.last_update_success_time: Optional[datetime] = None
@@ -129,6 +153,18 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         # Without one, pass None so the provider anchors on its own clock.
         earliest = dt_util.now() + timedelta(minutes=self.walking_time) if self.walking_time else None
 
+        # Arrive-by mode targets the next occurrence of a target HH:MM — today
+        # if it's still ahead, otherwise tomorrow — instead of asking for the
+        # next connection from now. A configured entity (e.g. an input_datetime
+        # kept in sync with the school timetable) is read fresh on every poll
+        # and wins over the static arrival_time whenever it resolves.
+        target_arrival = None
+        if self.arrival_time_entity:
+            target_arrival = self._resolve_arrival_from_entity()
+        if target_arrival is None and self.arrival_time:
+            target_arrival = _next_arrival_datetime(self.arrival_time)
+        self.last_target_arrival = target_arrival
+
         try:
             data = await async_plan_trip(
                 self.hass,
@@ -137,11 +173,12 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
                 self.origin_city,
                 self.destination,
                 self.destination_city,
-                departure_time=earliest,
+                departure_time=None if target_arrival else earliest,
                 origin_id=self.origin_id,
                 dest_id=self.dest_id,
                 api_key=self.api_key,
                 custom_url=self.custom_url,
+                arrival_time=target_arrival,
             )
         except AuthenticationError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
@@ -161,6 +198,8 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
             self.last_update_success_time = dt_util.now()
             data = self._drop_departed(data)
             data = self._apply_filters(data)
+            if target_arrival is not None:
+                data = _latest_arrivals_first(data, target_arrival)
         return data
 
     def _apply_filters(self, journeys: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -201,6 +240,40 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
                 return False
         return True
 
+    def _resolve_arrival_from_entity(self) -> Optional[datetime]:
+        """Read today's target arrival time from `arrival_time_entity`.
+
+        Returns None (falling back to the static `arrival_time`, if any) when
+        the entity is missing, unavailable, or its state can't be read as a
+        time — a schedule automation lagging behind should degrade gracefully,
+        not break the trip sensor.
+        """
+        state = self.hass.states.get(self.arrival_time_entity)
+        if state is None or state.state in (STATE_UNKNOWN, STATE_UNAVAILABLE, ""):
+            _LOGGER.debug(
+                "Trip %s → %s: arrival_time_entity %s has no usable state",
+                self.origin,
+                self.destination,
+                self.arrival_time_entity,
+            )
+            return None
+
+        hhmm = _extract_hhmm(state.state)
+        if hhmm is None:
+            _LOGGER.warning(
+                "Trip %s → %s: could not parse a time from %s's state %r",
+                self.origin,
+                self.destination,
+                self.arrival_time_entity,
+                state.state,
+            )
+            return None
+
+        target = _next_arrival_datetime(hhmm)
+        if target is None:
+            return None
+        return target - timedelta(minutes=self.arrival_offset)
+
     def _drop_departed(self, journeys: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Drop connections that have already left.
 
@@ -228,6 +301,118 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         return reachable
 
 
+def _latest_arrivals_first(journeys: List[Dict[str, Any]], target: datetime) -> List[Dict[str, Any]]:
+    """Order arrive-by results so the sensor shows the latest connection that makes it.
+
+    Providers answer an arrive-by query with connections *around* the target
+    and in ascending order (EFA even returns one arriving after it), so the
+    first entry was not the "latest one that still arrives by" the entry asks
+    for. Connections arriving after the target are dropped; one whose arrival
+    cannot be parsed is kept at the end.
+    """
+
+    def arrival(journey: Dict[str, Any]) -> Optional[datetime]:
+        return dt_util.parse_datetime(journey.get("arrival_timestamp") or "")
+
+    in_time = [j for j in journeys if (arrival(j) is None or arrival(j) <= target)]
+    known = sorted((j for j in in_time if arrival(j) is not None), key=arrival, reverse=True)
+    return known + [j for j in in_time if arrival(j) is None]
+
+
+def _next_arrival_datetime(time_str: str) -> Optional[datetime]:
+    """Return the next local occurrence of an "HH:MM" time, today or tomorrow.
+
+    Rolls over to tomorrow once today's occurrence has already passed, so a
+    school-run trip planner keeps targeting a real, still-reachable arrival
+    instead of silently falling back to "now".
+    """
+    try:
+        hour, minute = (int(part) for part in time_str.split(":", 1))
+    except (ValueError, AttributeError):
+        return None
+
+    now = dt_util.now()
+    candidate = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    if candidate <= now:
+        candidate += timedelta(days=1)
+    return candidate
+
+
+def _extract_hhmm(value: str) -> Optional[str]:
+    """Pull an "HH:MM" time-of-day out of an entity state string.
+
+    Covers the shapes a source entity is likely to hold: an `input_datetime`
+    state ("07:45:00" time-only, or "2026-09-15 07:45:00" with a date), and a
+    timestamp `sensor` state (ISO-8601, e.g. "2026-09-15T07:45:00+02:00").
+    """
+    dt = dt_util.parse_datetime(value)
+    if dt is not None:
+        return dt_util.as_local(dt).strftime("%H:%M")
+
+    parts = value.split(":")
+    if len(parts) < 2:
+        return None
+    try:
+        hour, minute = int(parts[0]), int(parts[1])
+    except ValueError:
+        return None
+    if not (0 <= hour <= 23 and 0 <= minute <= 59):
+        return None
+    return f"{hour:02d}:{minute:02d}"
+
+
+def trip_entity_key(coordinator: "TripDataUpdateCoordinator", config_entry: Optional[ConfigEntry] = None) -> str:
+    """Return the key the trip entity's unique_id and device identifier build on.
+
+    Historically ``f"{provider}_trip_{origin_city}_{origin}_{dest_city}_{dest}"``,
+    which collides when the same route is configured twice with a different
+    arrival time. Entries created with a target arrival carry a stable
+    discriminator in ``entry.data[CONF_ENTRY_SUFFIX]`` and append it here —
+    mirrors ``station_entity_key`` in sensor.py (issue #55).
+
+    Entries without that key — every trip entry that existed before arrival
+    times were added — get the exact legacy string back, so no existing
+    entity or device is renamed.
+    """
+    base = (
+        (
+            f"{coordinator.provider}_trip_"
+            f"{coordinator.origin_city}_{coordinator.origin}_{coordinator.destination_city}_{coordinator.destination}"
+        )
+        .lower()
+        .replace(" ", "_")
+    )
+
+    suffix = ""
+    if config_entry is not None:
+        suffix = str(config_entry.data.get(CONF_ENTRY_SUFFIX) or "").strip()
+
+    return f"{base}_{suffix}" if suffix else base
+
+
+def trip_device_name(coordinator: "TripDataUpdateCoordinator", config_entry: Optional[ConfigEntry] = None) -> str:
+    """Return the device name, disambiguated when a route is configured twice.
+
+    Without a discriminator this is the historical "Origin, City → Dest,
+    City", so no pre-existing device is renamed. A deliberate duplicate (a
+    second arrival time for the same route) gets its arrival config appended
+    so the two are told apart in the UI — mirrors ``station_device_name``.
+    """
+    base = (
+        f"{coordinator.origin}, {coordinator.origin_city} → {coordinator.destination}, {coordinator.destination_city}"
+    )
+
+    if config_entry is None or not str(config_entry.data.get(CONF_ENTRY_SUFFIX) or "").strip():
+        return base
+
+    label = (
+        trip_arrival_label(current_trip_arrival(config_entry))
+        or str(config_entry.data.get(CONF_ENTRY_LABEL) or "").strip()
+    )
+
+    return f"{base} ({label})" if label else base
+
+
 async def async_setup_trip_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -246,6 +431,13 @@ async def async_setup_trip_entry(
     )
     walking_time = config_entry.options.get(
         CONF_WALKING_TIME, config_entry.data.get(CONF_WALKING_TIME, DEFAULT_WALKING_TIME)
+    )
+    arrival_time = config_entry.options.get(CONF_ARRIVAL_TIME, config_entry.data.get(CONF_ARRIVAL_TIME)) or None
+    arrival_time_entity = (
+        config_entry.options.get(CONF_ARRIVAL_TIME_ENTITY, config_entry.data.get(CONF_ARRIVAL_TIME_ENTITY)) or None
+    )
+    arrival_offset = config_entry.options.get(
+        CONF_ARRIVAL_OFFSET, config_entry.data.get(CONF_ARRIVAL_OFFSET, DEFAULT_ARRIVAL_OFFSET)
     )
 
     # Resolve API key and custom URL based on provider
@@ -274,6 +466,9 @@ async def async_setup_trip_entry(
         walking_time=walking_time,
         line_filter=_trip_line_filter(config_entry),
         transport_types=_trip_transport_types(config_entry),
+        arrival_time=arrival_time,
+        arrival_time_entity=arrival_time_entity,
+        arrival_offset=arrival_offset,
     )
 
     config_entry.runtime_data = coordinator
@@ -317,18 +512,14 @@ class TripSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
         self._restored_state: str | None = None
         self._restored_attributes: dict[str, Any] = {}
 
-        origin = coordinator.origin
-        origin_city = coordinator.origin_city
-        dest = coordinator.destination
-        dest_city = coordinator.destination_city
         provider = coordinator.provider
 
-        self._attr_unique_id = f"{provider}_trip_{origin_city}_{origin}_{dest_city}_{dest}".lower().replace(" ", "_")
+        self._attr_unique_id = trip_entity_key(coordinator, config_entry)
         self._attr_name = None  # device name IS the entity name
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._attr_unique_id)},
-            name=f"{origin}, {origin_city} → {dest}, {dest_city}",
+            name=trip_device_name(coordinator, config_entry),
             manufacturer=f"{provider.upper()} Public Transport",
             model="Trip Planner",
         )
@@ -342,6 +533,15 @@ class TripSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
         self.coordinator.walking_time = config_entry.options.get(
             CONF_WALKING_TIME,
             config_entry.data.get(CONF_WALKING_TIME, DEFAULT_WALKING_TIME),
+        )
+        self.coordinator.arrival_time = (
+            config_entry.options.get(CONF_ARRIVAL_TIME, config_entry.data.get(CONF_ARRIVAL_TIME)) or None
+        )
+        self.coordinator.arrival_time_entity = (
+            config_entry.options.get(CONF_ARRIVAL_TIME_ENTITY, config_entry.data.get(CONF_ARRIVAL_TIME_ENTITY)) or None
+        )
+        self.coordinator.arrival_offset = config_entry.options.get(
+            CONF_ARRIVAL_OFFSET, config_entry.data.get(CONF_ARRIVAL_OFFSET, DEFAULT_ARRIVAL_OFFSET)
         )
         scan_interval = config_entry.options.get(
             CONF_SCAN_INTERVAL,
@@ -416,6 +616,10 @@ class TripSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
             "origin": f"{self.coordinator.origin}, {self.coordinator.origin_city}",
             "destination": f"{self.coordinator.destination}, {self.coordinator.destination_city}",
         }
+        if self.coordinator.last_target_arrival is not None:
+            attrs["target_arrival_time"] = self.coordinator.last_target_arrival.isoformat()
+        if self.coordinator.arrival_time_entity:
+            attrs["arrival_time_entity"] = self.coordinator.arrival_time_entity
 
         # All journey options
         if len(journeys) > 1:

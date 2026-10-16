@@ -31,12 +31,12 @@ from custom_components.openpublictransport.const import (
 NEW_STOP = [{"id": "de:05111:99", "name": "Bilk S", "place": "Düsseldorf"}]
 
 
-
 def _prefill(key):
     """What the form shows for a field: its default, or its suggested value (clearable text fields)."""
     if callable(getattr(key, "default", None)):
         return key.default()
     return (getattr(key, "description", None) or {}).get("suggested_value")
+
 
 def _configured_entry(hass: HomeAssistant, *, in_options: bool) -> MockConfigEntry:
     """An entry with non-default settings, stored where the given era put them.

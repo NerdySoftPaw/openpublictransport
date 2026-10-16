@@ -30,6 +30,21 @@ CONF_ENTRY_SUFFIX = "entry_suffix"
 CONF_ENTRY_LABEL = "entry_label"  # Human-readable form of that discriminator, e.g. "S1 → Plochingen"
 CONF_WALKING_TIME = "walking_time"  # Minutes to walk to the stop
 CONF_FAVORITE_LINES = "favorite_lines"  # Comma-separated favorite lines (shown first)
+# Target arrival time "HH:MM" for trip planning ("arrive by" mode). Empty/unset
+# keeps the default "best connection from now" behaviour. Lets a trip entry
+# answer "what's the latest connection that still gets me there by 07:45?"
+# rather than only "what leaves next?" — e.g. for a school-run trip planner.
+CONF_ARRIVAL_TIME = "arrival_time"
+# Entity ID (input_datetime/sensor) that supplies a *dynamic* target time —
+# e.g. an input_datetime updated daily from the school timetable when a
+# lesson gets moved. Read fresh on every poll; overrides CONF_ARRIVAL_TIME
+# when both are set and the entity resolves to a valid time.
+CONF_ARRIVAL_TIME_ENTITY = "arrival_time_entity"
+# Minutes to arrive before the time supplied by CONF_ARRIVAL_TIME_ENTITY
+# (e.g. 15 minutes before the first lesson). Only applied to the entity path —
+# CONF_ARRIVAL_TIME is already the exact target arrival.
+CONF_ARRIVAL_OFFSET = "arrival_offset_minutes"
+DEFAULT_ARRIVAL_OFFSET = 15
 DEFAULT_DELAY_THRESHOLD = 5
 DEFAULT_WALKING_TIME = 0
 

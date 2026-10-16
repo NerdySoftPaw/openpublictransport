@@ -26,6 +26,7 @@ from custom_components.openpublictransport.event import (
 def _make_departure(
     line="U79",
     notices=None,
+    disruptions=None,
     platform_changed=False,
     platform="2",
     planned_platform="1",
@@ -43,6 +44,7 @@ def _make_departure(
         minutes_until_departure=5,
         departure_time_obj=now,
         notices=notices,
+        disruptions=disruptions,
         platform_changed=platform_changed,
         planned_platform=planned_platform if platform_changed else None,
     )
@@ -191,6 +193,26 @@ def test_handle_coordinator_update_no_duplicate_notices(hass: HomeAssistant):
     entity._handle_coordinator_update()
 
     assert fired_events == []
+
+
+def test_handle_coordinator_update_ignores_routine_notices(hass: HomeAssistant):
+    """Routine notices (bicycle rules, accessibility) do not fire (card#15)."""
+    coordinator = _make_coordinator()
+    coordinator.provider_instance.parse_departure.return_value = _make_departure(
+        notices=["Fahrradmitnahme begrenzt möglich", "Technische Störung am Zug"],
+        disruptions=["Technische Störung am Zug"],
+    )
+    entry = _make_config_entry()
+    entity = DisruptionEventEntity(coordinator, entry)
+    entity.hass = hass
+
+    fired_events = []
+    entity._trigger_event = lambda event_type, data: fired_events.append((event_type, data))
+
+    entity.async_write_ha_state = MagicMock()
+    entity._handle_coordinator_update()
+
+    assert fired_events == [("disruption", {"message": "Technische Störung am Zug"})]
 
 
 def test_handle_coordinator_update_fires_platform_change(hass: HomeAssistant):

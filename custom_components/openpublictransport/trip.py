@@ -269,7 +269,17 @@ async def async_plan_trip(
         _LOGGER.debug("Trip planning not supported for provider: %s", provider)
         return None
 
+    session = async_get_clientsession(hass)
+    # The trip endpoint is queried directly rather than through the library, so
+    # the provider is instantiated purely for its product-class mapping — that is
+    # what lets a leg be matched against the entry's transport types (issue #87).
+    efa_provider = get_provider(provider, session)
+    type_mapping = efa_provider.get_transport_type_mapping() if efa_provider else {}
+
+    # EFA reads itdDate/itdTime as the network's local time, not Home Assistant's.
     now = departure_time or dt_util.now()
+    if efa_provider:
+        now = now.astimezone(dt_util.get_time_zone(efa_provider.get_timezone()) or now.tzinfo)
     date_str = now.strftime("%Y%m%d")
     time_str = now.strftime("%H%M")
 
@@ -294,12 +304,6 @@ async def async_plan_trip(
         )
 
     url = f"{base_url}?{params}"
-    session = async_get_clientsession(hass)
-    # The trip endpoint is queried directly rather than through the library, so
-    # the provider is instantiated purely for its product-class mapping — that is
-    # what lets a leg be matched against the entry's transport types (issue #87).
-    efa_provider = get_provider(provider, session)
-    type_mapping = efa_provider.get_transport_type_mapping() if efa_provider else {}
 
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:

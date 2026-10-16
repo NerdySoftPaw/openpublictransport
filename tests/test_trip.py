@@ -570,6 +570,31 @@ async def test_plan_trip_efa_with_stop_ids(hass: HomeAssistant):
     assert result == []
 
 
+async def test_plan_trip_efa_sends_network_local_time(hass: HomeAssistant):
+    """itdTime is the network's local time, whatever time zone Home Assistant runs in."""
+    mock_response = AsyncMock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value={"journeys": []})
+    mock_response.__aenter__ = AsyncMock(return_value=mock_response)
+    mock_response.__aexit__ = AsyncMock(return_value=False)
+
+    with patch("custom_components.openpublictransport.trip.async_get_clientsession") as mock_session_fn:
+        mock_session = MagicMock()
+        mock_session.get = MagicMock(return_value=mock_response)
+        mock_session_fn.return_value = mock_session
+
+        # 17:18 UTC is 19:18 in Berlin (CEST)
+        await async_plan_trip(
+            hass, "vmv", "A", "City", "B", "City",
+            departure_time=datetime(2026, 10, 16, 17, 18, tzinfo=timezone.utc),
+            origin_id="de:13003:1489", dest_id="de:13003:1500",
+        )
+
+    url = mock_session.get.call_args.args[0]
+    assert "itdDate=20261016" in url
+    assert "itdTime=1918" in url
+
+
 async def test_plan_trip_efa_non_dict_response(hass: HomeAssistant):
     """An unusable 200 payload raises rather than looking like an empty result."""
     mock_response = AsyncMock()

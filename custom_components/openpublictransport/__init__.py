@@ -35,10 +35,10 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     GENERIC_API_KEY_PROVIDERS,
+    LEGACY_PROVIDER_OPT,
     PROVIDER_HVV_GTI,
     PROVIDER_NATIONAL_RAIL,
     PROVIDER_NTA_IE,
-    LEGACY_PROVIDER_OPT,
     PROVIDER_OTP_CUSTOM,
     PROVIDER_REJSEPLANEN,
     PROVIDER_RMV,
@@ -182,7 +182,12 @@ async def _async_remove_legacy_opt_entries(hass: HomeAssistant) -> None:
         is_persistent=True,
         severity=ir.IssueSeverity.WARNING,
         translation_key="opt_provider_removed",
-        translation_placeholders={"entries": ", ".join(titles)},
+        translation_placeholders={
+            "entries": ", ".join(titles),
+            "server": "api.openpublictransport.net",
+            "image": "ghcr.io/nerdysoftpaw/otp-gtfsde",
+            "url": "https://docs.openpublictransport.net/latest/community-server-shutdown/",
+        },
     )
 
 

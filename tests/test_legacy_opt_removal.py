@@ -59,7 +59,8 @@ async def test_legacy_entries_are_removed_with_their_entities(hass: HomeAssistan
     assert issue is not None
     assert issue.is_fixable
     assert issue.is_persistent
-    assert issue.translation_placeholders == {"entries": "Düsseldorf Hbf, Home → Work"}
+    assert issue.translation_placeholders["entries"] == "Düsseldorf Hbf, Home → Work"
+    assert issue.translation_placeholders["url"].startswith("https://docs.openpublictransport.net/")
 
 
 async def test_no_issue_without_legacy_entries(hass: HomeAssistant, mock_config_entry):

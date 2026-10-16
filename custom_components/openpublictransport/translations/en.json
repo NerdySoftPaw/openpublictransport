@@ -213,7 +213,7 @@
         "step": {
           "confirm": {
             "title": "openpublictransport.net community server shut down",
-            "description": "We had to shut down our own API at api.openpublictransport.net for cost reasons. The following entries and their entities were removed: {entries}.\n\nTo set your stops up again, use the official provider of your transit network (e.g. VRR, KVV, MVV, VVS, RMV, HVV, BVG, VVO), or host the same server yourself (Docker image ghcr.io/nerdysoftpaw/otp-gtfsde) and connect it with the \"OTP2 — Eigene Instanz\" provider.\n\nFrom now on, we focus on connecting more transit networks directly. Missing yours? Request it on GitHub. Full background: https://docs.openpublictransport.net/latest/community-server-shutdown/\n\nConfirm to dismiss this notice."
+            "description": "We had to shut down our own API at {server} for cost reasons. The following entries and their entities were removed: {entries}.\n\nTo set your stops up again, use the official provider of your transit network (e.g. VRR, KVV, MVV, VVS, RMV, HVV, BVG, VVO), or host the same server yourself (Docker image {image}) and connect it with the \"OTP2 — Eigene Instanz\" provider.\n\nFrom now on, we focus on connecting more transit networks directly. Missing yours? Request it on GitHub. Full background: {url}\n\nConfirm to dismiss this notice."
           }
         }
       }

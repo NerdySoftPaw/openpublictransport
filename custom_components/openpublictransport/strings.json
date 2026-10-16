@@ -231,7 +231,7 @@
         "step": {
           "confirm": {
             "title": "Community-Server openpublictransport.net eingestellt",
-            "description": "Wir mussten unsere eigene API unter api.openpublictransport.net aus Kostengründen einstellen. Folgende Einträge und ihre Entitäten wurden entfernt: {entries}.\n\nRichte deine Haltestellen mit dem offiziellen Provider deines Verkehrsverbunds neu ein (z. B. VRR, KVV, MVV, VVS, RMV, HVV, BVG, VVO) oder hoste denselben Server selbst (Docker-Image ghcr.io/nerdysoftpaw/otp-gtfsde) und verbinde ihn über den Provider „OTP2 — Eigene Instanz“.\n\nAb jetzt konzentrieren wir uns darauf, mehr Verkehrsverbünde direkt anzubinden. Deiner fehlt? Wünsch ihn dir auf GitHub. Alle Hintergründe: https://docs.openpublictransport.net/latest/community-server-shutdown/\n\nBestätige, um diesen Hinweis zu schließen."
+            "description": "Wir mussten unsere eigene API unter {server} aus Kostengründen einstellen. Folgende Einträge und ihre Entitäten wurden entfernt: {entries}.\n\nRichte deine Haltestellen mit dem offiziellen Provider deines Verkehrsverbunds neu ein (z. B. VRR, KVV, MVV, VVS, RMV, HVV, BVG, VVO) oder hoste denselben Server selbst (Docker-Image {image}) und verbinde ihn über den Provider „OTP2 — Eigene Instanz“.\n\nAb jetzt konzentrieren wir uns darauf, mehr Verkehrsverbünde direkt anzubinden. Deiner fehlt? Wünsch ihn dir auf GitHub. Alle Hintergründe: {url}\n\nBestätige, um diesen Hinweis zu schließen."
           }
         }
       }

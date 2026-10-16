@@ -10,6 +10,7 @@ from homeassistant.util import dt as dt_util
 from openpublictransport import ApiConnectionError, ApiError, ApiResponseError
 
 from custom_components.openpublictransport.trip import (
+    _efa_id_type,
     _format_time,
     _leg_transport_type,
     _ms_to_hhmm,
@@ -610,6 +611,70 @@ async def test_plan_trip_efa_non_dict_response(hass: HomeAssistant):
 
         with pytest.raises(ApiResponseError):
             await async_plan_trip(hass, "vrr", "A", "City", "B", "City")
+
+
+# ── EFA location type per ID kind ─────────────────────────────────────────────
+
+def test_efa_id_type_stop_ids():
+    """A stop ID keeps type=stop — DELFI, provider-internal, or with a platform."""
+    assert _efa_id_type("de:08111:6056") == "stop"
+    assert _efa_id_type("5030028") == "stop"
+    assert _efa_id_type("5005296:$51") == "stop"
+
+
+def test_efa_id_type_non_stop_ids():
+    """Address, street, POI, district and coordinate IDs have to go out as any."""
+    assert _efa_id_type("streetID:171:1:8116033:-1:Schlossplatz:Kirchheim (T)") == "any"
+    assert _efa_id_type("poiID:2015750:8116035:-1:Rathaus Koengen:Koengen") == "any"
+    assert _efa_id_type("suburbID:18:8111000:-1") == "any"
+    assert _efa_id_type("coord:3513298:755260:NBWT:Mitte, Koenigstrasse 7:0") == "any"
+
+
+async def test_plan_trip_efa_address_origin_sends_type_any(hass: HomeAssistant):
+    """An address origin must not be sent as a stop, or EFA returns no journeys."""
+    mock_response = AsyncMock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value={"journeys": []})
+    mock_response.__aenter__ = AsyncMock(return_value=mock_response)
+    mock_response.__aexit__ = AsyncMock(return_value=False)
+
+    with patch("custom_components.openpublictransport.trip.async_get_clientsession") as mock_session_fn:
+        mock_session = MagicMock()
+        mock_session.get = MagicMock(return_value=mock_response)
+        mock_session_fn.return_value = mock_session
+
+        await async_plan_trip(
+            hass, "vvs", "A", "City", "B", "City",
+            origin_id="streetID:171:1:8116033:-1:Schlossplatz:Kirchheim (T)",
+            dest_id="de:08111:6056",
+        )
+
+    url = mock_session.get.call_args[0][0]
+    assert "type_origin=any" in url
+    assert "type_destination=stop" in url
+
+
+async def test_plan_trip_efa_stop_ids_send_type_stop(hass: HomeAssistant):
+    """Two stop IDs keep the stop type on both ends."""
+    mock_response = AsyncMock()
+    mock_response.status = 200
+    mock_response.json = AsyncMock(return_value={"journeys": []})
+    mock_response.__aenter__ = AsyncMock(return_value=mock_response)
+    mock_response.__aexit__ = AsyncMock(return_value=False)
+
+    with patch("custom_components.openpublictransport.trip.async_get_clientsession") as mock_session_fn:
+        mock_session = MagicMock()
+        mock_session.get = MagicMock(return_value=mock_response)
+        mock_session_fn.return_value = mock_session
+
+        await async_plan_trip(
+            hass, "vvs", "A", "City", "B", "City",
+            origin_id="de:08116:7819", dest_id="5030028",
+        )
+
+    url = mock_session.get.call_args[0][0]
+    assert "type_origin=stop" in url
+    assert "type_destination=stop" in url
 
 
 # ── transport type on a leg (issue #87) ───────────────────────────────────────

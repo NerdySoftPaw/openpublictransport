@@ -72,6 +72,28 @@ def supports_trip_planning(provider: Optional[str]) -> bool:
     return provider in TRIP_CAPABLE_PROVIDERS
 
 
+def _efa_id_type(efa_id: str) -> str:
+    """Return the EFA location type an ID has to be sent as.
+
+    An EFA location ID carries its kind in front of the first colon: `streetID:`
+    for a street or an address, `poiID:` for a point of interest, `suburbID:` for
+    a district, `coord:` for a plain coordinate. A stop is the exception — its ID
+    is either a DELFI one (`de:08111:6056`) or provider-internal (`5030028`,
+    `5005296:$51`).
+
+    That matters because EFA accepts `type=stop` only for a real stop ID.
+    Anything else is answered with `origin: stop invalid` and no journeys at all,
+    so the trip sensor sits on "No connections" forever with nothing in the log —
+    and the other kinds do reach here: the stopfinder is queried with
+    `type_sf=any` whenever the search term contains a comma, and its locations
+    are passed through unfiltered. Sent as `any` they resolve, and the footpath
+    from an address to the first stop gets planned, which is the point of picking
+    an address as the origin.
+    """
+    kind = efa_id.split(":", 1)[0].lower()
+    return "any" if kind == "coord" or kind.endswith("id") else "stop"
+
+
 # OTP 2.x planConnection query — routes stop-to-stop via stopLocationId, so no
 # coordinates and no street-network access/egress are needed (works on a
 # transit-only graph). %s = origin id, dest id, optional dateTime clause.
@@ -185,6 +207,11 @@ def _rate_transfers(transit_legs: List[Dict[str, Any]]) -> tuple[bool, str, Opti
     the internal ``_departure_s`` / ``_arrival_s`` epoch keys. Walking legs are
     not transfers and must be filtered out by the caller.
 
+    Each leg a traveller changes out of is annotated with ``transfer_minutes``,
+    the wait before the next vehicle leaves. The journey-wide minimum says how
+    tight the journey is; this says where, which is what a traveller standing on
+    the platform after one of the legs actually needs.
+
     Returns ``(connection_feasible, transfer_risk, min_transfer_time)``; the
     minimum transfer time is ``None`` for a journey without a transfer.
     """
@@ -198,6 +225,7 @@ def _rate_transfers(transit_legs: List[Dict[str, Any]]) -> tuple[bool, str, Opti
         if not arrival or not departure:
             continue
         gap_min = int((departure - arrival) // 60)
+        current["transfer_minutes"] = gap_min
         if min_transfer is None or gap_min < min_transfer:
             min_transfer = gap_min
         if gap_min <= 0:
@@ -254,7 +282,8 @@ async def async_plan_trip(
     Dispatches to OTP2 GraphQL for otp_custom, OTP REST for vbn_otp, the
     HAFAS mgate TripSearch service for mgate providers, and EFA XML for all
     other supported providers.
-    Uses stop IDs when available (more reliable), falls back to name+place search.
+    Uses the stored location IDs when available (more reliable), falls back to
+    name+place search.
 
     ``arrival_time``, when given, switches every backend into "arrive by" mode
     (latest departure that still lands by that time) and takes priority over
@@ -313,12 +342,12 @@ async def async_plan_trip(
     date_str = target.strftime("%Y%m%d")
     time_str = target.strftime("%H%M")
 
-    # Use stop IDs if available (much more reliable than name search)
+    # Use the stored location IDs if available (much more reliable than name search)
     if origin_id and dest_id:
         params = (
             f"outputFormat=rapidJSON"
-            f"&type_origin=stop&name_origin={quote(origin_id, safe='')}"
-            f"&type_destination=stop&name_destination={quote(dest_id, safe='')}"
+            f"&type_origin={_efa_id_type(origin_id)}&name_origin={quote(origin_id, safe='')}"
+            f"&type_destination={_efa_id_type(dest_id)}&name_destination={quote(dest_id, safe='')}"
             f"&itdDate={date_str}&itdTime={time_str}"
             f"&itdTripDateTimeDepArr={dep_arr_flag}"
             f"&useRealtime=1"
@@ -726,6 +755,8 @@ def _parse_hafas_trips(trips: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                     "line": leg.get("line", ""),
                     "product": leg.get("product", ""),
                     "transport_type": leg.get("transport_type", "unknown"),
+                    # The vehicle's headsign, same as the EFA legs (#95)
+                    "direction": leg.get("direction", ""),
                     "departure_planned": dt_util.as_local(dep_planned).strftime("%H:%M"),
                     "departure_estimated": dt_util.as_local(dep).strftime("%H:%M"),
                     "arrival_planned": dt_util.as_local(arr_planned).strftime("%H:%M"),
@@ -810,6 +841,12 @@ def _parse_journeys(
                 "origin": origin.get("name", ""),
                 "destination": destination.get("name", ""),
                 "line": transport.get("number", ""),
+                # Where the vehicle itself is headed. EFA carries the headsign
+                # as the transportation's own destination, which is not the leg's
+                # destination: an S1 to Herrenberg is boarded for two stops as
+                # readily as for twenty, and the headsign is what is written on
+                # the front of the train and on the platform display.
+                "direction": (transport.get("destination") or {}).get("name", ""),
                 "product": product.get("name", ""),
                 "transport_type": _leg_transport_type(product, type_mapping),
                 "departure_planned": _format_time(dep_planned),

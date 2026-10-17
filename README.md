@@ -102,7 +102,7 @@ Real-time public transport departures for Home Assistant — 59 providers across
 - **35 transit providers** — most require no API key
 - **Trip planner** — A-to-B routes with transfer risk assessment (EFA and OTP2 providers, see the table above)
 - **8 entity types**: sensor, binary sensor, calendar, event, camera, trip sensor, statistics, multi-stop
-- **4 actions** — refresh_departures, plan_trip, check_delays, announce_departure (TTS)
+- **5 actions** — refresh_departures, plan_trip, get_journeys, check_delays, announce_departure (TTS)
 - **Reconfigure without re-setup** — change your station anytime via ⚙️ → Reconfigure
 - **Walking time** — hides departures you can't reach on foot
 - **Fuzzy stop search** — handles typos and umlaut variations
@@ -174,6 +174,12 @@ data:
   origin_city: Düsseldorf
   destination: Hauptbahnhof
   destination_city: Köln
+
+# Read a trip sensor's connections in full, legs and all
+action: openpublictransport.get_journeys
+data:
+  entity_id: sensor.your_trip_here
+response_variable: trip
 
 # Check delays on a stop
 action: openpublictransport.check_delays

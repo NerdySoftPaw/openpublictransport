@@ -388,3 +388,119 @@ async def test_plan_trip_returns_journeys(hass: HomeAssistant):
             blocking=True, return_response=True,
         )
     assert result["journeys"] == mock_journeys
+
+
+# ── get_journeys ──────────────────────────────────────────────────────────────
+
+def _trip_entity(hass, journeys, *, is_trip=True, coordinator=True):
+    """Register a trip sensor whose coordinator holds ``journeys``."""
+    from homeassistant.helpers import entity_registry as er
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        entry_id="trip_entry",
+        data={"is_trip": is_trip, CONF_PROVIDER: PROVIDER_VRR},
+    )
+    entry.add_to_hass(hass)
+    if coordinator:
+        entry.runtime_data = MagicMock(data=journeys)
+
+    registry = er.async_get(hass)
+    return registry.async_get_or_create(
+        domain="sensor",
+        platform=DOMAIN,
+        unique_id="trip_a_to_b",
+        config_entry=entry,
+    ).entity_id
+
+
+async def test_get_journeys_returns_every_journey_with_its_legs(hass: HomeAssistant):
+    """The alternatives come back whole, which is what the attributes summarise."""
+    await _setup_services(hass)
+
+    journeys = [
+        {"departure": "09:42", "departure_timestamp": "2026-09-20T09:42:00+02:00", "legs": [{"line": "S1"}]},
+        {"departure": "10:12", "departure_timestamp": "2026-09-20T10:12:00+02:00", "legs": [{"line": "S2"}]},
+    ]
+    entity_id = _trip_entity(hass, journeys)
+
+    result = await hass.services.async_call(
+        DOMAIN, "get_journeys", {"entity_id": entity_id}, blocking=True, return_response=True
+    )
+
+    assert result["journeys"] == journeys
+    assert result["journeys"][1]["legs"] == [{"line": "S2"}]
+
+
+async def test_get_journeys_asks_the_provider_nothing(hass: HomeAssistant):
+    """It serves what the coordinator already holds — no second trip request."""
+    await _setup_services(hass)
+
+    entity_id = _trip_entity(hass, [{"departure": "09:42", "legs": []}])
+
+    with patch(
+        "custom_components.openpublictransport.async_plan_trip", new_callable=AsyncMock
+    ) as planner:
+        await hass.services.async_call(
+            DOMAIN, "get_journeys", {"entity_id": entity_id}, blocking=True, return_response=True
+        )
+
+    planner.assert_not_called()
+
+
+async def test_get_journeys_answers_a_failed_update_with_an_empty_list(hass: HomeAssistant):
+    """``coordinator.data`` is None after a failed update; the caller gets []."""
+    await _setup_services(hass)
+
+    entity_id = _trip_entity(hass, None)
+
+    result = await hass.services.async_call(
+        DOMAIN, "get_journeys", {"entity_id": entity_id}, blocking=True, return_response=True
+    )
+
+    assert result["journeys"] == []
+
+
+async def test_get_journeys_rejects_an_unknown_entity(hass: HomeAssistant):
+    await _setup_services(hass)
+
+    with pytest.raises((ServiceValidationError, HomeAssistantError)):
+        await hass.services.async_call(
+            DOMAIN, "get_journeys", {"entity_id": "sensor.nonexistent"},
+            blocking=True, return_response=True,
+        )
+
+
+async def test_get_journeys_rejects_a_departure_board(hass: HomeAssistant):
+    """A stop's departure sensor has no journeys to give."""
+    await _setup_services(hass)
+
+    entity_id = _trip_entity(hass, [], is_trip=False)
+
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            DOMAIN, "get_journeys", {"entity_id": entity_id},
+            blocking=True, return_response=True,
+        )
+
+
+async def test_get_journeys_reports_a_missing_coordinator(hass: HomeAssistant):
+    await _setup_services(hass)
+
+    entity_id = _trip_entity(hass, [], coordinator=False)
+
+    with pytest.raises(HomeAssistantError):
+        await hass.services.async_call(
+            DOMAIN, "get_journeys", {"entity_id": entity_id},
+            blocking=True, return_response=True,
+        )
+
+
+async def test_get_journeys_must_be_called_for_its_response(hass: HomeAssistant):
+    """Registered SupportsResponse.ONLY — calling it for its effect is refused."""
+    await _setup_services(hass)
+
+    entity_id = _trip_entity(hass, [])
+
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(DOMAIN, "get_journeys", {"entity_id": entity_id}, blocking=True)

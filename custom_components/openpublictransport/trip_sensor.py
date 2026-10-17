@@ -625,6 +625,9 @@ class TripSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
         if len(journeys) > 1:
             attrs["next_journeys"] = [
                 {
+                    # What the card sends back to `get_journeys` to say which
+                    # connection it means — see `_journey_id`.
+                    "id": j.get("id"),
                     "departure": j.get("departure"),
                     "arrival": j.get("arrival"),
                     "departure_timestamp": j.get("departure_timestamp"),

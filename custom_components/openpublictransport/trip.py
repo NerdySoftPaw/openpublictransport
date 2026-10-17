@@ -5,6 +5,7 @@ route planning from A to B with connections and transfers.
 """
 
 import asyncio
+import hashlib
 import logging
 import re
 from datetime import datetime, timezone
@@ -253,6 +254,36 @@ def _journey_bounds(legs: List[Dict[str, Any]]) -> tuple[Optional[str], Optional
     )
 
 
+def _journey_id(legs: List[Dict[str, Any]]) -> str:
+    """Return a stable identifier for a journey, derived from its own legs.
+
+    A caller that showed a summary and later asks for the detail has to say
+    which connection it means, and no combination of the summary's own fields
+    says it reliably: a board regularly holds two connections that leave and
+    arrive on the same minute with the same number of changes, and two routes
+    on parallel lines can agree on all of that and still be different journeys.
+
+    The identity comes from the route itself — each leg's line, where it is
+    boarded and when it is *timetabled* to leave. Planned times are used on
+    purpose: an estimate moves as the delay is revised, and an id that changed
+    between two polls would not identify anything. Walking legs carry no line,
+    which is why the origin and the time are in the digest too.
+    """
+    material = ";".join(
+        f"{leg.get('line', '')}|{leg.get('origin', '')}|{leg.get('departure_planned', '')}" for leg in legs
+    )
+    return hashlib.sha1(material.encode("utf-8")).hexdigest()[:12]
+
+
+def _with_ids(journeys: Optional[List[Dict[str, Any]]]) -> Optional[List[Dict[str, Any]]]:
+    """Stamp every journey with its id, whichever provider parsed it."""
+    if journeys is None:
+        return None
+    for journey in journeys:
+        journey["id"] = _journey_id(journey.get("legs", []))
+    return journeys
+
+
 def _epoch_to_local_iso(epoch_s: float) -> Optional[str]:
     """Format an epoch timestamp as a local ISO-8601 string (None if unknown)."""
     if not epoch_s:
@@ -299,7 +330,9 @@ async def async_plan_trip(
             return None
         session = async_get_clientsession(hass)
         provider_instance = get_provider(provider, session, api_key=api_key, custom_url=custom_url)
-        return await _async_plan_trip_otp2_graphql(origin_id, dest_id, departure_time, provider_instance, arrival_time)
+        return _with_ids(
+            await _async_plan_trip_otp2_graphql(origin_id, dest_id, departure_time, provider_instance, arrival_time)
+        )
 
     # HAFAS mgate — TripSearch between two stop ids
     if provider in HAFAS_MGATE_TRIP_PROVIDERS:
@@ -310,7 +343,7 @@ async def async_plan_trip(
         trips = await provider_instance.search_trips(
             origin_id, dest_id, departure_time=departure_time, arrival_time=arrival_time
         )
-        return _parse_hafas_trips(trips)
+        return _with_ids(_parse_hafas_trips(trips))
 
     # VBN OTP — legacy OTP REST plan endpoint
     if provider in OTP_REST_TRIP_PROVIDERS:
@@ -319,7 +352,9 @@ async def async_plan_trip(
             return None
         session = async_get_clientsession(hass)
         provider_instance = get_provider(provider, session, api_key=api_key)
-        return await _async_plan_trip_otp(origin_id, dest_id, departure_time, provider_instance, arrival_time)
+        return _with_ids(
+            await _async_plan_trip_otp(origin_id, dest_id, departure_time, provider_instance, arrival_time)
+        )
 
     # EFA providers
     base_url = EFA_TRIP_ENDPOINTS.get(provider)
@@ -383,7 +418,7 @@ async def async_plan_trip(
     if not isinstance(data, dict):
         raise ApiResponseError(f"{provider}: trip API returned {type(data).__name__} instead of an object")
 
-    return _parse_journeys(data.get("journeys", []), type_mapping)
+    return _with_ids(_parse_journeys(data.get("journeys", []), type_mapping))
 
 
 _GRAPHQL_PARENT = '{ stop(id: "%s") { parentStation { gtfsId } } }'

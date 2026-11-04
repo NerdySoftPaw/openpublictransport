@@ -1,5 +1,22 @@
 # Changelog
 
+## v2026.11.2 — Via stop with an optional stay
+
+### New
+
+- **Via stop with an optional dwell time** ([#110](https://github.com/NerdySoftPaw/openpublictransport/issues/110), thanks @deZeus89) —
+  a trip can run through a stop of your choice, optionally staying there for a minimum time:
+  Düsseldorf → Wuppertal (30 minutes) → Essen. Set it in the new step after the destination when adding
+  a trip, or pass `via`, `via_city`, `via_id` and `via_dwell_minutes` to `plan_trip`. The sensor shows
+  `via` and `via_dwell_minutes`. See [Via Stop and Dwell Time](trip-planner.md#via-stop-and-dwell-time).
+  - **EFA** (VRR, KVV, VVS, MVV, …): via stop natively. A stay is planned as two connections (to the
+    via stop, then on from it after the stay), because the EFA servers ignore their own dwell-time parameter.
+  - **HAFAS** (NAH.SH, VMT, …): via stop and stay natively.
+  - **OTP2** (own instance): via stop and stay, if the server supports via locations.
+  - **VBN OTP** and providers without trip planning: refused with a clear message, never ignored.
+
+Requires `python-openpublictransport` 0.3.4.
+
 ## v2026.11.1 — Every connection of a trip, in full
 
 ### New

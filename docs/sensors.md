@@ -44,7 +44,8 @@ If "Use provider logo" is enabled in options, the entity displays the provider's
 | `next_3_departures` | List | Simplified list of next 3 departures |
 | `station_name` | String | Name of the station |
 | `station_id` | String | Station ID |
-| `last_updated` | DateTime | Last successful update time |
+| `last_updated` | DateTime | When the attributes were last rebuilt |
+| `last_fetched` | DateTime | When the provider last answered successfully; a rate-limited poll that reuses cached data does not move it. On a multi-stop sensor: the oldest of its stops |
 | `next_departure_minutes` | Integer | Minutes until next departure |
 | `total_departures` | Integer | Number of departures in list |
 | `delayed_count` | Integer | Count of delayed departures |
@@ -70,7 +71,8 @@ Each departure in the `departures` list contains:
 | `platform_changed` | Boolean | `true` when the departure was moved to another platform |
 | `transportation_type` | String | Type: bus, train, tram, subway, ferry, taxi |
 | `is_realtime` | Boolean | Whether real-time data is available |
-| `minutes_until_departure` | Integer | Minutes until departure |
+| `minutes_until_departure` | Integer | Minutes until departure, as of the last poll |
+| `departure_timestamp` | DateTime | ISO timestamp of the departure (the estimate when there is one), so a dashboard can count down between polls |
 | `description` | String | Route description (optional) |
 | `agency` | String | Operating agency/operator name |
 | `notices` | List | All notices for the departure, routine information included (e.g. "Fahrradmitnahme begrenzt möglich", "behindertengerechtes Fahrzeug") |

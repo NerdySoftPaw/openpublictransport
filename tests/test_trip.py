@@ -861,3 +861,73 @@ def test_parse_otp_itineraries_types_each_leg():
     leg = _parse_otp_itineraries(itineraries)[0]["legs"][0]
     assert leg["transport_type"] == "bus"
     assert leg["product"] == "bus"
+
+
+# ── journey identity ──────────────────────────────────────────────────────────
+
+def test_journey_id_is_stable_across_polls():
+    """The same connection keeps its id when only the realtime estimate moves."""
+    from custom_components.openpublictransport.trip import _journey_id
+
+    first = [
+        {"line": "X10", "origin": "Stuttgart Hbf", "departure_planned": "17:36", "departure_estimated": "17:36"},
+        {"line": "S2", "origin": "Flughafen/Messe", "departure_planned": "18:08", "departure_estimated": "18:08"},
+    ]
+    later = [dict(first[0], departure_estimated="17:40"), dict(first[1], departure_estimated="18:12")]
+
+    assert _journey_id(first) == _journey_id(later)
+
+
+def test_journey_id_separates_two_routes_that_look_alike():
+    """Same times, same number of changes, different lines — different ids.
+
+    This is the case a summary cannot express: parallel lines with equal
+    timings agree on departure, arrival, transfers and duration.
+    """
+    from custom_components.openpublictransport.trip import _journey_id
+
+    via_x10 = [
+        {"line": "X10", "origin": "Stuttgart Hbf", "departure_planned": "17:36"},
+        {"line": "S2", "origin": "Flughafen/Messe", "departure_planned": "18:08"},
+    ]
+    via_151 = [
+        {"line": "151", "origin": "Stuttgart Hbf", "departure_planned": "17:36"},
+        {"line": "S1", "origin": "Flughafen/Messe", "departure_planned": "18:08"},
+    ]
+
+    assert _journey_id(via_x10) != _journey_id(via_151)
+
+
+def test_journey_id_separates_departures_from_the_same_stop():
+    """Two connections on the same line an hour apart are not the same journey."""
+    from custom_components.openpublictransport.trip import _journey_id
+
+    early = [{"line": "X10", "origin": "Stuttgart Hbf", "departure_planned": "17:36"}]
+    late = [{"line": "X10", "origin": "Stuttgart Hbf", "departure_planned": "18:36"}]
+
+    assert _journey_id(early) != _journey_id(late)
+
+
+def test_journey_id_tells_walking_legs_apart():
+    """A leg with no line is still distinguished by where and when it starts."""
+    from custom_components.openpublictransport.trip import _journey_id
+
+    a = [{"line": "", "origin": "Stuttgart Hbf", "departure_planned": "17:36"}]
+    b = [{"line": "", "origin": "Stuttgart Stadtmitte", "departure_planned": "17:36"}]
+
+    assert _journey_id(a) != _journey_id(b)
+
+
+def test_parsed_journeys_carry_an_id():
+    """Every journey `async_plan_trip` returns is stamped, whichever parser built it."""
+    from custom_components.openpublictransport.trip import _with_ids
+
+    journeys = [
+        {"legs": [{"line": "X10", "origin": "A", "departure_planned": "17:36"}]},
+        {"legs": [{"line": "151", "origin": "A", "departure_planned": "17:36"}]},
+    ]
+    stamped = _with_ids(journeys)
+
+    assert all(isinstance(j["id"], str) and len(j["id"]) == 12 for j in stamped)
+    assert stamped[0]["id"] != stamped[1]["id"]
+    assert _with_ids(None) is None

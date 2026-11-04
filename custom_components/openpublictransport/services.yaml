@@ -59,6 +59,24 @@ plan_trip:
       selector:
         text:
 
+get_journeys:
+  name: Get Journeys
+  description: >-
+    Return every connection a trip sensor is currently holding, each with its
+    legs. The sensor's attributes carry the legs of the first connection only and
+    summarise the rest; this returns them all, from data already fetched, without
+    asking the provider again.
+  fields:
+    entity_id:
+      name: Entity
+      description: The trip sensor to read
+      required: true
+      example: "sensor.trip_station_to_station"
+      selector:
+        entity:
+          integration: openpublictransport
+          domain: sensor
+
 check_delays:
   name: Check Delays
   description: Check for delays on a specific entity and fire an event if threshold exceeded

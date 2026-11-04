@@ -102,4 +102,5 @@ async def test_plan_trip_dispatches_to_hafas_trip_search(hass: HomeAssistant):
     provider.search_trips.assert_awaited_once()
     assert provider.search_trips.call_args.args == ("A=1@L=1@", "A=1@L=2@")
     assert journeys[0]["legs"][0]["line"] == "RE83"
+    assert len(journeys[0]["id"]) == 12
     assert missing_ids is None

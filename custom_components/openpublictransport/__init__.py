@@ -7,7 +7,7 @@ from homeassistant.components.application_credentials import (
     async_import_client_credential,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.exceptions import ConfigEntryError, HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
@@ -56,6 +56,7 @@ _LOGGER = logging.getLogger(__name__)
 
 SERVICE_REFRESH = "refresh_departures"
 SERVICE_PLAN_TRIP = "plan_trip"
+SERVICE_GET_JOURNEYS = "get_journeys"
 SERVICE_CHECK_DELAYS = "check_delays"
 SERVICE_ANNOUNCE = "announce_departure"
 
@@ -73,6 +74,12 @@ SERVICE_PLAN_TRIP_SCHEMA = vol.Schema(
         vol.Required("destination"): str,
         vol.Required("destination_city"): str,
         vol.Optional("arrival_time"): str,
+    }
+)
+
+SERVICE_GET_JOURNEYS_SCHEMA = vol.Schema(
+    {
+        vol.Required("entity_id"): str,
     }
 )
 
@@ -280,6 +287,38 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             raise HomeAssistantError(f"Trip planning failed for provider '{provider}' — check logs for details")
         return {"journeys": journeys}
 
+    async def handle_get_journeys(call: ServiceCall) -> dict:
+        """Return every connection a trip sensor is currently holding, legs included.
+
+        The sensor publishes the first journey's legs and no more than a summary
+        of the alternatives, because each attribute is written to the recorder on
+        every state change. The detail is not missing, only unpublished — the
+        coordinator keeps every journey whole — so a caller that wants one
+        alternative in full can have it without the sensor carrying them all.
+
+        This reads that list rather than re-planning the trip, which matters for
+        more than the saved request: the coordinator has already dropped the
+        connections that have departed and applied the entry's line and
+        transport-type filters, so a re-plan would answer with a set the sensor
+        never showed, and the journey a caller asked about might not be in it.
+        """
+        entity_id = call.data["entity_id"]
+        entity_registry = er.async_get(hass)
+        entity_entry = entity_registry.async_get(entity_id)
+        if not entity_entry or entity_entry.platform != DOMAIN:
+            raise ServiceValidationError(f"Entity {entity_id} not found or not part of {DOMAIN}")
+        entry = (
+            hass.config_entries.async_get_entry(entity_entry.config_entry_id) if entity_entry.config_entry_id else None
+        )
+        if not entry or not entry.data.get("is_trip"):
+            raise ServiceValidationError(f"Entity {entity_id} is not a trip sensor")
+        coordinator = getattr(entry, "runtime_data", None)
+        if not coordinator:
+            raise HomeAssistantError(f"No coordinator found for {entity_id}")
+        # `None` is an update that failed — the entity is unavailable then, and an
+        # empty list says the same thing to a caller as "no connections" does.
+        return {"journeys": coordinator.data or []}
+
     async def handle_check_delays(call: ServiceCall) -> dict:
         """Check delays and return delayed departures."""
         entity_id = call.data["entity_id"]
@@ -379,6 +418,16 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     hass.services.async_register(DOMAIN, SERVICE_REFRESH, handle_refresh, schema=SERVICE_REFRESH_SCHEMA)
     hass.services.async_register(
         DOMAIN, SERVICE_PLAN_TRIP, handle_plan_trip, schema=SERVICE_PLAN_TRIP_SCHEMA, supports_response=True
+    )
+    # SupportsResponse.ONLY: this one has nothing to do but answer. Called
+    # without a response variable it would change nothing and return nothing,
+    # so HA is told to reject that rather than let it look like it worked.
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_GET_JOURNEYS,
+        handle_get_journeys,
+        schema=SERVICE_GET_JOURNEYS_SCHEMA,
+        supports_response=SupportsResponse.ONLY,
     )
     hass.services.async_register(
         DOMAIN, SERVICE_CHECK_DELAYS, handle_check_delays, schema=SERVICE_CHECK_DELAYS_SCHEMA, supports_response=True

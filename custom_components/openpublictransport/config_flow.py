@@ -93,8 +93,14 @@ from .const import (
     SECONDARY_API_KEY_PROVIDERS,
     TRANSPORTATION_TYPES,
 )
-from .filters import filter_discriminator, filter_label, trip_arrival_discriminator, trip_arrival_label
-from .trip import supports_trip_planning
+from .filters import (
+    filter_discriminator,
+    filter_label,
+    trip_arrival_discriminator,
+    trip_arrival_label,
+    trip_via_discriminator,
+)
+from .trip import supports_trip_planning, via_support
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -226,7 +232,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
         # Trip planning fields
         self._trip_origin: Optional[Dict[str, Any]] = None
         self._trip_destination: Optional[Dict[str, Any]] = None
-        self._trip_search_phase: str = "origin"  # "origin" or "destination"
+        self._trip_search_phase: str = "origin"  # "origin", "destination" or "via"
+        # Optional via stop and the minimum stay there (issue #110)
+        self._trip_via: Optional[Dict[str, Any]] = None
+        self._trip_via_dwell: int = 0
 
         # Temp stop results — instance variable instead of hass.data to avoid cross-flow leaks
         self._found_stops: list[dict] = []
@@ -1742,7 +1751,7 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                             return await self.async_step_trip_search()
                         else:
                             self._trip_destination = stops[0]
-                            return await self.async_step_trip_settings()
+                            return await self.async_step_trip_via()
                     else:
                         self._found_stops = stops
                         self._last_search_term = search_term
@@ -1770,6 +1779,8 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             selected_id = user_input.get("stop")
             if selected_id == "__search_again__":
                 self._found_stops = []
+                if self._trip_search_phase == "via":
+                    return await self.async_step_trip_via()
                 return await self.async_step_trip_search()
 
             if selected_id:
@@ -1780,15 +1791,23 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                             self._trip_search_phase = "destination"
                             self._found_stops = []
                             return await self.async_step_trip_search()
+                        elif self._trip_search_phase == "via":
+                            self._trip_via = stop
+                            self._found_stops = []
+                            return await self.async_step_trip_settings()
                         else:
                             self._trip_destination = stop
                             self._found_stops = []
-                            return await self.async_step_trip_settings()
+                            return await self.async_step_trip_via()
 
+            if self._trip_search_phase == "via":
+                return await self.async_step_trip_via()
             return await self.async_step_trip_search()
 
         stops = self._found_stops
         if not isinstance(stops, list) or not stops:
+            if self._trip_search_phase == "via":
+                return await self.async_step_trip_via()
             return await self.async_step_trip_search()
 
         stop_options = {"__search_again__": "🔍 Neue Suche / New search..."}
@@ -1803,11 +1822,72 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
 
         schema = vol.Schema({vol.Required("stop"): vol.In(stop_options)})
         search_term = getattr(self, "_last_search_term", "")
-        phase_label = "Start" if self._trip_search_phase == "origin" else "Ziel"
+        phase_label = {"origin": "Start", "via": "Via"}.get(self._trip_search_phase, "Ziel")
         return self.async_show_form(
             step_id="trip_select",
             data_schema=schema,
             description_placeholders={"count": str(len(stops)), "search_term": search_term, "phase": phase_label},
+        )
+
+    async def async_step_trip_via(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
+        """Ask for an optional via stop and a minimum stay there (issue #110).
+
+        Skipped for a provider that cannot route through a via stop, so nobody
+        sets one up only to have it ignored.
+        """
+        can_via, can_dwell = via_support(self._provider)
+        if not can_via:
+            return await self.async_step_trip_settings()
+
+        errors: Dict[str, str] = {}
+        status_placeholder: Dict[str, str] = {"status": ""}
+        if user_input is not None:
+            search_term = str(user_input.get("via_search") or "").strip()
+            dwell = int(user_input.get("via_dwell_minutes") or 0)
+            if dwell and not search_term:
+                errors["via_dwell_minutes"] = "via_dwell_needs_via"
+            elif dwell and not can_dwell:
+                errors["via_dwell_minutes"] = "via_dwell_not_supported"
+            elif not search_term:
+                self._trip_via = None
+                self._trip_via_dwell = 0
+                return await self.async_step_trip_settings()
+            else:
+                self._trip_via_dwell = dwell
+                try:
+                    stops = await self._search_stops(search_term)
+                except Exception as exc:  # noqa: BLE001 — mapped to a user-facing error below
+                    self._forget_search(search_term)
+                    errors["via_search"] = self._search_error_key(exc, status_placeholder)
+                else:
+                    if not stops:
+                        errors["via_search"] = "no_results"
+                    elif len(stops) == 1:
+                        self._trip_via = stops[0]
+                        return await self.async_step_trip_settings()
+                    else:
+                        self._trip_search_phase = "via"
+                        self._found_stops = stops
+                        self._last_search_term = search_term
+                        return await self.async_step_trip_select()
+
+        schema = vol.Schema(
+            {
+                vol.Optional("via_search", default=""): str,
+                vol.Optional("via_dwell_minutes", default=self._trip_via_dwell): vol.All(
+                    vol.Coerce(int), vol.Range(min=0, max=720)
+                ),
+            }
+        )
+        return self.async_show_form(
+            step_id="trip_via",
+            data_schema=schema,
+            errors=errors,
+            description_placeholders={
+                "origin": self._trip_origin.get("name", "") if self._trip_origin else "",
+                "destination": self._trip_destination.get("name", "") if self._trip_destination else "",
+                **status_placeholder,
+            },
         )
 
     async def async_step_trip_settings(self, user_input: Optional[Dict[str, Any]] = None) -> FlowResult:
@@ -1819,6 +1899,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             CONF_TRIP_ORIGIN,
             CONF_TRIP_ORIGIN_CITY,
             CONF_TRIP_PROVIDER,
+            CONF_TRIP_VIA,
+            CONF_TRIP_VIA_CITY,
+            CONF_TRIP_VIA_DWELL,
+            CONF_TRIP_VIA_ID,
         )
 
         schema = vol.Schema(
@@ -1861,6 +1945,12 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
                 "trip_destination_id": dest.get("id", ""),
                 CONF_SCAN_INTERVAL: user_input.get(CONF_SCAN_INTERVAL, 120),
             }
+            via = self._trip_via or {}
+            if via:
+                data[CONF_TRIP_VIA] = via.get("name", "")
+                data[CONF_TRIP_VIA_CITY] = via.get("place", "")
+                data[CONF_TRIP_VIA_ID] = via.get("id", "")
+                data[CONF_TRIP_VIA_DWELL] = self._trip_via_dwell
             if arrival_time:
                 data[CONF_ARRIVAL_TIME] = arrival_time
             arrival_time_entity = user_input.get(CONF_ARRIVAL_TIME_ENTITY)
@@ -1894,7 +1984,9 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             # one entry per child) and still aborts as already_configured when
             # the arrival config is identical too.
             unique_id = f"{self._provider}_trip_{origin.get('id', '')}_{dest.get('id', '')}"
-            suffix = trip_arrival_discriminator(data)
+            # A via stop and its stay make a different trip, so the same route
+            # can be set up direct and via a stop side by side (issue #110).
+            suffix = "_".join(p for p in (trip_via_discriminator(data), trip_arrival_discriminator(data)) if p)
             if suffix:
                 unique_id = f"{unique_id}_{suffix}"
                 data[CONF_ENTRY_SUFFIX] = suffix
@@ -1903,6 +1995,10 @@ class OpenPublicTransportConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  
             self._abort_if_unique_id_configured()
 
             title = f"{_provider_short_name(self._provider)} {origin.get('name', '')} → {dest.get('name', '')}"
+            if via:
+                title = f"{title} via {via.get('name', '')}"
+                if self._trip_via_dwell:
+                    title = f"{title} ({self._trip_via_dwell} min)"
             label = trip_arrival_label(data)
             if label:
                 title = f"{title} ({label})"

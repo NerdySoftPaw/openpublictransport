@@ -47,7 +47,7 @@ from .const import (
 )
 from .filters import current_trip_arrival, trip_arrival_label
 from .sensor import _RESTORE_SKIP_ATTRS
-from .trip import async_plan_trip
+from .trip import TripOptionNotSupportedError, async_plan_trip
 
 PARALLEL_UPDATES = 0
 _LOGGER = logging.getLogger(__name__)
@@ -58,6 +58,11 @@ CONF_TRIP_DESTINATION = "trip_destination"
 CONF_TRIP_DESTINATION_CITY = "trip_destination_city"
 CONF_TRIP_PROVIDER = "trip_provider"
 CONF_IS_TRIP = "is_trip"
+# Optional via stop with a minimum stay there (issue #110).
+CONF_TRIP_VIA = "trip_via"
+CONF_TRIP_VIA_CITY = "trip_via_city"
+CONF_TRIP_VIA_ID = "trip_via_id"
+CONF_TRIP_VIA_DWELL = "trip_via_dwell_minutes"
 
 # Legs that are not a vehicle ride carry no line and no selectable transport
 # type, so neither filter has anything to say about them.
@@ -106,6 +111,10 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         arrival_time: Optional[str] = None,
         arrival_time_entity: Optional[str] = None,
         arrival_offset: int = DEFAULT_ARRIVAL_OFFSET,
+        via: Optional[str] = None,
+        via_city: Optional[str] = None,
+        via_id: Optional[str] = None,
+        via_dwell_minutes: int = 0,
     ):
         """Initialize."""
         super().__init__(
@@ -138,6 +147,12 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
         # whenever it resolves to a valid time.
         self.arrival_time_entity = arrival_time_entity
         self.arrival_offset = arrival_offset
+        # Every connection runs through this stop, staying at least
+        # via_dwell_minutes there (issue #110). None = direct.
+        self.via = via or None
+        self.via_city = via_city or ""
+        self.via_id = via_id or None
+        self.via_dwell_minutes = int(via_dwell_minutes or 0)
         # The actual target arrival used on the last refresh (static, entity-
         # sourced, or none) — surfaced to the sensor so the dashboard can show
         # what time it's really planning against.
@@ -179,7 +194,15 @@ class TripDataUpdateCoordinator(DataUpdateCoordinator):
                 api_key=self.api_key,
                 custom_url=self.custom_url,
                 arrival_time=target_arrival,
+                via_id=self.via_id,
+                via_name=self.via,
+                via_place=self.via_city,
+                via_dwell_minutes=self.via_dwell_minutes,
             )
+        except TripOptionNotSupportedError as err:
+            # Planning without the via the user set up would show a journey
+            # they did not ask for; stay unavailable and say why.
+            raise UpdateFailed(str(err)) from err
         except AuthenticationError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
         except ApiError as err:
@@ -401,6 +424,12 @@ def trip_device_name(coordinator: "TripDataUpdateCoordinator", config_entry: Opt
     base = (
         f"{coordinator.origin}, {coordinator.origin_city} → {coordinator.destination}, {coordinator.destination_city}"
     )
+    # Only entries with a via stop get it in their name, so no existing device
+    # is renamed (issue #110).
+    via = getattr(coordinator, "via", None)
+    if isinstance(via, str) and via:
+        dwell = getattr(coordinator, "via_dwell_minutes", 0)
+        base = f"{base} via {via}" + (f" ({dwell} min)" if isinstance(dwell, int) and dwell else "")
 
     if config_entry is None or not str(config_entry.data.get(CONF_ENTRY_SUFFIX) or "").strip():
         return base
@@ -469,6 +498,10 @@ async def async_setup_trip_entry(
         arrival_time=arrival_time,
         arrival_time_entity=arrival_time_entity,
         arrival_offset=arrival_offset,
+        via=config_entry.data.get(CONF_TRIP_VIA),
+        via_city=config_entry.data.get(CONF_TRIP_VIA_CITY),
+        via_id=config_entry.data.get(CONF_TRIP_VIA_ID),
+        via_dwell_minutes=config_entry.data.get(CONF_TRIP_VIA_DWELL, 0),
     )
 
     config_entry.runtime_data = coordinator
@@ -622,6 +655,9 @@ class TripSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
         # The time of the last real answer from the provider (card#18).
         if self.coordinator.last_update_success_time is not None:
             attrs["last_fetched"] = self.coordinator.last_update_success_time.isoformat()
+        if self.coordinator.via:
+            attrs["via"] = f"{self.coordinator.via}, {self.coordinator.via_city}".rstrip(", ")
+            attrs["via_dwell_minutes"] = self.coordinator.via_dwell_minutes
         if self.coordinator.last_target_arrival is not None:
             attrs["target_arrival_time"] = self.coordinator.last_target_arrival.isoformat()
         if self.coordinator.arrival_time_entity:

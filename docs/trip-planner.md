@@ -94,7 +94,8 @@ A trip sensor gives you a persistent entity that always shows the next best conn
     ![Origin search](assets/screenshots/config-flow/09-trip-origin-search.png)
 
 6. Enter destination stop name
-7. Configure update interval
+7. Optionally enter a **via stop** and how long you stay there (see [Via Stop and Dwell Time](#via-stop-and-dwell-time)). Leave it empty for a direct connection
+8. Configure update interval
 
 The sensor will appear as `sensor.openpublictransport_trip_<origin>_to_<destination>`.
 
@@ -212,6 +213,10 @@ data:
 | `origin_city` | No | City of origin stop (improves accuracy) |
 | `destination` | Yes | Destination stop name |
 | `destination_city` | No | City of destination stop (improves accuracy) |
+| `arrival_time` | No | Arrive by this time (`HH:MM`) |
+| `via` / `via_city` | No | A stop every connection has to pass through |
+| `via_id` | No | Stop ID of the via stop (needed for HAFAS and OTP2) |
+| `via_dwell_minutes` | No | Minimum stay at the via stop, in minutes |
 
 The service fires an `openpublictransport_trip_result` event with the trip data.
 
@@ -255,6 +260,32 @@ later are left out. The attribute `target_arrival_time` shows the time it is pla
 Leave both fields empty to go back to "next connection from now".
 
 Arrive-by planning works with every trip-capable provider: EFA, HAFAS and OTP.
+
+## Via Stop and Dwell Time
+
+A trip can be planned **through a stop of your choice**, optionally with a **minimum stay** there:
+Düsseldorf → Wuppertal (30 minutes for shopping) → Essen. Set it in the step after the destination
+when adding the trip, or pass `via` / `via_dwell_minutes` to `plan_trip`.
+
+| Provider type | Via stop | Dwell time |
+|---------------|----------|------------|
+| EFA (VRR, KVV, VVS, MVV, …) | ✅ | ✅ planned as two connections: to the via stop, then on from it after the stay |
+| HAFAS mgate (NAH.SH, VMT, VBN HAFAS, …) | ✅ | ✅ |
+| OTP2 (own instance) | ✅ | ✅ if the server supports via locations; otherwise the trip says so |
+| VBN OTP | ❌ | ❌ |
+
+A provider that cannot do what you asked for **refuses** it: the config flow doesn't offer the
+step, and the action fails with a clear message. Nothing is quietly planned without the via stop.
+
+The stay counts as a change, and the leg before it carries `via_stay: true` and the length of the
+stay in `transfer_minutes`; it is not part of the transfer risk. The sensor shows the configured
+stop as `via` and the stay as `via_dwell_minutes`.
+
+!!! note "Why EFA uses two requests"
+    EFA documents a `dwellTime_via` parameter, but none of the servers tested (VRR, VVS, KVV, MVV)
+    honours it. So the integration asks for the first half, then for the second half from the via
+    stop once the stay is over, and joins them. A trip with a dwell time therefore costs two
+    requests per update.
 
 ## Filtering Connections
 

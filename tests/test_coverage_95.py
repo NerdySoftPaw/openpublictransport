@@ -808,6 +808,9 @@ async def test_trip_settings_with_otp_custom_api_key(hass: HomeAssistant):
         result4 = await hass.config_entries.flow.async_configure(
             result["flow_id"], user_input={"stop_search": "End"}
         )
+    # The via step is optional; empty means direct (issue #110)
+    assert result4["step_id"] == "trip_via"
+    await hass.config_entries.flow.async_configure(result["flow_id"], user_input={})
 
     with patch.object(OpenPublicTransportConfigFlow, "_async_store_credential", new_callable=AsyncMock):
         final = await hass.config_entries.flow.async_configure(

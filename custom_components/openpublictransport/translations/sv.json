@@ -114,6 +114,18 @@
           "entities": "Entitets-ID:n (kommaseparerade)"
         }
       },
+      "trip_via": {
+        "title": "Via-hållplats (valfritt)",
+        "description": "Rutt: {origin} → {destination}\nValfritt: en hållplats som varje förbindelse ska gå via, och hur länge du minst stannar där. Lämna tomt för en direkt förbindelse.{status}",
+        "data": {
+          "via_search": "Sök via-hållplats",
+          "via_dwell_minutes": "Uppehåll vid via-hållplatsen (minuter)"
+        },
+        "data_description": {
+          "via_search": "Format: **Hållplats, Ort**. Tomt = ingen via-hållplats.",
+          "via_dwell_minutes": "Du stannar minst så länge vid via-hållplatsen, t.ex. 30 för att handla. 0 = bara passera."
+        }
+      },
       "trip_settings": {
         "title": "Reseinställningar",
         "description": "Rutt: {origin} → {destination}",
@@ -149,7 +161,9 @@
       "vbn_api_key_required": "VBN API-nyckel krävs",
       "invalid_response": "Leverantören gav ett oanvändbart svar. Försök igen senare.",
       "unknown": "Oväntat fel — se loggen.",
-      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)"
+      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)",
+      "via_dwell_needs_via": "En uppehållstid kräver en via-hållplats",
+      "via_dwell_not_supported": "Den här leverantören stöder inte uppehållstid vid via-hållplatsen"
     },
     "abort": {
       "reauth_successful": "API key updated successfully.",

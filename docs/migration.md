@@ -160,9 +160,9 @@ Your existing configuration was automatically preserved — no re-configuration 
 3. Check Home Assistant logs for errors
 4. Try clearing browser cache and refreshing
 
-### HACS shows old version?
+### HACS or the Marketplace shows an old version?
 
-1. Remove any old VRRAPI-HACS or hacs-publictransport entries from HACS
+1. Remove any old VRRAPI-HACS or hacs-publictransport entries from HACS (or from **Settings** > **Marketplace**)
 2. Add the new repository: `https://github.com/NerdySoftPaw/openpublictransport`
 3. Download from the new openpublictransport repository
 

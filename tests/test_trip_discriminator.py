@@ -73,6 +73,9 @@ async def _run_trip_flow(hass: HomeAssistant, trip_settings: dict):
             result["flow_id"], user_input={"stop_search": "Hbf Köln"}
         )
 
+    # The via step is optional; empty means direct (issue #110)
+    assert result["step_id"] == "trip_via"
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={})
     assert result["step_id"] == "trip_settings"
 
     with (

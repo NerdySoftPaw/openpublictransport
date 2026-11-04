@@ -6,9 +6,10 @@ route planning from A to B with connections and transfers.
 
 import asyncio
 import hashlib
+import inspect
 import logging
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from urllib.parse import quote
 
@@ -97,11 +98,13 @@ def _efa_id_type(efa_id: str) -> str:
 
 # OTP 2.x planConnection query — routes stop-to-stop via stopLocationId, so no
 # coordinates and no street-network access/egress are needed (works on a
-# transit-only graph). %s = origin id, dest id, optional dateTime clause.
+# transit-only graph). %s = origin id, dest id, optional dateTime clause,
+# optional via clause.
 _GRAPHQL_PLAN_CONNECTION = """{
   planConnection(
     origin:      { location: { stopLocation: { stopLocationId: "%s" } } }
     destination: { location: { stopLocation: { stopLocationId: "%s" } } }
+    %s
     %s
     first: 3
   ) {
@@ -295,6 +298,47 @@ def _epoch_to_local_iso(epoch_s: float) -> Optional[str]:
         return None
 
 
+class TripOptionNotSupportedError(Exception):
+    """A trip option (via stop, dwell time) the provider cannot honour.
+
+    Raised instead of quietly planning without it (issue #110): a journey that
+    skips the stop the user asked for looks like an answer and is not one.
+    ``option`` is ``"via"`` or ``"dwell"``.
+    """
+
+    def __init__(self, provider: str, option: str, detail: str = "") -> None:
+        self.provider = provider
+        self.option = option
+        what = "a via stop" if option == "via" else "a dwell time at the via stop"
+        super().__init__(f"{provider} does not support {what}" + (f" ({detail})" if detail else ""))
+
+
+def via_support(provider: Optional[str]) -> tuple[bool, bool]:
+    """Return ``(via, dwell)``: whether ``provider`` can route through a via stop
+    and keep a minimum stay there (issue #110).
+
+    EFA routes through a via stop natively; its ``dwellTime_via`` is documented
+    but ignored by every server tried (VRR, VVS, KVV, MVV), so the stay is
+    emulated with two requests (see :func:`_async_plan_trip_efa_with_dwell`).
+    HAFAS mgate and OTP2 support both. The legacy OTP REST endpoint supports
+    neither.
+    """
+    if provider in EFA_TRIP_ENDPOINTS or provider in HAFAS_MGATE_TRIP_PROVIDERS or provider in OTP2_TRIP_PROVIDERS:
+        return True, True
+    return False, False
+
+
+def _check_via_options(provider: str, via_id: Optional[str], via_name: Optional[str], dwell: int) -> None:
+    """Raise when a via stop or a dwell time is asked of a provider without it."""
+    can_via, can_dwell = via_support(provider)
+    if (via_id or via_name) and not can_via:
+        raise TripOptionNotSupportedError(provider, "via")
+    if dwell and not (via_id or via_name):
+        raise ValueError("A dwell time needs a via stop")
+    if dwell and not can_dwell:
+        raise TripOptionNotSupportedError(provider, "dwell")
+
+
 async def async_plan_trip(
     hass: HomeAssistant,
     provider: str,
@@ -308,6 +352,10 @@ async def async_plan_trip(
     api_key: Optional[str] = None,
     custom_url: Optional[str] = None,
     arrival_time: Optional[datetime] = None,
+    via_id: Optional[str] = None,
+    via_name: Optional[str] = None,
+    via_place: Optional[str] = None,
+    via_dwell_minutes: Optional[int] = None,
 ) -> Optional[List[Dict[str, Any]]]:
     """Plan a trip from origin to destination.
 
@@ -320,30 +368,55 @@ async def async_plan_trip(
     ``arrival_time``, when given, switches every backend into "arrive by" mode
     (latest departure that still lands by that time) and takes priority over
     ``departure_time`` — the two are mutually exclusive query modes.
+
+    ``via_id`` (or ``via_name``/``via_place``) routes every connection through
+    that stop, and ``via_dwell_minutes`` keeps at least that long a stay there
+    (issue #110). A provider that cannot do either raises
+    :class:`TripOptionNotSupportedError` rather than planning without it.
     Returns a list of journey options, each with legs and transfer info.
     """
     from openpublictransport import get_provider
 
+    dwell = max(0, int(via_dwell_minutes or 0))
+    _check_via_options(provider, via_id, via_name, dwell)
+
     # OTP2 GraphQL providers (self-hosted instances)
     if provider in OTP2_TRIP_PROVIDERS:
-        if not origin_id or not dest_id:
+        if not origin_id or not dest_id or ((via_name or dwell) and not via_id):
             _LOGGER.warning("OTP2 trip planning requires stop IDs — search for stops first")
             return None
         session = async_get_clientsession(hass)
         provider_instance = get_provider(provider, session, api_key=api_key, custom_url=custom_url)
         return _with_ids(
-            await _async_plan_trip_otp2_graphql(origin_id, dest_id, departure_time, provider_instance, arrival_time)
+            await _async_plan_trip_otp2_graphql(
+                origin_id,
+                dest_id,
+                departure_time,
+                provider_instance,
+                arrival_time,
+                via_id=via_id,
+                via_dwell_minutes=dwell,
+            )
         )
 
     # HAFAS mgate — TripSearch between two stop ids
     if provider in HAFAS_MGATE_TRIP_PROVIDERS:
-        if not origin_id or not dest_id:
+        if not origin_id or not dest_id or (via_name and not via_id):
             _LOGGER.warning("HAFAS trip planning requires stop IDs — search for stops first")
             return None
         provider_instance = get_provider(provider, async_get_clientsession(hass))
-        trips = await provider_instance.search_trips(
-            origin_id, dest_id, departure_time=departure_time, arrival_time=arrival_time
-        )
+        kwargs: Dict[str, Any] = {"departure_time": departure_time, "arrival_time": arrival_time}
+        if via_id:
+            # The library learnt via stops in 0.3.4; an older one would raise a
+            # TypeError here, so say what is missing instead.
+            params = inspect.signature(provider_instance.search_trips).parameters
+            takes_kwargs = any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values())
+            if "via_id" not in params and not takes_kwargs:
+                raise TripOptionNotSupportedError(provider, "via", "needs python-openpublictransport 0.3.4")
+            kwargs["via_id"] = via_id
+            if dwell:
+                kwargs["via_dwell_minutes"] = dwell
+        trips = await provider_instance.search_trips(origin_id, dest_id, **kwargs)
         return _with_ids(_parse_hafas_trips(trips))
 
     # VBN OTP — legacy OTP REST plan endpoint
@@ -368,58 +441,223 @@ async def async_plan_trip(
     # the provider is instantiated purely for its product-class mapping — that is
     # what lets a leg be matched against the entry's transport types (issue #87).
     efa_provider = get_provider(provider, session)
-    type_mapping = efa_provider.get_transport_type_mapping() if efa_provider else {}
+    efa = _EfaTripRequest(
+        session=session,
+        provider=provider,
+        base_url=base_url,
+        type_mapping=efa_provider.get_transport_type_mapping() if efa_provider else {},
+        timezone_name=efa_provider.get_timezone() if efa_provider else None,
+    )
+    origin = _EfaPoint(origin_id, origin_name, origin_place)
+    destination = _EfaPoint(dest_id, dest_name, dest_place)
+    via = _EfaPoint(via_id, via_name or "", via_place or "") if (via_id or via_name) else None
 
-    # EFA reads itdDate/itdTime as the network's local time, not Home Assistant's.
-    dep_arr_flag = "arr" if arrival_time is not None else "dep"
-    target = arrival_time or departure_time or dt_util.now()
-    if efa_provider:
-        target = target.astimezone(dt_util.get_time_zone(efa_provider.get_timezone()) or target.tzinfo)
-    date_str = target.strftime("%Y%m%d")
-    time_str = target.strftime("%H%M")
-
-    # Use the stored location IDs if available (much more reliable than name search)
-    if origin_id and dest_id:
-        params = (
-            f"outputFormat=rapidJSON"
-            f"&type_origin={_efa_id_type(origin_id)}&name_origin={quote(origin_id, safe='')}"
-            f"&type_destination={_efa_id_type(dest_id)}&name_destination={quote(dest_id, safe='')}"
-            f"&itdDate={date_str}&itdTime={time_str}"
-            f"&itdTripDateTimeDepArr={dep_arr_flag}"
-            f"&useRealtime=1"
+    if via is not None and dwell:
+        journeys = await _async_plan_trip_efa_with_dwell(
+            efa, origin, via, destination, dwell, departure_time, arrival_time
         )
     else:
-        params = (
-            f"outputFormat=rapidJSON"
-            f"&type_origin=any&name_origin={quote(origin_name, safe='')}"
-            f"&place_origin={quote(origin_place, safe='')}"
-            f"&type_destination=any&name_destination={quote(dest_name, safe='')}"
-            f"&place_destination={quote(dest_place, safe='')}"
-            f"&itdDate={date_str}&itdTime={time_str}"
-            f"&itdTripDateTimeDepArr={dep_arr_flag}"
-            f"&useRealtime=1"
+        journeys = await efa.plan(origin, destination, departure_time, arrival_time, via=via)
+    return _with_ids(journeys)
+
+
+class _EfaPoint:
+    """An EFA origin, destination or via: a stored id, or a name and place."""
+
+    def __init__(self, point_id: Optional[str], name: str, place: str) -> None:
+        self.id = point_id or ""
+        self.name = name or ""
+        self.place = place or ""
+
+    def params(self, usage: str) -> str:
+        if self.id:
+            return f"&type_{usage}={_efa_id_type(self.id)}&name_{usage}={quote(self.id, safe='')}"
+        return (
+            f"&type_{usage}=any&name_{usage}={quote(self.name, safe='')}" f"&place_{usage}={quote(self.place, safe='')}"
         )
 
-    url = f"{base_url}?{params}"
 
-    try:
-        async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:
-            if response.status in (401, 403):
-                raise AuthenticationError(provider, response.status)
-            if response.status != 200:
-                raise ApiError(provider, response.status)
+class _EfaTripRequest:
+    """One EFA XML_TRIP_REQUEST2 endpoint, with what parsing its answer needs."""
 
-            # content_type=None: VGN sends RapidJSON with a text/xml header (issue #79).
-            data = await response.json(content_type=None)
-    except asyncio.TimeoutError as e:
-        raise ApiTimeoutError(f"{provider}: trip planning timed out after 15s") from e
-    except aiohttp.ClientError as e:
-        raise ApiConnectionError(f"{provider}: trip planning connection failed ({e})") from e
+    def __init__(
+        self,
+        session: aiohttp.ClientSession,
+        provider: str,
+        base_url: str,
+        type_mapping: Dict[Any, str],
+        timezone_name: Optional[str],
+    ) -> None:
+        self.session = session
+        self.provider = provider
+        self.base_url = base_url
+        self.type_mapping = type_mapping
+        self.timezone_name = timezone_name
 
-    if not isinstance(data, dict):
-        raise ApiResponseError(f"{provider}: trip API returned {type(data).__name__} instead of an object")
+    async def plan(
+        self,
+        origin: _EfaPoint,
+        destination: _EfaPoint,
+        departure_time: Optional[datetime],
+        arrival_time: Optional[datetime],
+        via: Optional[_EfaPoint] = None,
+    ) -> List[Dict[str, Any]]:
+        """Plan one EFA trip request and return the parsed journeys."""
+        # EFA reads itdDate/itdTime as the network's local time, not Home Assistant's.
+        dep_arr_flag = "arr" if arrival_time is not None else "dep"
+        target = arrival_time or departure_time or dt_util.now()
+        if self.timezone_name:
+            target = target.astimezone(dt_util.get_time_zone(self.timezone_name) or target.tzinfo)
+        date_str = target.strftime("%Y%m%d")
+        time_str = target.strftime("%H%M")
 
-    return _with_ids(_parse_journeys(data.get("journeys", []), type_mapping))
+        params = (
+            "outputFormat=rapidJSON"
+            + origin.params("origin")
+            + destination.params("destination")
+            + (via.params("via") if via is not None else "")
+            + f"&itdDate={date_str}&itdTime={time_str}"
+            + f"&itdTripDateTimeDepArr={dep_arr_flag}"
+            + "&useRealtime=1"
+        )
+        url = f"{self.base_url}?{params}"
+        provider = self.provider
+
+        try:
+            async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:
+                if response.status in (401, 403):
+                    raise AuthenticationError(provider, response.status)
+                if response.status != 200:
+                    raise ApiError(provider, response.status)
+
+                # content_type=None: VGN sends RapidJSON with a text/xml header (issue #79).
+                data = await response.json(content_type=None)
+        except asyncio.TimeoutError as e:
+            raise ApiTimeoutError(f"{provider}: trip planning timed out after 15s") from e
+        except aiohttp.ClientError as e:
+            raise ApiConnectionError(f"{provider}: trip planning connection failed ({e})") from e
+
+        if not isinstance(data, dict):
+            raise ApiResponseError(f"{provider}: trip API returned {type(data).__name__} instead of an object")
+
+        return _parse_journeys(data.get("journeys", []), self.type_mapping)
+
+
+def _ts(journey: Dict[str, Any], key: str) -> Optional[datetime]:
+    value = journey.get(key)
+    return dt_util.parse_datetime(value) if isinstance(value, str) and value else None
+
+
+async def _async_plan_trip_efa_with_dwell(
+    efa: _EfaTripRequest,
+    origin: _EfaPoint,
+    via: _EfaPoint,
+    destination: _EfaPoint,
+    dwell: int,
+    departure_time: Optional[datetime],
+    arrival_time: Optional[datetime],
+) -> List[Dict[str, Any]]:
+    """Plan origin → via → destination with at least ``dwell`` minutes at the via.
+
+    EFA documents ``dwellTime_via`` but none of the servers tried honours it
+    (issue #110), so the stay is built from two requests: the first half, then
+    the second half from the via, timed by the first. Arriving by a set time
+    runs the other way round: the second half is planned against the arrival,
+    the first half against the second's departure.
+    """
+    stay = timedelta(minutes=dwell)
+    if arrival_time is None:
+        first = await efa.plan(origin, via, departure_time, None)
+        arrivals = [t for t in (_ts(j, "arrival_timestamp") for j in first) if t]
+        if not arrivals:
+            return []
+        second = await efa.plan(via, destination, min(arrivals) + stay, None)
+        pairs = _pair_halves(first, second, stay, forward=True)
+    else:
+        second = await efa.plan(via, destination, None, arrival_time)
+        departures = [t for t in (_ts(j, "departure_timestamp") for j in second) if t]
+        if not departures:
+            return []
+        first = await efa.plan(origin, via, None, max(departures) - stay)
+        pairs = _pair_halves(first, second, stay, forward=False)
+    return [_join_halves(a, b, via.name or (a.get("legs") or [{}])[-1].get("destination", "")) for a, b in pairs]
+
+
+def _pair_halves(
+    first: List[Dict[str, Any]], second: List[Dict[str, Any]], stay: timedelta, forward: bool
+) -> List[tuple[Dict[str, Any], Dict[str, Any]]]:
+    """Match each first half with a second half that leaves at least ``stay`` later.
+
+    Going forward, every first half takes the earliest second half it can make,
+    and when several first halves land on the same one only the latest of them
+    is kept — the others would just wait longer for the same train. Arriving by
+    a time, every second half takes the latest first half that reaches it.
+    """
+    pairs: Dict[int, tuple[Dict[str, Any], Dict[str, Any]]] = {}
+    if forward:
+        seconds = sorted(
+            (j for j in second if _ts(j, "departure_timestamp")), key=lambda j: _ts(j, "departure_timestamp")
+        )
+        for a in first:
+            arrive = _ts(a, "arrival_timestamp")
+            if not arrive:
+                continue
+            match = next((b for b in seconds if _ts(b, "departure_timestamp") >= arrive + stay), None)
+            if match is None:
+                continue
+            key = id(match)
+            if key not in pairs or _ts(pairs[key][0], "departure_timestamp") < _ts(a, "departure_timestamp"):
+                pairs[key] = (a, match)
+    else:
+        firsts = sorted((j for j in first if _ts(j, "arrival_timestamp")), key=lambda j: _ts(j, "arrival_timestamp"))
+        for b in second:
+            leave = _ts(b, "departure_timestamp")
+            if not leave:
+                continue
+            match = next((a for a in reversed(firsts) if _ts(a, "arrival_timestamp") + stay <= leave), None)
+            if match is None:
+                continue
+            key = id(match)
+            if key not in pairs or _ts(pairs[key][1], "arrival_timestamp") > _ts(b, "arrival_timestamp"):
+                pairs[key] = (match, b)
+    return sorted(pairs.values(), key=lambda p: _ts(p[0], "departure_timestamp"))
+
+
+_RISK_ORDER = {"low": 0, "medium": 1, "high": 2, "missed": 3}
+
+
+def _join_halves(first: Dict[str, Any], second: Dict[str, Any], via_name: str) -> Dict[str, Any]:
+    """One journey out of the two halves of a trip with a stay at the via."""
+    start = _ts(first, "departure_timestamp")
+    end = _ts(second, "arrival_timestamp")
+    stay_s = (_ts(second, "departure_timestamp") - _ts(first, "arrival_timestamp")).total_seconds()
+    legs = [dict(leg) for leg in first.get("legs", [])] + [dict(leg) for leg in second.get("legs", [])]
+    split = len(first.get("legs", []))
+    if split:
+        # The stay is planned, not a change to hurry for: mark it as such and
+        # keep it out of the transfer risk.
+        legs[split - 1]["transfer"] = legs[split - 1].get("transfer") or "via"
+        legs[split - 1]["transfer_minutes"] = int(stay_s // 60)
+        legs[split - 1]["via_stay"] = True
+    mins = [m for m in (first.get("min_transfer_time"), second.get("min_transfer_time")) if m is not None]
+    risk = max(
+        first.get("transfer_risk", "low"), second.get("transfer_risk", "low"), key=lambda r: _RISK_ORDER.get(r, 0)
+    )
+    return {
+        "departure": first.get("departure"),
+        "arrival": second.get("arrival"),
+        "departure_timestamp": first.get("departure_timestamp"),
+        "arrival_timestamp": second.get("arrival_timestamp"),
+        "duration_minutes": round((end - start).total_seconds() / 60) if start and end else 0,
+        # Changing at the via is a change of vehicle too.
+        "transfers": (first.get("transfers") or 0) + (second.get("transfers") or 0) + 1,
+        "connection_feasible": bool(first.get("connection_feasible", True) and second.get("connection_feasible", True)),
+        "transfer_risk": risk,
+        "min_transfer_time": min(mins) if mins else None,
+        "via": via_name,
+        "via_dwell_minutes": int(stay_s // 60),
+        "legs": legs,
+    }
 
 
 _GRAPHQL_PARENT = '{ stop(id: "%s") { parentStation { gtfsId } } }'
@@ -443,6 +681,8 @@ async def _async_plan_trip_otp2_graphql(
     departure_time: Optional[datetime],
     provider_instance,
     arrival_time: Optional[datetime] = None,
+    via_id: Optional[str] = None,
+    via_dwell_minutes: int = 0,
 ) -> Optional[List[Dict[str, Any]]]:
     """Plan a trip via the OTP2 planConnection query (self-hosted instances).
 
@@ -453,6 +693,11 @@ async def _async_plan_trip_otp2_graphql(
 
     ``arrival_time`` switches the query to "arrive by" mode and wins over
     ``departure_time`` when both are given.
+
+    ``via_id`` adds a visit via-location, ``via_dwell_minutes`` its
+    ``minimumWaitTime`` (issue #110). Via locations need a recent OTP 2.x; an
+    older server answers with a schema error, which is raised as
+    :class:`TripOptionNotSupportedError` rather than logged and lost.
     """
     # Compound stop IDs are pipe-separated — use the first platform ID
     from_id = origin_id.split("|")[0]
@@ -473,10 +718,17 @@ async def _async_plan_trip_otp2_graphql(
     elif departure_time is not None:
         dt_clause = 'dateTime: { earliestDeparture: "%s" }' % departure_time.isoformat()
 
+    via_clause = ""
+    if via_id:
+        via_stop = await _resolve_station_id(provider_instance, via_id.split("|")[0])
+        wait = f', minimumWaitTime: "PT{int(via_dwell_minutes)}M"' if via_dwell_minutes else ""
+        via_clause = 'via: [{ visit: { stopLocationIds: ["%s"]%s } }]' % (via_stop.replace('"', '\\"'), wait)
+
     query = _GRAPHQL_PLAN_CONNECTION % (
         from_id.replace('"', '\\"'),
         to_id.replace('"', '\\"'),
         dt_clause,
+        via_clause,
     )
     body = await provider_instance._graphql(query)
     if body is None:
@@ -484,6 +736,10 @@ async def _async_plan_trip_otp2_graphql(
 
     if body.get("errors"):
         _LOGGER.warning("OTP2 planConnection GraphQL errors: %s", body["errors"])
+        if via_clause and not ((body.get("data") or {}).get("planConnection")):
+            raise TripOptionNotSupportedError(
+                "otp_custom", "dwell" if via_dwell_minutes else "via", "this OTP server rejects via locations"
+            )
 
     edges = (((body.get("data") or {}).get("planConnection") or {}).get("edges")) or []
     if not edges:

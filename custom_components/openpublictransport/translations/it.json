@@ -114,6 +114,18 @@
           "entities": "ID entità (separati da virgole)"
         }
       },
+      "trip_via": {
+        "title": "Fermata intermedia (facoltativa)",
+        "description": "Percorso: {origin} → {destination}\nFacoltativo: una fermata da cui deve passare ogni collegamento e quanto tempo ci resti almeno. Lascia vuoto per un collegamento diretto.{status}",
+        "data": {
+          "via_search": "Cerca fermata intermedia",
+          "via_dwell_minutes": "Sosta alla fermata intermedia (minuti)"
+        },
+        "data_description": {
+          "via_search": "Formato: **Fermata, Città**. Vuoto = nessuna fermata intermedia.",
+          "via_dwell_minutes": "Resti almeno questo tempo alla fermata intermedia, ad es. 30 per fare la spesa. 0 = solo passaggio."
+        }
+      },
       "trip_settings": {
         "title": "Impostazioni viaggio",
         "description": "Percorso: {origin} → {destination}",
@@ -149,7 +161,9 @@
       "vbn_api_key_required": "È richiesta una chiave API VBN",
       "invalid_response": "Il fornitore ha restituito una risposta inutilizzabile. Riprova più tardi.",
       "unknown": "Errore imprevisto — controlla i log.",
-      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)"
+      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)",
+      "via_dwell_needs_via": "Una durata di sosta richiede una fermata intermedia",
+      "via_dwell_not_supported": "Questo fornitore non supporta una durata di sosta alla fermata intermedia"
     },
     "abort": {
       "reauth_successful": "API key updated successfully.",

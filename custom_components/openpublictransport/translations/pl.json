@@ -114,6 +114,18 @@
           "entities": "Identyfikatory encji (oddzielone przecinkami)"
         }
       },
+      "trip_via": {
+        "title": "Przystanek pośredni (opcjonalnie)",
+        "description": "Trasa: {origin} → {destination}\nOpcjonalnie: przystanek, przez który ma prowadzić każde połączenie, i jak długo co najmniej na nim zostajesz. Pozostaw puste dla połączenia bezpośredniego.{status}",
+        "data": {
+          "via_search": "Szukaj przystanku pośredniego",
+          "via_dwell_minutes": "Pobyt na przystanku pośrednim (minuty)"
+        },
+        "data_description": {
+          "via_search": "Format: **Przystanek, Miasto**. Puste = brak przystanku pośredniego.",
+          "via_dwell_minutes": "Zostajesz na przystanku pośrednim co najmniej tyle, np. 30 na zakupy. 0 = tylko przejazd."
+        }
+      },
       "trip_settings": {
         "title": "Ustawienia trasy",
         "description": "Trasa: {origin} → {destination}",
@@ -149,7 +161,9 @@
       "vbn_api_key_required": "Klucz API VBN jest wymagany",
       "invalid_response": "Dostawca zwrócił odpowiedź nie do użycia. Spróbuj ponownie później.",
       "unknown": "Nieoczekiwany błąd — sprawdź dziennik.",
-      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)"
+      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)",
+      "via_dwell_needs_via": "Czas pobytu wymaga przystanku pośredniego",
+      "via_dwell_not_supported": "Ten dostawca nie obsługuje czasu pobytu na przystanku pośrednim"
     },
     "abort": {
       "reauth_successful": "API key updated successfully.",

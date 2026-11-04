@@ -112,6 +112,18 @@
           "entities": "Entity-IDs (kommagetrennt)"
         }
       },
+      "trip_via": {
+        "title": "Zwischenhalt (optional)",
+        "description": "Route: {origin} → {destination}\nOptional: eine Haltestelle, über die jede Verbindung führen soll, und wie lange du dort mindestens bleibst. Leer lassen für eine direkte Verbindung.{status}",
+        "data": {
+          "via_search": "Zwischenhalt suchen",
+          "via_dwell_minutes": "Aufenthalt am Zwischenhalt (Minuten)"
+        },
+        "data_description": {
+          "via_search": "Format: **Haltestelle, Ort**. Leer = kein Zwischenhalt.",
+          "via_dwell_minutes": "Mindestens so lange bleibst du am Zwischenhalt, z.B. 30 für einen Einkauf. 0 = nur durchfahren."
+        }
+      },
       "trip_settings": {
         "title": "Verbindungseinstellungen",
         "description": "Route: {origin} → {destination}",
@@ -166,7 +178,9 @@
       "vbn_api_key_required": "VBN API-Schlüssel ist erforderlich",
       "invalid_response": "Der Anbieter hat eine unbrauchbare Antwort geliefert. Bitte versuche es später erneut.",
       "unknown": "Unerwarteter Fehler — bitte sieh ins Protokoll.",
-      "invalid_arrival_time": "Bitte gib eine gültige Uhrzeit im Format HH:MM an (z.B. 07:45)"
+      "invalid_arrival_time": "Bitte gib eine gültige Uhrzeit im Format HH:MM an (z.B. 07:45)",
+      "via_dwell_needs_via": "Eine Aufenthaltsdauer braucht einen Zwischenhalt",
+      "via_dwell_not_supported": "Dieser Anbieter unterstützt keine Aufenthaltsdauer am Zwischenhalt"
     },
     "abort": {
       "reauth_successful": "API-Schlüssel erfolgreich aktualisiert.",

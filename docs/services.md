@@ -148,6 +148,13 @@ Plan a route from origin to destination, returning connections with transfers an
 | `origin_city` | No | City of origin stop for more precise results |
 | `destination` | Yes | Destination stop name (e.g. `Hauptbahnhof`) |
 | `destination_city` | No | City of destination stop for more precise results |
+| `arrival_time` | No | Arrive by this time (`HH:MM`) instead of leaving now |
+| `via` | No | A stop every connection has to pass through (name) |
+| `via_city` | No | City of the via stop |
+| `via_id` | No | Stop ID of the via stop, as the stop search returns it (needed for HAFAS and OTP2) |
+| `via_dwell_minutes` | No | Minimum stay at the via stop in minutes; needs a via stop. See [Via Stop and Dwell Time](trip-planner.md#via-stop-and-dwell-time) |
+
+A provider without via support rejects `via` and `via_dwell_minutes` with an error instead of ignoring them.
 
 ### Examples
 

@@ -58,6 +58,36 @@ plan_trip:
       example: "07:45"
       selector:
         text:
+    via:
+      name: Via
+      description: "Optional stop every connection has to pass through (name). Supported by EFA, HAFAS mgate and OTP2 providers"
+      required: false
+      example: "Duisburg Hbf"
+      selector:
+        text:
+    via_city:
+      name: Via City
+      description: "City of the via stop"
+      required: false
+      example: "Duisburg"
+      selector:
+        text:
+    via_id:
+      name: Via Stop ID
+      description: "Stop ID of the via stop, as the provider's stop search returns it. Needed for HAFAS and OTP2"
+      required: false
+      selector:
+        text:
+    via_dwell_minutes:
+      name: Dwell Time at Via
+      description: "Minimum stay at the via stop in minutes. Needs a via stop; empty or 0 = pass through"
+      required: false
+      example: 30
+      selector:
+        number:
+          min: 0
+          max: 720
+          unit_of_measurement: min
 
 get_journeys:
   name: Get Journeys

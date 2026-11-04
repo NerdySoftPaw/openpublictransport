@@ -144,6 +144,9 @@ async def test_trip_select_destination_creates_trip_settings(hass: HomeAssistant
         result5 = await hass.config_entries.flow.async_configure(
             result4["flow_id"], user_input={"stop": "de:3"}
         )
+        # The via step is optional; empty means direct (issue #110)
+        assert result5["step_id"] == "trip_via"
+        result5 = await hass.config_entries.flow.async_configure(result5["flow_id"], user_input={})
         assert result5["step_id"] == "trip_settings"
 
 
@@ -168,6 +171,9 @@ async def test_trip_settings_creates_entry(hass: HomeAssistant):
             result2["flow_id"], user_input={"stop_search": "B"}
         )
 
+    # The via step is optional; empty means direct (issue #110)
+    assert result3["step_id"] == "trip_via"
+    result3 = await hass.config_entries.flow.async_configure(result3["flow_id"], user_input={})
     assert result3["step_id"] == "trip_settings"
 
     with patch.object(OpenPublicTransportConfigFlow, "_async_store_credential", new_callable=AsyncMock):

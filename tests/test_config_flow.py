@@ -472,6 +472,9 @@ async def test_trip_flow_happy_path(hass: HomeAssistant):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], user_input={"stop_search": "Hbf Köln"}
         )
+        # The via step is optional; empty means direct (issue #110)
+        assert result["step_id"] == "trip_via"
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input={})
         assert result["step_id"] == "trip_settings"
 
     # Mock both the first refresh (trip coordinator) and platform setup to avoid threads

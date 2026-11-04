@@ -295,6 +295,9 @@ async def test_trip_full_flow_creates_entry(hass: HomeAssistant):
 
     # Should now be at trip_settings
     assert result3["type"] == "form"
+    # The via step is optional; empty means direct (issue #110)
+    assert result3["step_id"] == "trip_via"
+    result3 = await hass.config_entries.flow.async_configure(result3["flow_id"], user_input={})
     assert result3["step_id"] == "trip_settings"
 
     # Complete trip settings

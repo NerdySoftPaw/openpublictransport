@@ -49,7 +49,7 @@ from .const import (
     SECONDARY_API_KEY_PROVIDERS,
 )
 from .sensor import PublicTransportDataUpdateCoordinator
-from .trip import async_plan_trip
+from .trip import TripOptionNotSupportedError, async_plan_trip
 from .trip_sensor import _next_arrival_datetime
 
 _LOGGER = logging.getLogger(__name__)
@@ -74,6 +74,11 @@ SERVICE_PLAN_TRIP_SCHEMA = vol.Schema(
         vol.Required("destination"): str,
         vol.Required("destination_city"): str,
         vol.Optional("arrival_time"): str,
+        # Optional via stop with a minimum stay there (issue #110)
+        vol.Optional("via"): str,
+        vol.Optional("via_city"): str,
+        vol.Optional("via_id"): str,
+        vol.Optional("via_dwell_minutes"): vol.All(vol.Coerce(int), vol.Range(min=0, max=720)),
     }
 )
 
@@ -272,7 +277,16 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
                 api_key=api_key,
                 custom_url=custom_url,
                 arrival_time=arrival_time,
+                via_id=call.data.get("via_id"),
+                via_name=call.data.get("via"),
+                via_place=call.data.get("via_city", ""),
+                via_dwell_minutes=call.data.get("via_dwell_minutes"),
             )
+        except TripOptionNotSupportedError as err:
+            # Said plainly rather than planned without it (issue #110).
+            raise ServiceValidationError(f"Trip planning for '{provider}': {err}") from err
+        except ValueError as err:
+            raise ServiceValidationError(f"Trip planning for '{provider}': {err}") from err
         except AuthenticationError as err:
             raise HomeAssistantError(f"Trip planning for '{provider}' failed: {err}") from err
         except ApiError as err:

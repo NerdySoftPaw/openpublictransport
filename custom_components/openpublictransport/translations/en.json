@@ -111,6 +111,18 @@
           "entities": "Entity IDs (comma-separated)"
         }
       },
+      "trip_via": {
+        "title": "Via stop (optional)",
+        "description": "Route: {origin} → {destination}\nOptional: a stop every connection has to pass through, and how long you stay there at least. Leave empty for a direct connection.{status}",
+        "data": {
+          "via_search": "Search via stop",
+          "via_dwell_minutes": "Stay at the via stop (minutes)"
+        },
+        "data_description": {
+          "via_search": "Format: **Stop, City**. Empty = no via stop.",
+          "via_dwell_minutes": "You stay at least this long at the via stop, e.g. 30 for some shopping. 0 = just pass through."
+        }
+      },
       "trip_settings": {
         "title": "Trip Settings",
         "description": "Route: {origin} → {destination}",
@@ -151,7 +163,9 @@
       "station_id_required": "Station ID is required",
       "invalid_response": "The provider returned an unusable response. Please try again later.",
       "unknown": "Unexpected error — please check the logs.",
-      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)"
+      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)",
+      "via_dwell_needs_via": "A dwell time needs a via stop",
+      "via_dwell_not_supported": "This provider does not support a dwell time at the via stop"
     }
   },
   "options": {

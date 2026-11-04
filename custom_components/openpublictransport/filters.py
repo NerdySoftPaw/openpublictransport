@@ -137,6 +137,19 @@ def trip_arrival_discriminator(source: Mapping[str, Any]) -> str:
     return hashlib.sha1(fingerprint.encode("utf-8")).hexdigest()[:8]
 
 
+def trip_via_discriminator(source: Mapping[str, Any]) -> str:
+    """Return a stable short id for a trip's via stop and stay, "" when direct.
+
+    Frozen into ``entry.data`` like the arrival discriminator: the entity's
+    unique ID builds on it (issue #110).
+    """
+    via_id = str(source.get("trip_via_id") or source.get("trip_via") or "").strip().casefold()
+    if not via_id:
+        return ""
+    fingerprint = f"via={via_id}|dwell={int(source.get('trip_via_dwell_minutes') or 0)}"
+    return hashlib.sha1(fingerprint.encode("utf-8"), usedforsecurity=False).hexdigest()[:8]
+
+
 def trip_arrival_label(source: Mapping[str, Any]) -> str:
     """Return a short human-readable form of the arrival config, "" when unset."""
     arrival_time_entity = str(source.get(CONF_ARRIVAL_TIME_ENTITY) or "").strip()

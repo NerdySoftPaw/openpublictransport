@@ -114,6 +114,18 @@
           "entities": "Entiteits-ID's (gescheiden door komma's)"
         }
       },
+      "trip_via": {
+        "title": "Tussenstop (optioneel)",
+        "description": "Route: {origin} → {destination}\nOptioneel: een halte waar elke verbinding langs moet, en hoe lang je daar minimaal blijft. Leeg laten voor een directe verbinding.{status}",
+        "data": {
+          "via_search": "Tussenstop zoeken",
+          "via_dwell_minutes": "Verblijf bij de tussenstop (minuten)"
+        },
+        "data_description": {
+          "via_search": "Formaat: **Halte, Plaats**. Leeg = geen tussenstop.",
+          "via_dwell_minutes": "Je blijft minstens zo lang bij de tussenstop, bijv. 30 om boodschappen te doen. 0 = alleen doorrijden."
+        }
+      },
       "trip_settings": {
         "title": "Reisinstellingen",
         "description": "Route: {origin} → {destination}",
@@ -149,7 +161,9 @@
       "vbn_api_key_required": "VBN API-sleutel is verplicht",
       "invalid_response": "De aanbieder gaf een onbruikbaar antwoord. Probeer het later opnieuw.",
       "unknown": "Onverwachte fout — controleer de logs.",
-      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)"
+      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)",
+      "via_dwell_needs_via": "Een verblijfsduur vereist een tussenstop",
+      "via_dwell_not_supported": "Deze aanbieder ondersteunt geen verblijfsduur bij de tussenstop"
     },
     "abort": {
       "reauth_successful": "API key updated successfully.",

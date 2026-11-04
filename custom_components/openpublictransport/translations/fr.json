@@ -114,6 +114,18 @@
           "entities": "Identifiants d'entités (séparés par des virgules)"
         }
       },
+      "trip_via": {
+        "title": "Arrêt intermédiaire (facultatif)",
+        "description": "Itinéraire : {origin} → {destination}\nFacultatif : un arrêt par lequel chaque correspondance doit passer, et combien de temps vous y restez au minimum. Laissez vide pour un trajet direct.{status}",
+        "data": {
+          "via_search": "Rechercher un arrêt intermédiaire",
+          "via_dwell_minutes": "Séjour à l'arrêt intermédiaire (minutes)"
+        },
+        "data_description": {
+          "via_search": "Format : **Arrêt, Ville**. Vide = pas d'arrêt intermédiaire.",
+          "via_dwell_minutes": "Vous restez au moins ce temps à l'arrêt intermédiaire, p. ex. 30 pour des courses. 0 = simplement passer."
+        }
+      },
       "trip_settings": {
         "title": "Paramètres du trajet",
         "description": "Itinéraire : {origin} → {destination}",
@@ -149,7 +161,9 @@
       "vbn_api_key_required": "Une clé API VBN est requise",
       "invalid_response": "Le fournisseur a renvoyé une réponse inexploitable. Veuillez réessayer plus tard.",
       "unknown": "Erreur inattendue — veuillez consulter les journaux.",
-      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)"
+      "invalid_arrival_time": "Please enter a valid time in HH:MM format (e.g. 07:45)",
+      "via_dwell_needs_via": "Une durée de séjour nécessite un arrêt intermédiaire",
+      "via_dwell_not_supported": "Ce fournisseur ne prend pas en charge une durée de séjour à l'arrêt intermédiaire"
     },
     "abort": {
       "reauth_successful": "API key updated successfully.",

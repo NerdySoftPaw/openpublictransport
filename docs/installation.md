@@ -1,27 +1,31 @@
 # Installation
 
-## HACS Installation (Recommended)
+## Marketplace Installation (Recommended)
 
-[HACS](https://hacs.xyz/) (Home Assistant Community Store) is the recommended installation method.
+Since Home Assistant 2026.11, HACS is built into Home Assistant as the **Marketplace**.
+It is the recommended installation method.
 
 ### Prerequisites
 
-- Home Assistant 2024.1 or newer
-- HACS installed and configured
+- Home Assistant 2026.3 or newer
 
 ### Steps
 
-1. Open HACS in Home Assistant
-2. Go to **Integrations**
-3. Search for **"OpenPublicTransport"** and click **Download**
-4. Restart Home Assistant
+1. Open **Settings** > **Marketplace**
+2. Search for **"OpenPublicTransport"** and click **Download**
+3. Restart Home Assistant
+
+!!! note "Home Assistant before 2026.11"
+    Use [HACS](https://hacs.xyz/) instead: open HACS, go to **Integrations**, search for
+    **"OpenPublicTransport"** and click **Download**. When you update to 2026.11, the
+    Marketplace takes over the HACS install automatically, including updates.
 
 !!! tip
     After installation, the integration will appear in your list of available integrations.
 
 ## Manual Installation
 
-If you prefer not to use HACS, you can install the integration manually.
+If you prefer not to use the Marketplace, you can install the integration manually.
 
 ### Steps
 
@@ -70,9 +74,10 @@ If the integration appears in the list, installation was successful.
 
 ## Updating
 
-### HACS Updates
+### Marketplace Updates
 
-HACS will notify you when updates are available. Simply click **Update** and restart Home Assistant.
+The Marketplace (or HACS on older versions) shows an update entity when a new release is out.
+Click **Update** and restart Home Assistant; a repair reminds you of the restart.
 
 ### Manual Updates
 

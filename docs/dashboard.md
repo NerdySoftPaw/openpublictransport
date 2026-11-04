@@ -4,17 +4,25 @@ This page provides various Lovelace dashboard examples for displaying departure 
 
 ## Custom Lovelace Card (Recommended)
 
-For the best experience, install the dedicated **[openpublictransport-card](https://github.com/NerdySoftPaw/openpublictransport-card)** via HACS.
+For the best experience, install the dedicated **[openpublictransport-card](https://github.com/NerdySoftPaw/openpublictransport-card)** from the Marketplace.
 
 ### Installation
 
-1. Open HACS in Home Assistant
-2. Go to **Frontend**
-3. Click the three dots in the top right and select **Custom repositories**
-4. Add the URL: `https://github.com/NerdySoftPaw/openpublictransport-card`
-5. Select **Lovelace** as category and click **Add**
-6. Search for "openpublictransport-card" and install it
-7. Restart Home Assistant (or clear browser cache)
+1. Open **Settings** > **Marketplace** (on Home Assistant before 2026.11: HACS > **Frontend**)
+2. Search for **"OpenPublicTransport Card"** and click **Download**
+3. Reload the browser
+
+The Marketplace adds the dashboard resource for you. If you manage resources in YAML, add it yourself:
+
+```yaml
+lovelace:
+  resources:
+    - url: /local/community/openpublictransport-card/openpublictransport-card.js
+      type: module
+```
+
+Old `/hacsfiles/openpublictransport-card/...` paths keep working, but Home Assistant raises a repair
+asking you to switch to `/local/community/`.
 
 ### Layouts
 

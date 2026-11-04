@@ -501,6 +501,16 @@ class MultiProviderSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
         """Return additional attributes, including all departures."""
         return self._attributes
 
+    def _last_fetched(self) -> Optional[str]:
+        """When the coordinator last got an answer from the provider.
+
+        Unlike ``last_updated``, which is stamped whenever the attributes are
+        rebuilt, this only moves on a real request, not when a rate-limited
+        poll hands back cached data (card#18).
+        """
+        fetched = self.coordinator.last_update_success_time
+        return fetched.isoformat() if fetched else None
+
     @property
     def available(self) -> bool:
         """Return if entity is available."""
@@ -645,6 +655,7 @@ class MultiProviderSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
                 "next_3_departures": [],
                 "station_name": station_name,
                 "last_updated": dt_util.utcnow().isoformat(),
+                "last_fetched": self._last_fetched(),
                 "next_departure_minutes": None,
                 "station_id": station_id,
                 "total_departures": 0,
@@ -729,6 +740,11 @@ class MultiProviderSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
 
             # Convert UnifiedDeparture to dict for attributes
             dep_dict = dep.to_dict()
+            # A full timestamp lets a dashboard count down between polls, which
+            # the minute count above cannot (card#17). Only an aware time is
+            # sent: a naive one would be read as UTC by a browser.
+            if dep_time_obj and dep_time_obj.tzinfo is not None:
+                dep_dict["departure_timestamp"] = dep_time_obj.isoformat()
             if self._favorite_lines and dep.line.lower() in self._favorite_lines:
                 dep_dict["is_favorite"] = True
             clean_departures.append(dep_dict)
@@ -751,6 +767,7 @@ class MultiProviderSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
             "next_3_departures": next_3_departures,
             "station_name": station_name,
             "last_updated": dt_util.utcnow().isoformat(),
+            "last_fetched": self._last_fetched(),
             "next_departure_minutes": next_minutes,
             "station_id": station_id,
             "total_departures": len(clean_departures),

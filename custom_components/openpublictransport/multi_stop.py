@@ -6,6 +6,7 @@ Provides a combined sensor and a departure board camera (see camera.py).
 """
 
 import logging
+from datetime import datetime
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
@@ -14,6 +15,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 
@@ -63,6 +65,25 @@ def merge_source_departures(hass: HomeAssistant, source_entities: list[str]) -> 
 
     all_departures.sort(key=lambda d: d.get("minutes_until_departure", 999))
     return all_departures
+
+
+def oldest_source_fetch(hass: HomeAssistant, source_entities: list[str]) -> str | None:
+    """Return the oldest ``last_fetched`` of the source sensors.
+
+    A combined board is only as fresh as its stalest stop, so that is the age
+    to show (card#18). If any source cannot say when it fetched (it is
+    missing, or an older version), there is no honest answer and None is
+    returned.
+    """
+    oldest: datetime | None = None
+    for entity_id in source_entities:
+        state = hass.states.get(entity_id)
+        fetched = dt_util.parse_datetime(str(state.attributes.get("last_fetched") or "")) if state else None
+        if fetched is None:
+            return None
+        if oldest is None or fetched < oldest:
+            oldest = fetched
+    return oldest.isoformat() if oldest else None
 
 
 async def async_setup_multi_stop_entry(
@@ -130,6 +151,7 @@ class MultiStopSensor(SensorEntity):
     def _update_from_sources(self) -> None:
         """Merge departures from all source entities."""
         self._departures = merge_source_departures(self.hass, self._source_entities)
+        self._last_fetched = oldest_source_fetch(self.hass, self._source_entities)
 
     @property
     def native_value(self) -> str | None:
@@ -150,6 +172,7 @@ class MultiStopSensor(SensorEntity):
             "source_entities": self._source_entities,
             "source_count": len(self._source_entities),
             "total_departures": len(self._departures),
+            "last_fetched": getattr(self, "_last_fetched", None),
             "next_departure_minutes": (
                 self._departures[0].get("minutes_until_departure") if self._departures else None
             ),

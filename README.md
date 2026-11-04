@@ -5,11 +5,11 @@
 [![GitHub Release][releases-shield]][releases]
 [![GitHub Activity][commits-shield]][commits]
 [![License][license-shield]](LICENSE)
-[![HACS][hacsbadge]][hacs]
+[![Marketplace][hacsbadge]][hacs]
 [![Documentation](https://img.shields.io/badge/docs-openpublictransport.net-blue.svg?style=for-the-badge)](https://docs.openpublictransport.net/)
 
 ![Project Maintenance][maintenance-shield]
-[![HACS Validation](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/hacs.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/hacs.yaml)
+[![Marketplace Validation](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/hacs.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/hacs.yaml)
 [![Code Quality](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/lint.yaml)
 [![Tests](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml/badge.svg)](https://github.com/NerdySoftPaw/openpublictransport/actions/workflows/tests.yaml)
 
@@ -115,11 +115,14 @@ Real-time public transport departures for Home Assistant — 59 providers across
 
 ## Quick Start
 
-### Install via HACS
+### Install via the Marketplace
 
-1. Open **HACS** → **Integrations**
+1. Open **Settings** → **Marketplace** (Home Assistant 2026.11 or newer)
 2. Search for **"OpenPublicTransport"** and click **Download**
 3. Restart Home Assistant
+
+On Home Assistant before 2026.11, the same steps work in **HACS** → **Integrations**.
+The Marketplace takes over existing HACS installs automatically.
 
 ### Configure
 
@@ -150,7 +153,7 @@ Calendar, event, camera, and punctuality entities are **disabled by default** to
 
 ## Dashboard Card
 
-Install the [openpublictransport-card](https://github.com/NerdySoftPaw/openpublictransport-card) via HACS for the best experience:
+Install the [openpublictransport-card](https://github.com/NerdySoftPaw/openpublictransport-card) from the Marketplace for the best experience:
 
 ```yaml
 type: custom:openpublictransport-card
@@ -264,6 +267,6 @@ MIT License
 [commits]: https://github.com/NerdySoftPaw/openpublictransport/commits/main
 [license-shield]: https://img.shields.io/github/license/NerdySoftPaw/openpublictransport.svg?style=for-the-badge
 [maintenance-shield]: https://img.shields.io/badge/maintainer-NerdySoftPaw-blue.svg?style=for-the-badge
-[hacsbadge]: https://img.shields.io/badge/HACS-Default-blue.svg?style=for-the-badge
-[hacs]: https://github.com/hacs/integration
+[hacsbadge]: https://img.shields.io/badge/Marketplace-Default-blue.svg?style=for-the-badge
+[hacs]: https://my.home-assistant.io/redirect/hacs_repository/?owner=NerdySoftPaw&repository=openpublictransport&category=integration
 [logo]: brand/logo.png

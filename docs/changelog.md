@@ -1,5 +1,21 @@
 # Changelog
 
+## v2026.11.0 — Ready for the Home Assistant Marketplace
+
+### New
+
+- **Home Assistant Marketplace** ([#111](https://github.com/NerdySoftPaw/openpublictransport/pull/111)) —
+  since Home Assistant 2026.11, HACS is built in as the Marketplace. The integration installs and
+  updates from **Settings → Marketplace**, and existing HACS installs carry over automatically. The
+  manifest now declares the category `vehicles_transport.public_transport`, and the docs describe the new way to install.
+- **`departure_timestamp` on every departure** ([card#17](https://github.com/NerdySoftPaw/openpublictransport-card/issues/17), thanks @deZeus89) —
+  a full ISO timestamp, so dashboards can count down between polls instead of showing the
+  minute count from the last poll. The departure card 1.11.0 uses it.
+- **`last_fetched`** ([card#18](https://github.com/NerdySoftPaw/openpublictransport-card/issues/18), thanks @deZeus89) —
+  departure, trip and multi-stop sensors say when the provider last answered successfully
+  (a multi-stop sensor reports its oldest stop). Unlike `last_updated`, it does not move when a rate-limited
+  poll reuses cached data. The card 1.11.0 shows it as "Fetched 20 seconds ago".
+
 ## v2026.10.5 — Routine notices are no longer shown as disruptions
 
 ### Fixes

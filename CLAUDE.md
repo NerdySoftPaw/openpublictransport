@@ -82,6 +82,8 @@ The test framework is `pytest-homeassistant-custom-component`. Fixtures are in
 `tests/conftest.py`. The `auto_enable_custom_integrations` autouse fixture is required.
 
 Minimum HA version: `2026.3.0` (declared in `hacs.json`).
+Distribution: the HA Marketplace (HACS built into core since 2026.11) reads the same `hacs.json`;
+the HACS action stays the validator. Manifest `categories` feeds the Marketplace catalog.
 Test matrix: Python 3.13, 3.14.
 
 ---

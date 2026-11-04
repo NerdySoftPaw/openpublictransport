@@ -616,6 +616,9 @@ class TripSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
             "origin": f"{self.coordinator.origin}, {self.coordinator.origin_city}",
             "destination": f"{self.coordinator.destination}, {self.coordinator.destination_city}",
         }
+        # The time of the last real answer from the provider (card#18).
+        if self.coordinator.last_update_success_time is not None:
+            attrs["last_fetched"] = self.coordinator.last_update_success_time.isoformat()
         if self.coordinator.last_target_arrival is not None:
             attrs["target_arrival_time"] = self.coordinator.last_target_arrival.isoformat()
         if self.coordinator.arrival_time_entity:

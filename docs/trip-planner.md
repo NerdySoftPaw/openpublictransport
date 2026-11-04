@@ -108,6 +108,7 @@ The sensor will appear as `sensor.openpublictransport_trip_<origin>_to_<destinat
 {
   "origin": "Holthausen, Dusseldorf",
   "destination": "Hauptbahnhof, Dusseldorf",
+  "id": "7c2e90d41b5a",
   "departure": "08:15",
   "arrival": "08:42",
   "departure_timestamp": "2026-04-09T08:15:00+02:00",

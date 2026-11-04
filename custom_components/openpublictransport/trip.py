@@ -272,7 +272,8 @@ def _journey_id(legs: List[Dict[str, Any]]) -> str:
     material = ";".join(
         f"{leg.get('line', '')}|{leg.get('origin', '')}|{leg.get('departure_planned', '')}" for leg in legs
     )
-    return hashlib.sha1(material.encode("utf-8")).hexdigest()[:12]
+    # A name, not a secret: SHA-1 is only a short, stable digest here.
+    return hashlib.sha1(material.encode("utf-8"), usedforsecurity=False).hexdigest()[:12]
 
 
 def _with_ids(journeys: Optional[List[Dict[str, Any]]]) -> Optional[List[Dict[str, Any]]]:

@@ -410,9 +410,9 @@ def test_trip_sensor_extra_attributes_multiple_journeys(hass: HomeAssistant):
     """Test extra_state_attributes includes next_journeys for alternatives."""
     coordinator = _make_trip_coordinator(hass)
     coordinator.data = [
-        {"departure": "10:00", "arrival": "11:30", "duration_minutes": 90, "transfers": 1, "legs": []},
-        {"departure": "10:15", "arrival": "11:45", "duration_minutes": 90, "transfers": 0},
-        {"departure": "10:30", "arrival": "12:00", "duration_minutes": 90, "transfers": 2},
+        {"id": "aaaaaaaaaaaa", "departure": "10:00", "arrival": "11:30", "duration_minutes": 90, "transfers": 1, "legs": []},
+        {"id": "bbbbbbbbbbbb", "departure": "10:15", "arrival": "11:45", "duration_minutes": 90, "transfers": 0},
+        {"id": "cccccccccccc", "departure": "10:30", "arrival": "12:00", "duration_minutes": 90, "transfers": 2},
     ]
     entry = _make_trip_entry()
     sensor = TripSensor(coordinator, entry)
@@ -421,6 +421,9 @@ def test_trip_sensor_extra_attributes_multiple_journeys(hass: HomeAssistant):
     assert attrs["alternative_journeys"] == 2
     assert "next_journeys" in attrs
     assert len(attrs["next_journeys"]) == 2
+    # The shown connection and every alternative carry their id.
+    assert attrs["id"] == "aaaaaaaaaaaa"
+    assert [j["id"] for j in attrs["next_journeys"]] == ["bbbbbbbbbbbb", "cccccccccccc"]
 
 
 def test_trip_sensor_exposes_countdown_and_timestamps(hass: HomeAssistant):

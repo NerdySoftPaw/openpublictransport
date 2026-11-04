@@ -601,6 +601,9 @@ class TripSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
 
         best = journeys[0]
         attrs = {
+            # The same name the alternatives carry, so a caller can refer to
+            # the connection the sensor is showing as well (see `_journey_id`).
+            "id": best.get("id"),
             "departure": best.get("departure"),
             "arrival": best.get("arrival"),
             "departure_timestamp": best.get("departure_timestamp"),

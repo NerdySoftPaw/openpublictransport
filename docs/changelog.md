@@ -1,5 +1,19 @@
 # Changelog
 
+## v2026.11.1 — Every connection of a trip, in full
+
+### New
+
+- **`openpublictransport.get_journeys` action** ([#113](https://github.com/NerdySoftPaw/openpublictransport/pull/113), thanks @remuslazar) —
+  returns every connection a trip sensor is currently holding, each with its legs. The
+  sensor's attributes only summarise the alternatives. The action reads the data that is already
+  fetched, so it makes no extra request to the provider and adds nothing to the recorder. Call it
+  with a response variable; a departure board or a foreign entity is rejected.
+- **A journey `id`** — every connection, the shown one and each entry in `next_journeys`,
+  carries a short id derived from its legs' lines, stops and *planned* departures, so it stays
+  the same while a delay changes. This is what lets the departure card 1.12.0 open an alternative
+  connection in a dialog.
+
 ## v2026.11.0 — Ready for the Home Assistant Marketplace
 
 ### New
